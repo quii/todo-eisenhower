@@ -1,0 +1,225 @@
+# CLAUDE.md - Project Conventions & Architecture
+
+## Overview
+A Go TUI application for visualizing todo.txt files as an Eisenhower matrix using Charm's Bubble Tea framework.
+
+## Architecture Philosophy
+
+### Domain-Driven Design (DDD)
+We organize code around three bounded contexts:
+
+1. **Todo Domain** (`domain/todo/`)
+   - Todo entity and business rules
+   - Priority, completion state, todo.txt format concerns
+   - No knowledge of matrices or UI
+
+2. **Matrix Domain** (`domain/matrix/`)
+   - Eisenhower matrix logic (quadrant categorization)
+   - Depends on Todo domain
+   - No knowledge of UI or file formats
+
+3. **Parser Domain** (`domain/parser/`)
+   - todo.txt file format parsing/serialization
+   - Converts between file format and Todo entities
+   - No business logic
+
+### Use Cases (`usecases/`)
+- Orchestrate domain objects to fulfill application requirements
+- Example: `LoadTodoMatrix` use case coordinates Parser and Matrix domains
+- Keep use cases thin - domain objects do the heavy lifting
+- **Use cases are the application's API** - this is the boundary main.go calls
+
+### The main.go Stability Rule
+- **main.go should be stable and rarely change**
+- main.go is just wiring - it calls use cases and sets up infrastructure
+- If you find yourself changing main.go for new features, it's a smell
+- Business logic changes should manifest as changes to use cases, not main
+- Main should only change when:
+  - Adding fundamentally new commands or modes
+  - Changing infrastructure concerns (CLI flags, logging setup)
+  - Fundamental architectural shifts
+
+**Example:**
+```go
+// Good: main.go stays stable across stories
+func main() {
+    filePath := getFilePath() // might change for CLI args
+    matrix, err := usecases.LoadMatrix(filePath)
+    // ... run UI
+}
+
+// Story 001: usecases.LoadMatrix() returns hard-coded todos
+// Story 002: usecases.LoadMatrix() reads from file
+// Story 003: usecases.LoadMatrix() accepts parameter
+// main.go doesn't need to change - the use case evolves
+```
+
+### Adapters (`adapters/`)
+- **UI Adapter** (`adapters/ui/`): Bubble Tea components and views
+- **File Adapter** (`adapters/file/`): File system operations
+- Dependencies point inward toward domain/use cases (Dependency Inversion)
+
+## Testing Conventions
+
+### Test-Driven Development (TDD)
+- Write tests first, always
+- Red → Green → Refactor cycle
+- Tests document expected behavior
+
+### Black-Box Testing
+- All tests use `_test` packages (e.g., `package todo_test`)
+- Tests interact with public API only, as a consumer would
+- Forces good API design
+- Example: `domain/todo/todo_test.go` has `package todo_test`
+
+### Test Organization
+```
+domain/todo/
+  todo.go           // implementation
+  todo_test.go      // package todo_test
+  export_test.go    // package todo - exports internals for testing if needed
+```
+
+### Testing Bubble Tea Components
+- Separate **presentation logic** from **view rendering**
+- Test presentation logic in black-box tests
+- Bubble Tea's `Update()` and `View()` should be thin adapters
+- Example: Extract matrix layout logic into testable functions
+
+### Test Coverage
+- Focus on behavior, not implementation details
+- Don't test framework code (e.g., Bubble Tea internals)
+- Test edge cases and error conditions
+- Use table-driven tests for multiple scenarios
+
+## Code Organization
+
+```
+.
+├── domain/
+│   ├── todo/          # Todo entities and business rules
+│   ├── matrix/        # Eisenhower matrix logic
+│   └── parser/        # todo.txt format handling
+├── usecases/          # Application use cases
+├── adapters/
+│   ├── ui/            # Bubble Tea TUI components
+│   └── file/          # File system operations
+├── cmd/
+│   └── eisenhower/    # Main entry point
+└── CLAUDE.md          # This file
+```
+
+## Linting & Code Quality
+
+### golangci-lint Configuration
+- Use `.golangci.yml` in project root
+- Enable linters: `gofmt`, `goimports`, `govet`, `staticcheck`, `errcheck`, `gosimple`, `ineffassign`
+- Consider: `revive`, `unparam`, `unused`, `gocritic`
+- Run before committing: `golangci-lint run`
+
+### Code Style
+- Follow standard Go conventions
+- Use `gofmt` and `goimports`
+- Avoid naked returns
+- Handle errors explicitly, no `_` discards without reason
+- Prefer small, focused functions
+
+## Bubble Tea / Lipgloss Guidelines
+
+### Learning Approach
+- Bubble Tea follows Elm architecture: Model → Update → View
+- Start with simple models, iterate
+- Lipgloss handles styling (colors, borders, layout)
+
+### Testing Strategy
+- **Model**: Pure data structure (easy to test)
+- **Update**: Pure function `Update(msg) (Model, Cmd)` (test with different messages)
+- **View**: String rendering (test formatting functions separately)
+
+### Separation of Concerns
+- Keep Bubble Tea code in `adapters/ui/`
+- Don't let `tea.Model` leak into domain or use cases
+- Adapter translates between domain types and UI messages
+
+## Development Workflow
+
+### Planning Work: Small Vertical Slices
+- Work in **very small vertical slices** - the smallest shippable increment
+- Each slice should take one focused session to complete
+- Before implementing, ask clarifying questions to understand requirements
+- Use **Gherkin** (Given/When/Then) to document and communicate requirements
+- Store stories in `stories/` directory
+
+**Example of breaking down work:**
+- ❌ Too large: "Load and display todos from file with custom path"
+- ✅ Better approach:
+  1. Story 001: Display matrix with hard-coded in-memory todos
+  2. Story 002: Load todos from hard-coded file path
+  3. Story 003: Accept file path as command-line argument
+
+**Why start with hard-coded data?**
+- Establishes the full application stack (TUI, domain, architecture)
+- Proves the Bubble Tea rendering works
+- Creates foundation for incremental enhancement
+- Each step adds exactly one new capability
+- Always have a working, demonstrable application
+
+### Trunk-Based Development
+- Work directly on `main` branch (no feature branches, no pull requests)
+- Each commit must be releasable
+- Commit frequently with working, tested code
+- Never commit broken code or failing tests
+- Use feature flags or incomplete-but-safe code if needed
+- Each push should pass all tests and linting
+
+**Commit discipline:**
+- Small commits (one logical change)
+- Each commit leaves the codebase in a working state
+- Write clear commit messages explaining the "why"
+- Run tests and linter before every commit
+
+### TDD Cycle
+1. **Review story** - understand acceptance criteria (Gherkin scenarios)
+2. **Write failing test** (black-box, `_test` package)
+3. **Run test** - confirm it fails for the right reason
+4. **Write minimal code** to pass the test
+5. **Run linter** - `golangci-lint run`
+6. **Refactor** - improve design while tests pass
+7. **Verify acceptance criteria** - ensure story scenarios pass
+8. **Commit** - working, tested code
+
+## Dependencies
+
+- **Bubble Tea**: TUI framework (`github.com/charmbracelet/bubbletea`)
+- **Lipgloss**: Styling library (`github.com/charmbracelet/lipgloss`)
+- Consider: `github.com/charmbracelet/bubbles` for reusable components
+
+## Incremental Development
+
+- Build features iteratively
+- Start with simplest version (e.g., view-only before editing)
+- Each iteration should be shippable
+- Refactor toward extensibility as patterns emerge
+
+## Common Pitfalls to Avoid
+
+- ❌ Testing implementation details instead of behavior
+- ❌ Coupling domain logic to UI framework
+- ❌ Fat use cases with business logic (push to domain)
+- ❌ Skipping tests "just this once"
+- ❌ Mocking excessively - prefer real objects in tests
+
+## Naming Conventions
+
+- **Domains**: Singular noun (`todo`, not `todos`)
+- **Use Cases**: Verb phrase (`LoadTodoMatrix`, `ParseTodoFile`)
+- **Tests**: `Test<FunctionName>` or `Test<Scenario>`
+- **Interfaces**: `-er` suffix when appropriate (`Parser`, `Loader`)
+
+## Questions & Clarifications
+
+When uncertain:
+- Default to simpler solution
+- Add complexity only when needed
+- Consult Go proverbs and standard library for idiomatic patterns
+- Remember: "A little copying is better than a little dependency"
