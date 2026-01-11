@@ -5,7 +5,22 @@ A Go TUI application for visualizing todo.txt files as an Eisenhower matrix usin
 
 ## Architecture Philosophy
 
-### Domain-Driven Design (DDD)
+### Domain-Driven Design (DDD) with Ports & Adapters
+We follow Hexagonal Architecture (Ports and Adapters), which is a key part of DDD. The domain is at the center, with ports (interfaces) defining how to interact with the outside world, and adapters implementing those ports.
+
+**Ports**: Interfaces the domain/use cases need (e.g., `TodoSource.GetTodos()`)
+**Adapters**: Concrete implementations (e.g., file system, HTTP, database, UI frameworks)
+
+**When to create adapters:**
+- ✅ When you have a port (interface) and need to implement it
+  - Example: `TodoSource` port → `file.Source` adapter wraps `os.Open()`
+- ❌ When you're just wrapping stdlib with no abstraction
+  - Bad: Creating a wrapper around `os.Open()` that returns `io.ReadCloser` with no interface
+- ✅ When stdlib already implements the port you need
+  - Example: Parser works with `io.Reader` - `os.Open()` already provides this, no adapter needed
+
+**The nuance**: If you have a port (interface), create an adapter to implement it, even if it's a thin wrapper. If you don't have a port, don't wrap unnecessarily.
+
 We organize code around three bounded contexts:
 
 1. **Todo Domain** (`domain/todo/`)
@@ -21,7 +36,8 @@ We organize code around three bounded contexts:
 3. **Parser Domain** (`domain/parser/`)
    - todo.txt file format parsing/serialization
    - Converts between file format and Todo entities
-   - No business logic
+   - Works with `io.Reader` - not coupled to files or any specific input source
+   - No business logic, no I/O concerns
 
 ### Use Cases (`usecases/`)
 - Orchestrate domain objects to fulfill application requirements
@@ -56,8 +72,9 @@ func main() {
 
 ### Adapters (`adapters/`)
 - **UI Adapter** (`adapters/ui/`): Bubble Tea components and views
-- **File Adapter** (`adapters/file/`): File system operations
+- **File Adapter** (`adapters/file/`): Implements `TodoSource` port using filesystem
 - Dependencies point inward toward domain/use cases (Dependency Inversion)
+- Adapters implement ports defined in use cases/domain
 
 ## Testing Conventions
 
@@ -86,6 +103,26 @@ domain/todo/
 - Bubble Tea's `Update()` and `View()` should be thin adapters
 - Example: Extract matrix layout logic into testable functions
 
+### Acceptance Testing
+- Create acceptance tests in `acceptance/` that map to Gherkin scenarios
+- Test use cases with stub implementations (e.g., `StubTodoSource`)
+- Use `strings.NewReader` or `bytes.Buffer` instead of real filesystem
+- Each test should clearly reference its Gherkin scenario
+- Acceptance tests verify stories work end-to-end at the business logic level
+- We accept some risk with UI (Bubble Tea) for now, but use case tests give confidence
+
+**Example:**
+```go
+// acceptance/story_002_test.go
+func TestStory002_LoadFromHardcodedPath(t *testing.T) {
+    t.Run("Scenario: Load todos from hardcoded file path", func(t *testing.T) {
+        source := StubTodoSource{data: "(A) Task\n"}
+        m, err := usecases.LoadMatrix(source)
+        // assertions...
+    })
+}
+```
+
 ### Test Coverage
 - Focus on behavior, not implementation details
 - Don't test framework code (e.g., Bubble Tea internals)
@@ -100,12 +137,13 @@ domain/todo/
 │   ├── todo/          # Todo entities and business rules
 │   ├── matrix/        # Eisenhower matrix logic
 │   └── parser/        # todo.txt format handling
-├── usecases/          # Application use cases
+├── usecases/          # Application use cases (define ports)
 ├── adapters/
-│   ├── ui/            # Bubble Tea TUI components
-│   └── file/          # File system operations
+│   ├── file/          # File system adapter (implements TodoSource port)
+│   └── ui/            # Bubble Tea TUI components
+├── acceptance/        # Acceptance tests mapping to Gherkin scenarios
 ├── cmd/
-│   └── eisenhower/    # Main entry point
+│   └── eisenhower/    # Main entry point (wires up adapters)
 └── CLAUDE.md          # This file
 ```
 

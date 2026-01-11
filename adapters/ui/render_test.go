@@ -60,6 +60,24 @@ func TestRenderMatrix(t *testing.T) {
 		assertContains(t, output, "Second urgent task")
 		assertContains(t, output, "Third urgent task")
 	})
+
+	t.Run("renders completed todos with visual distinction", func(t *testing.T) {
+		todos := []todo.Todo{
+			todo.New("Active task", todo.PriorityA),
+			todo.NewCompleted("Completed task", todo.PriorityA),
+		}
+		m := matrix.New(todos)
+
+		output := ui.RenderMatrix(m)
+
+		// Both should appear in output
+		assertContains(t, output, "Active task")
+		assertContains(t, output, "Completed task")
+
+		// Completed should have strikethrough or different marker
+		// We'll use "✓" prefix for completed tasks
+		assertContains(t, output, "✓")
+	})
 }
 
 func assertContains(t *testing.T, output, expected string) {

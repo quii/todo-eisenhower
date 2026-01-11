@@ -47,7 +47,11 @@ func renderQuadrant(title string, todos []todo.Todo) string {
 		content.WriteString(todoStyle.Render("(empty)"))
 	} else {
 		for _, t := range todos {
-			content.WriteString(todoStyle.Render("• " + t.Description()))
+			prefix := "• "
+			if t.IsCompleted() {
+				prefix = "✓ "
+			}
+			content.WriteString(todoStyle.Render(prefix + t.Description()))
 			content.WriteString("\n")
 		}
 	}

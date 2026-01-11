@@ -27,6 +27,15 @@ func New(description string, priority Priority) Todo {
 	}
 }
 
+// NewCompleted creates a new completed Todo with the given description and priority
+func NewCompleted(description string, priority Priority) Todo {
+	return Todo{
+		description: description,
+		priority:    priority,
+		completed:   true,
+	}
+}
+
 // Description returns the todo's description
 func (t Todo) Description() string {
 	return t.description
