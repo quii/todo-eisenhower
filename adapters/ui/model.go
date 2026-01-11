@@ -7,13 +7,15 @@ import (
 
 // Model represents the Bubble Tea model for the Eisenhower matrix UI
 type Model struct {
-	matrix matrix.Matrix
+	matrix   matrix.Matrix
+	filePath string
 }
 
-// NewModel creates a new UI model with the given matrix
-func NewModel(m matrix.Matrix) Model {
+// NewModel creates a new UI model with the given matrix and file path
+func NewModel(m matrix.Matrix, filePath string) Model {
 	return Model{
-		matrix: m,
+		matrix:   m,
+		filePath: filePath,
 	}
 }
 
@@ -36,5 +38,5 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the model (required by tea.Model interface)
 func (m Model) View() string {
-	return RenderMatrix(m.matrix)
+	return RenderMatrix(m.matrix, m.filePath)
 }

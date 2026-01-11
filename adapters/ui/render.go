@@ -23,8 +23,17 @@ var (
 			Foreground(lipgloss.Color("7"))
 )
 
-// RenderMatrix renders the Eisenhower matrix as a string
-func RenderMatrix(m matrix.Matrix) string {
+// RenderMatrix renders the Eisenhower matrix as a string with optional file path header
+func RenderMatrix(m matrix.Matrix, filePath string) string {
+	var output strings.Builder
+
+	// Render header if file path provided
+	if filePath != "" {
+		header := titleStyle.Render("File: " + filePath)
+		output.WriteString(header)
+		output.WriteString("\n\n")
+	}
+
 	doFirst := renderQuadrant("DO FIRST", m.DoFirst())
 	schedule := renderQuadrant("SCHEDULE", m.Schedule())
 	delegate := renderQuadrant("DELEGATE", m.Delegate())
@@ -34,7 +43,10 @@ func RenderMatrix(m matrix.Matrix) string {
 	topRow := lipgloss.JoinHorizontal(lipgloss.Top, doFirst, schedule)
 	bottomRow := lipgloss.JoinHorizontal(lipgloss.Top, delegate, eliminate)
 
-	return lipgloss.JoinVertical(lipgloss.Left, topRow, bottomRow)
+	matrixView := lipgloss.JoinVertical(lipgloss.Left, topRow, bottomRow)
+	output.WriteString(matrixView)
+
+	return output.String()
 }
 
 func renderQuadrant(title string, todos []todo.Todo) string {
