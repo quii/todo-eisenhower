@@ -1,0 +1,13 @@
+(A) Fix critical bug in authentication +WebApp @computer
+(A) Deploy new feature to production +WebApp +DevOps @terminal
+(A) Review security audit results +Security @office
+(B) Plan quarterly goals +Work +Q1Goals @office @computer
+(B) Write technical documentation +WebApp @computer
+(B) Schedule team meeting @phone
+(C) Reply to client emails @computer @phone
+(C) Update project status +Work @office
+(D) Organize workspace @office
+(D) Clean up old files +PersonalProject
+No priority task without tags
+Research new library +OpenSource for @github integration
+x (A) 2026-01-11 Completed urgent task +WebApp @computer
