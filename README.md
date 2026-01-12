@@ -5,26 +5,26 @@ A beautiful, fullscreen terminal-based Eisenhower matrix viewer for [todo.txt](h
 ## What's an Eisenhower Matrix?
 
 The Eisenhower Matrix helps prioritize tasks by organizing them into four quadrants:
-- 🔥 **DO FIRST** (Q1): Urgent & Important - Priority A tasks
-- 📅 **SCHEDULE** (Q2): Important, Not Urgent - Priority B tasks
-- 👥 **DELEGATE** (Q3): Urgent, Not Important - Priority C tasks
-- 🗑️  **ELIMINATE** (Q4): Neither Urgent nor Important - Priority D and untagged tasks
+- **DO FIRST** (Q1): Urgent & Important - Priority A tasks
+- **SCHEDULE** (Q2): Important, Not Urgent - Priority B tasks
+- **DELEGATE** (Q3): Urgent, Not Important - Priority C tasks
+- **ELIMINATE** (Q4): Neither Urgent nor Important - Priority D and untagged tasks
 
 ## Features
 
-✨ **Fullscreen TUI** - Alt-screen mode that takes over your terminal, just like modern CLI tools
+**Fullscreen TUI** - Alt-screen mode that takes over your terminal, just like modern CLI tools
 
-📏 **Responsive Layout** - Automatically adapts to your terminal size, showing more todos in larger windows
+**Responsive Layout** - Automatically adapts to your terminal size, showing more todos in larger windows
 
-🎨 **Colorized Tags** - Project (+tag) and context (@tag) tags are colorized consistently throughout
+**Colorized Tags** - Project (+tag) and context (@tag) tags are colorized consistently throughout
 
-🎯 **todo.txt Format** - Full support for the todo.txt specification including:
+**todo.txt Format** - Full support for the todo.txt specification including:
 - Priority markers: `(A)`, `(B)`, `(C)`, `(D)`
 - Completion markers: `x` with date
 - Project tags: `+ProjectName`
 - Context tags: `@context`
 
-💅 **Beautiful Styling** - Color-coded quadrants, emoji indicators, and polished UI with [Lipgloss](https://github.com/charmbracelet/lipgloss)
+**Beautiful Styling** - Color-coded quadrants and polished UI with [Lipgloss](https://github.com/charmbracelet/lipgloss)
 
 ## Installation
 
