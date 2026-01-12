@@ -141,10 +141,14 @@ See [CLAUDE.md](./CLAUDE.md) for detailed development conventions and architectu
 - [x] **Story 004**: Parse and render todo.txt project (+tag) and context (@tag) tags with colors
 - [x] **Story 005**: Fullscreen TUI with alt-screen mode
 - [x] **Story 006**: Responsive matrix sizing that adapts to terminal dimensions
+- [x] **Story 007**: Quadrant focus mode (press 1/2/3/4 to focus, ESC to return)
+- [x] **Story 008**: Add todos with tag reference (press 'a' in focus mode)
 
 ### Future Ideas 🚀
-- Interactive navigation between quadrants
+- Tag autocomplete when adding todos
 - Todo editing capabilities
+- Mark todos as complete
+- Delete todos
 - Filtering by project or context
 - Search functionality
 - Due dates support
