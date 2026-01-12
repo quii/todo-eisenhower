@@ -84,11 +84,11 @@ func TestStory007_FocusOnDoFirst(t *testing.T) {
 	}
 
 	// Should show help text
-	if !strings.Contains(view, "Press ESC for overview") {
-		t.Error("expected focused view to contain help text about ESC")
+	if !strings.Contains(view, "Press 1/2/3/4 to focus on a quadrant") {
+		t.Error("expected focused view to contain help text about focusing")
 	}
-	if !strings.Contains(view, "Press 2/3/4 for other quadrants") {
-		t.Error("expected focused view to contain help text about other quadrants")
+	if !strings.Contains(view, "Press ESC to return") {
+		t.Error("expected focused view to contain help text about ESC")
 	}
 
 	// Should NOT show other quadrant titles
@@ -231,9 +231,13 @@ func TestStory007_ReturnToOverviewWithESC(t *testing.T) {
 		t.Error("overview should contain ELIMINATE")
 	}
 
-	// Should NOT show focus mode help text
-	if strings.Contains(overviewView, "Press ESC for overview") {
-		t.Error("overview should not show focus mode help text")
+	// Should show overview help text (without ESC)
+	if !strings.Contains(overviewView, "Press 1/2/3/4 to focus on a quadrant") {
+		t.Error("overview should show help text")
+	}
+	// Should NOT show ESC instruction in overview
+	if strings.Contains(overviewView, "Press ESC to return") {
+		t.Error("overview should not show ESC instruction")
 	}
 }
 
@@ -318,7 +322,7 @@ func TestStory007_EmptyQuadrantInFocusMode(t *testing.T) {
 		t.Error("should show '(no tasks)' for empty quadrant")
 	}
 
-	if !strings.Contains(view, "Press ESC for overview") {
+	if !strings.Contains(view, "Press 1/2/3/4 to focus on a quadrant") {
 		t.Error("should show help text even for empty quadrant")
 	}
 }

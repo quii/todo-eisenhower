@@ -76,15 +76,6 @@ func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeigh
 		output.WriteString("\n\n")
 	}
 
-	// Add axis label
-	urgentLabel := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("#FF6B6B")).
-		Render("← URGENT →")
-
-	output.WriteString(lipgloss.Place(quadrantWidth*2+3, 1, lipgloss.Center, lipgloss.Top, urgentLabel))
-	output.WriteString("\n")
-
 	// Render quadrant contents
 	doFirst := renderQuadrantContent("DO FIRST", urgentImportantColor, m.DoFirst(), quadrantWidth, quadrantHeight, displayLimit)
 	schedule := renderQuadrantContent("SCHEDULE", importantColor, m.Schedule(), quadrantWidth, quadrantHeight, displayLimit)
@@ -121,6 +112,14 @@ func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeigh
 	// Wrap entire matrix in border
 	matrix := matrixBorder.Render(matrixContent)
 	output.WriteString(matrix)
+	output.WriteString("\n\n")
+
+	// Add help text
+	helpText := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#666666")).
+		Italic(true).
+		Render("Press 1/2/3/4 to focus on a quadrant")
+	output.WriteString(helpText)
 
 	return output.String()
 }
@@ -129,9 +128,13 @@ func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeigh
 func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color, filePath string, terminalWidth, terminalHeight int) string {
 	var output strings.Builder
 
-	// Render file path header
+	// Render file path header with full width and center alignment
 	if filePath != "" {
-		header := headerStyle.Render("File: " + filePath)
+		header := headerStyle.
+			Copy().
+			Width(terminalWidth).
+			Align(lipgloss.Center).
+			Render("File: " + filePath)
 		output.WriteString(header)
 		output.WriteString("\n\n")
 	}
@@ -189,7 +192,7 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 		Italic(true).
 		Align(lipgloss.Center).
 		Width(terminalWidth).
-		Render("Press ESC for overview • Press 2/3/4 for other quadrants")
+		Render("Press 1/2/3/4 to focus on a quadrant • Press ESC to return")
 	output.WriteString(helpText)
 
 	return output.String()
@@ -204,11 +207,10 @@ func calculateQuadrantDimensions(terminalWidth, terminalHeight int) (width, heig
 
 	// Reserve space for:
 	// - File header: 3 lines
-	// - Urgent label: 2 lines
 	// - Matrix border: 2 lines (top + bottom)
 	// - Horizontal divider: 1 line
 	// - Margins: 4 lines for spacing
-	reservedHeight := 12
+	reservedHeight := 10
 
 	availableHeight := terminalHeight - reservedHeight
 	if availableHeight < minQuadrantHeight*2 {

@@ -38,11 +38,11 @@ func TestStory006_MatrixFillsAvailableSpace(t *testing.T) {
 	view := updatedModel.View()
 
 	// With a 120x40 terminal, we should be able to display more than the default 7 todos
-	// Calculate expected: 40 - 12 (reserved) = 28, / 2 = 14 lines per quadrant
-	// 14 - 3 (title, spacing, footer) = 11 todos displayable
-	// We have 15 todos, so should see "... and 4 more"
-	if !strings.Contains(view, "... and 4 more") {
-		t.Errorf("expected to see '... and 4 more' with larger terminal")
+	// Calculate expected: 40 - 10 (reserved) = 30, / 2 = 15 lines per quadrant
+	// 15 - 3 (title, spacing, footer) = 12 todos displayable
+	// We have 15 todos, so should see "... and 3 more"
+	if !strings.Contains(view, "... and 3 more") {
+		t.Errorf("expected to see '... and 3 more' with larger terminal")
 	}
 
 	// Verify matrix content is present
@@ -74,11 +74,11 @@ func TestStory006_MatrixAdjustsToDifferentSizes(t *testing.T) {
 
 	view := updatedModel.View()
 
-	// With 200x60: 60 - 12 = 48, / 2 = 24 lines per quadrant
-	// 24 - 3 = 21 todos displayable
-	// We have 30, so should see "... and 9 more"
-	if !strings.Contains(view, "... and 9 more") {
-		t.Errorf("expected to see '... and 9 more' with very large terminal")
+	// With 200x60: 60 - 10 = 50, / 2 = 25 lines per quadrant
+	// 25 - 3 = 22 todos displayable
+	// We have 30, so should see "... and 8 more"
+	if !strings.Contains(view, "... and 8 more") {
+		t.Errorf("expected to see '... and 8 more' with very large terminal")
 	}
 }
 
@@ -132,14 +132,14 @@ func TestStory006_DisplayLimitScalesWithHeight(t *testing.T) {
 		{
 			name:            "small terminal shows fewer todos",
 			terminalHeight:  30,
-			expectedTodos:   6, // (30-12)/2 = 9, 9-3 = 6 todos
-			expectedMessage: "... and 14 more",
+			expectedTodos:   7, // (30-10)/2 = 10, 10-3 = 7 todos
+			expectedMessage: "... and 13 more",
 		},
 		{
 			name:            "large terminal shows more todos",
 			terminalHeight:  50,
-			expectedTodos:   16, // (50-12)/2 = 19, 19-3 = 16 todos
-			expectedMessage: "... and 4 more",
+			expectedTodos:   17, // (50-10)/2 = 20, 20-3 = 17 todos
+			expectedMessage: "... and 3 more",
 		},
 	}
 

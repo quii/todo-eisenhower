@@ -115,7 +115,10 @@ func (m Model) View() string {
 		if m.width > 0 && m.height > 0 {
 			return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, content)
 		}
+
+		return content
 	}
 
+	// Focus mode content is already full-width and properly aligned
 	return content
 }
