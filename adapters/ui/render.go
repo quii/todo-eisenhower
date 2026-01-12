@@ -71,7 +71,7 @@ func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeigh
 
 	// Render header if file path provided
 	if filePath != "" {
-		header := headerStyle.Render("📄 File: " + filePath)
+		header := headerStyle.Render("File: " + filePath)
 		output.WriteString(header)
 		output.WriteString("\n\n")
 	}
@@ -86,10 +86,10 @@ func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeigh
 	output.WriteString("\n")
 
 	// Render quadrant contents
-	doFirst := renderQuadrantContent("🔥 DO FIRST", urgentImportantColor, m.DoFirst(), quadrantWidth, quadrantHeight, displayLimit)
-	schedule := renderQuadrantContent("📅 SCHEDULE", importantColor, m.Schedule(), quadrantWidth, quadrantHeight, displayLimit)
-	delegate := renderQuadrantContent("👥 DELEGATE", urgentColor, m.Delegate(), quadrantWidth, quadrantHeight, displayLimit)
-	eliminate := renderQuadrantContent("🗑️  ELIMINATE", neitherColor, m.Eliminate(), quadrantWidth, quadrantHeight, displayLimit)
+	doFirst := renderQuadrantContent("DO FIRST", urgentImportantColor, m.DoFirst(), quadrantWidth, quadrantHeight, displayLimit)
+	schedule := renderQuadrantContent("SCHEDULE", importantColor, m.Schedule(), quadrantWidth, quadrantHeight, displayLimit)
+	delegate := renderQuadrantContent("DELEGATE", urgentColor, m.Delegate(), quadrantWidth, quadrantHeight, displayLimit)
+	eliminate := renderQuadrantContent("ELIMINATE", neitherColor, m.Eliminate(), quadrantWidth, quadrantHeight, displayLimit)
 
 	// Create vertical divider that spans quadrant height
 	verticalDivider := createVerticalDivider(quadrantHeight)
@@ -121,6 +121,76 @@ func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeigh
 	// Wrap entire matrix in border
 	matrix := matrixBorder.Render(matrixContent)
 	output.WriteString(matrix)
+
+	return output.String()
+}
+
+// RenderFocusedQuadrant renders a single quadrant in fullscreen focus mode
+func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color, filePath string, terminalWidth, terminalHeight int) string {
+	var output strings.Builder
+
+	// Render file path header
+	if filePath != "" {
+		header := headerStyle.Render("File: " + filePath)
+		output.WriteString(header)
+		output.WriteString("\n\n")
+	}
+
+	// Calculate display limit for focus mode
+	// Reserve: header (3), title (2), help text (2), margins (2) = 9 lines
+	displayLimit := terminalHeight - 9
+	if displayLimit < 5 {
+		displayLimit = 5
+	}
+
+	// Render prominent quadrant title
+	focusTitle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(color).
+		Underline(true).
+		Align(lipgloss.Center).
+		Width(terminalWidth).
+		Render(title)
+	output.WriteString(focusTitle)
+	output.WriteString("\n\n")
+
+	// Render todos
+	var lines []string
+	if len(todos) == 0 {
+		lines = append(lines, emptyStyle.Render("(no tasks)"))
+	} else {
+		for i, t := range todos {
+			if i >= displayLimit {
+				remaining := len(todos) - displayLimit
+				lines = append(lines, emptyStyle.Render(fmt.Sprintf("... and %d more", remaining)))
+				break
+			}
+
+			// Colorize tags in description
+			description := colorizeDescription(t.Description())
+
+			var todoLine string
+			if t.IsCompleted() {
+				todoLine = completedTodoStyle.Render("✓ ") + description
+			} else {
+				todoLine = activeTodoStyle.Render("• ") + description
+			}
+			lines = append(lines, todoLine)
+		}
+	}
+
+	todosContent := strings.Join(lines, "\n")
+	output.WriteString(todosContent)
+	output.WriteString("\n\n")
+
+	// Render help text at bottom
+	helpText := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#666666")).
+		Italic(true).
+		Align(lipgloss.Center).
+		Width(terminalWidth).
+		Render("Press ESC for overview • Press 2/3/4 for other quadrants")
+	output.WriteString(helpText)
 
 	return output.String()
 }
