@@ -44,7 +44,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the model (required by tea.Model interface)
 func (m Model) View() string {
-	content := RenderMatrix(m.matrix, m.filePath)
+	// Pass terminal dimensions to RenderMatrix for responsive sizing
+	content := RenderMatrix(m.matrix, m.filePath, m.width, m.height)
 
 	// Center the content in the terminal if we have dimensions
 	if m.width > 0 && m.height > 0 {

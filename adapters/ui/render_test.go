@@ -19,7 +19,7 @@ func TestRenderMatrix(t *testing.T) {
 		}
 		m := matrix.New(todos)
 
-		output := ui.RenderMatrix(m, "")
+		output := ui.RenderMatrix(m, "", 0, 0)
 
 		// Check that quadrant labels are present
 		assertContains(t, output, "DO FIRST")
@@ -37,7 +37,7 @@ func TestRenderMatrix(t *testing.T) {
 	t.Run("renders matrix with empty quadrants", func(t *testing.T) {
 		m := matrix.New([]todo.Todo{})
 
-		output := ui.RenderMatrix(m, "")
+		output := ui.RenderMatrix(m, "", 0, 0)
 
 		// Labels should still be present
 		assertContains(t, output, "DO FIRST")
@@ -54,7 +54,7 @@ func TestRenderMatrix(t *testing.T) {
 		}
 		m := matrix.New(todos)
 
-		output := ui.RenderMatrix(m, "")
+		output := ui.RenderMatrix(m, "", 0, 0)
 
 		assertContains(t, output, "First urgent task")
 		assertContains(t, output, "Second urgent task")
@@ -68,7 +68,7 @@ func TestRenderMatrix(t *testing.T) {
 		}
 		m := matrix.New(todos)
 
-		output := ui.RenderMatrix(m, "")
+		output := ui.RenderMatrix(m, "", 0, 0)
 
 		// Both should appear in output
 		assertContains(t, output, "Active task")
@@ -83,7 +83,7 @@ func TestRenderMatrix(t *testing.T) {
 		m := matrix.New([]todo.Todo{})
 		filePath := "/Users/chris/projects/todo.txt"
 
-		output := ui.RenderMatrix(m, filePath)
+		output := ui.RenderMatrix(m, filePath, 0, 0)
 
 		assertContains(t, output, "File:")
 		assertContains(t, output, filePath)
