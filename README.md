@@ -30,20 +30,26 @@ The Eisenhower Matrix helps prioritize tasks by organizing them into four quadra
 
 ### Download Pre-built Binary (Recommended)
 
-Download the latest release for your platform from the [Releases page](https://github.com/yourusername/todo-eisenhower/releases):
+Pre-built binaries are automatically built on every push to main. Download the latest build:
 
-- **Linux (x64)**: `eisenhower-linux-amd64`
-- **Linux (ARM64)**: `eisenhower-linux-arm64`
-- **macOS (Intel)**: `eisenhower-darwin-amd64`
-- **macOS (Apple Silicon)**: `eisenhower-darwin-arm64`
-- **Windows (x64)**: `eisenhower-windows-amd64.exe`
+1. Go to the [Actions tab](https://github.com/yourusername/todo-eisenhower/actions)
+2. Click on the most recent "CI" workflow run (green checkmark)
+3. Scroll down to "Artifacts" section
+4. Download the binary for your platform:
+   - **Linux (x64)**: `eisenhower-linux-amd64`
+   - **Linux (ARM64)**: `eisenhower-linux-arm64`
+   - **macOS (Intel)**: `eisenhower-darwin-amd64`
+   - **macOS (Apple Silicon)**: `eisenhower-darwin-arm64`
+   - **Windows (x64)**: `eisenhower-windows-amd64.exe`
 
 ```bash
-# Example: Download and install on macOS/Linux
-curl -L -o eisenhower https://github.com/yourusername/todo-eisenhower/releases/latest/download/eisenhower-darwin-arm64
-chmod +x eisenhower
-sudo mv eisenhower /usr/local/bin/
+# After downloading, make it executable and move to PATH (macOS/Linux)
+unzip eisenhower-darwin-arm64.zip  # GitHub wraps artifacts in zip
+chmod +x eisenhower-darwin-arm64
+sudo mv eisenhower-darwin-arm64 /usr/local/bin/eisenhower
 ```
+
+Artifacts are kept for 90 days. For tagged releases, see the [Releases page](https://github.com/yourusername/todo-eisenhower/releases).
 
 ### Build from Source
 
