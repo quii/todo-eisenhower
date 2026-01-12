@@ -28,6 +28,27 @@ The Eisenhower Matrix helps prioritize tasks by organizing them into four quadra
 
 ## Installation
 
+### Download Pre-built Binary (Recommended)
+
+Download the latest release for your platform from the [Releases page](https://github.com/yourusername/todo-eisenhower/releases):
+
+- **Linux (x64)**: `eisenhower-linux-amd64`
+- **Linux (ARM64)**: `eisenhower-linux-arm64`
+- **macOS (Intel)**: `eisenhower-darwin-amd64`
+- **macOS (Apple Silicon)**: `eisenhower-darwin-arm64`
+- **Windows (x64)**: `eisenhower-windows-amd64.exe`
+
+```bash
+# Example: Download and install on macOS/Linux
+curl -L -o eisenhower https://github.com/yourusername/todo-eisenhower/releases/latest/download/eisenhower-darwin-arm64
+chmod +x eisenhower
+sudo mv eisenhower /usr/local/bin/
+```
+
+### Build from Source
+
+Requires [Go 1.21+](https://golang.org/dl/)
+
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/todo-eisenhower.git
