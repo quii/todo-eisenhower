@@ -54,3 +54,18 @@ func (m Matrix) Delegate() []todo.Todo {
 func (m Matrix) Eliminate() []todo.Todo {
 	return m.eliminate
 }
+
+// AddTodo adds a todo to the appropriate quadrant based on its priority
+func (m Matrix) AddTodo(t todo.Todo) Matrix {
+	switch t.Priority() {
+	case todo.PriorityA:
+		m.doFirst = append(m.doFirst, t)
+	case todo.PriorityB:
+		m.schedule = append(m.schedule, t)
+	case todo.PriorityC:
+		m.delegate = append(m.delegate, t)
+	case todo.PriorityD, todo.PriorityNone:
+		m.eliminate = append(m.eliminate, t)
+	}
+	return m
+}

@@ -115,10 +115,7 @@ func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeigh
 	output.WriteString("\n\n")
 
 	// Add help text
-	helpText := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#666666")).
-		Italic(true).
-		Render("Press 1/2/3/4 to focus on a quadrant")
+	helpText := renderHelp("Press 1/2/3/4 to focus on a quadrant")
 	output.WriteString(helpText)
 
 	return output.String()
@@ -187,13 +184,12 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 	output.WriteString("\n\n")
 
 	// Render help text at bottom
-	helpText := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#666666")).
-		Italic(true).
+	helpText := renderHelp("Press a to add a task", "Press 1/2/3/4 to focus on a quadrant", "Press ESC to return")
+	centeredHelp := lipgloss.NewStyle().
 		Align(lipgloss.Center).
 		Width(terminalWidth).
-		Render("Press 1/2/3/4 to focus on a quadrant • Press ESC to return")
-	output.WriteString(helpText)
+		Render(helpText)
+	output.WriteString(centeredHelp)
 
 	return output.String()
 }

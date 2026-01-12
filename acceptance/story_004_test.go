@@ -219,9 +219,10 @@ func TestStory004_ConsistentColorForSameTag(t *testing.T) {
 	// The UI layer will apply the same color to both instances of +WebApp
 }
 
-// StubTodoSource for testing - implements usecases.TodoSource
+// StubTodoSource for testing - implements usecases.TodoSource and usecases.TodoWriter
 type StubTodoSource struct {
 	reader io.Reader
+	writer io.Writer
 	err    error
 }
 
@@ -230,6 +231,14 @@ func (s *StubTodoSource) GetTodos() (io.ReadCloser, error) {
 		return nil, s.err
 	}
 	return io.NopCloser(s.reader), nil
+}
+
+func (s *StubTodoSource) SaveTodo(line string) error {
+	if s.writer == nil {
+		return nil
+	}
+	_, err := s.writer.Write([]byte(line))
+	return err
 }
 
 // Integration test: Load matrix from realistic todo.txt with mixed tags

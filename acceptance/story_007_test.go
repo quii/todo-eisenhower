@@ -84,6 +84,9 @@ func TestStory007_FocusOnDoFirst(t *testing.T) {
 	}
 
 	// Should show help text
+	if !strings.Contains(view, "Press a to add a task") {
+		t.Error("expected focused view to contain help text about adding tasks")
+	}
 	if !strings.Contains(view, "Press 1/2/3/4 to focus on a quadrant") {
 		t.Error("expected focused view to contain help text about focusing")
 	}
