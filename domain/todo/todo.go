@@ -16,6 +16,8 @@ type Todo struct {
 	description string
 	priority    Priority
 	completed   bool
+	projects    []string
+	contexts    []string
 }
 
 // New creates a new Todo with the given description and priority
@@ -24,6 +26,8 @@ func New(description string, priority Priority) Todo {
 		description: description,
 		priority:    priority,
 		completed:   false,
+		projects:    []string{},
+		contexts:    []string{},
 	}
 }
 
@@ -33,6 +37,25 @@ func NewCompleted(description string, priority Priority) Todo {
 		description: description,
 		priority:    priority,
 		completed:   true,
+		projects:    []string{},
+		contexts:    []string{},
+	}
+}
+
+// NewWithTags creates a new Todo with projects and contexts
+func NewWithTags(description string, priority Priority, projects, contexts []string) Todo {
+	if projects == nil {
+		projects = []string{}
+	}
+	if contexts == nil {
+		contexts = []string{}
+	}
+	return Todo{
+		description: description,
+		priority:    priority,
+		completed:   false,
+		projects:    projects,
+		contexts:    contexts,
 	}
 }
 
@@ -49,4 +72,14 @@ func (t Todo) Priority() Priority {
 // IsCompleted returns whether the todo is completed
 func (t Todo) IsCompleted() bool {
 	return t.completed
+}
+
+// Projects returns the todo's project tags
+func (t Todo) Projects() []string {
+	return t.projects
+}
+
+// Contexts returns the todo's context tags
+func (t Todo) Contexts() []string {
+	return t.contexts
 }

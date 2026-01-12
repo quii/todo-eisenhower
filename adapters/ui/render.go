@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -12,6 +13,11 @@ import (
 const (
 	quadrantWidth  = 40
 	quadrantHeight = 10
+)
+
+var (
+	projectTagPattern = regexp.MustCompile(`\+(\w+)`)
+	contextTagPattern = regexp.MustCompile(`@(\w+)`)
 )
 
 var (
@@ -121,6 +127,30 @@ func createVerticalDivider(height int) string {
 	return dividerStyle.Render(strings.TrimSuffix(divider.String(), "\n"))
 }
 
+// colorizeDescription replaces project and context tags with colored versions
+func colorizeDescription(description string) string {
+	// Colorize project tags (+tag) with bold styling
+	description = projectTagPattern.ReplaceAllStringFunc(description, func(match string) string {
+		tag := match[1:] // Remove the + prefix
+		color := HashColor(tag)
+		style := lipgloss.NewStyle().
+			Foreground(color).
+			Bold(true)
+		return style.Render(match)
+	})
+
+	// Colorize context tags (@tag) with normal styling but colored
+	description = contextTagPattern.ReplaceAllStringFunc(description, func(match string) string {
+		tag := match[1:] // Remove the @ prefix
+		color := HashColor(tag)
+		style := lipgloss.NewStyle().
+			Foreground(color)
+		return style.Render(match)
+	})
+
+	return description
+}
+
 // renderQuadrantContent renders just the content of a quadrant (no border)
 func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo) string {
 	var lines []string
@@ -145,11 +175,14 @@ func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo
 				break
 			}
 
+			// Colorize tags in description
+			description := colorizeDescription(t.Description())
+
 			var todoLine string
 			if t.IsCompleted() {
-				todoLine = completedTodoStyle.Render("✓ " + t.Description())
+				todoLine = completedTodoStyle.Render("✓ ") + description
 			} else {
-				todoLine = activeTodoStyle.Render("• " + t.Description())
+				todoLine = activeTodoStyle.Render("• ") + description
 			}
 			lines = append(lines, todoLine)
 		}

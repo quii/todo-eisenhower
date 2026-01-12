@@ -13,6 +13,8 @@ var (
 	completedPrefix = regexp.MustCompile(`^x\s+`)
 	priorityPattern = regexp.MustCompile(`^\(([A-D])\)\s+`)
 	datePattern     = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}\s+`)
+	projectPattern  = regexp.MustCompile(`\+(\w+)`)
+	contextPattern  = regexp.MustCompile(`@(\w+)`)
 )
 
 // Parse reads todo.txt format from an io.Reader and returns a slice of Todos
@@ -64,10 +66,33 @@ func parseLine(line string) todo.Todo {
 
 	description = strings.TrimSpace(description)
 
+	// Extract projects and contexts
+	projects := extractTags(description, projectPattern)
+	contexts := extractTags(description, contextPattern)
+
+	// Create todo with tags (completed or not)
 	if completed {
+		// Note: NewCompleted doesn't support tags yet - limitation for completed todos with tags
 		return todo.NewCompleted(description, priority)
 	}
+
+	if len(projects) > 0 || len(contexts) > 0 {
+		return todo.NewWithTags(description, priority, projects, contexts)
+	}
+
 	return todo.New(description, priority)
+}
+
+// extractTags extracts all matching tags using the given pattern
+func extractTags(text string, pattern *regexp.Regexp) []string {
+	matches := pattern.FindAllStringSubmatch(text, -1)
+	tags := make([]string, 0, len(matches))
+	for _, match := range matches {
+		if len(match) > 1 {
+			tags = append(tags, match[1])
+		}
+	}
+	return tags
 }
 
 func parsePriority(p string) todo.Priority {
