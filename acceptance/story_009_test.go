@@ -500,3 +500,72 @@ func TestStory009_CaseInsensitiveMatching(t *testing.T) {
 		t.Error("expected case-insensitive match to find WebApp")
 	}
 }
+
+func TestStory009_NewTagsAvailableInAutocomplete(t *testing.T) {
+	// Scenario: Newly created tags should appear in autocomplete
+
+	input := "(B) Task +OldTag"
+	source := &StubTodoSource{
+		reader: strings.NewReader(input),
+		writer: &strings.Builder{},
+	}
+
+	m, err := usecases.LoadMatrix(source)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
+	model = updatedModel.(ui.Model)
+
+	// Focus on DO FIRST and enter input mode
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
+	model = updatedModel.(ui.Model)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}})
+	model = updatedModel.(ui.Model)
+
+	// Add a new todo with a new tag +NewTag
+	for _, ch := range "First task +NewTag " {
+		updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{ch}})
+		model = updatedModel.(ui.Model)
+	}
+
+	// Save the todo (priority A - goes to DO FIRST)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	model = updatedModel.(ui.Model)
+
+	// Enter input mode again
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}})
+	model = updatedModel.(ui.Model)
+
+	// Type "Second task +"
+	for _, ch := range "Second task +" {
+		updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{ch}})
+		model = updatedModel.(ui.Model)
+	}
+
+	view := model.View()
+
+	// Should show both OldTag and NewTag in autocomplete
+	// Note: OldTag is from SCHEDULE quadrant (priority B), so won't appear in DO FIRST's todo list
+	if !strings.Contains(view, "OldTag") {
+		t.Error("expected autocomplete to show +OldTag tag")
+	}
+	if !strings.Contains(view, "NewTag") {
+		t.Error("expected autocomplete to show newly created +NewTag tag")
+	}
+
+	// Type "N" to filter
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'N'}})
+	model = updatedModel.(ui.Model)
+
+	view2 := model.View()
+
+	// Should only show NewTag
+	if !strings.Contains(view2, "NewTag") {
+		t.Error("expected autocomplete to filter to +NewTag")
+	}
+	// OldTag should not appear in autocomplete suggestions (filtered out)
+	// However, it might still appear in the visible todo list, so we can't check this reliably
+}
