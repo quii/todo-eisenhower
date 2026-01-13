@@ -144,6 +144,7 @@ See [CLAUDE.md](./CLAUDE.md) for detailed development conventions and architectu
 - [x] **Story 007**: Quadrant focus mode (press 1/2/3/4 to focus, ESC to return)
 - [x] **Story 008**: Add todos with tag reference (press 'a' in focus mode)
 - [x] **Story 009**: Tag autocomplete with + and @ triggers (arrow keys to navigate, Tab/Enter to complete)
+- [x] **Story 010**: Tag inventory display showing counts by tag (sorted by count, overview mode only)
 
 ### Future Ideas 🚀
 - Todo editing capabilities
