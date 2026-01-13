@@ -172,9 +172,17 @@ func (m Model) saveTodo() Model {
 	// Determine priority from current quadrant
 	priority := m.currentQuadrantPriority()
 
-	// Parse tags from description (they're already in the description)
-	// Create the todo
-	t := todo.New(description, priority)
+	// Parse tags from description
+	projects := extractTagsFromDescription(description, `\+(\w+)`)
+	contexts := extractTagsFromDescription(description, `@(\w+)`)
+
+	// Create the todo with tags
+	var t todo.Todo
+	if len(projects) > 0 || len(contexts) > 0 {
+		t = todo.NewWithTags(description, priority, projects, contexts)
+	} else {
+		t = todo.New(description, priority)
+	}
 
 	// Save to file if writer is set
 	if m.writer != nil {
