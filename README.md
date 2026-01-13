@@ -143,9 +143,9 @@ See [CLAUDE.md](./CLAUDE.md) for detailed development conventions and architectu
 - [x] **Story 006**: Responsive matrix sizing that adapts to terminal dimensions
 - [x] **Story 007**: Quadrant focus mode (press 1/2/3/4 to focus, ESC to return)
 - [x] **Story 008**: Add todos with tag reference (press 'a' in focus mode)
+- [x] **Story 009**: Tag autocomplete with + and @ triggers (arrow keys to navigate, Tab/Enter to complete)
 
 ### Future Ideas 🚀
-- Tag autocomplete when adding todos
 - Todo editing capabilities
 - Mark todos as complete
 - Delete todos
