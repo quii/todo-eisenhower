@@ -31,3 +31,8 @@ func (s Source) SaveTodo(line string) error {
 	_, err = f.WriteString(line)
 	return err
 }
+
+// ReplaceAll replaces the entire file content
+func (s Source) ReplaceAll(content string) error {
+	return os.WriteFile(s.path, []byte(content), 0644)
+}

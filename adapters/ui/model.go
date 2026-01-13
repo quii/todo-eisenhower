@@ -36,6 +36,7 @@ type Model struct {
 	showSuggestions    bool
 	suggestions        []string
 	selectedSuggestion int
+	selectedTodoIndex  int // index of selected todo in current quadrant
 }
 
 // NewModel creates a new UI model with the given matrix and file path
@@ -136,12 +137,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "1":
 			m.viewMode = FocusDoFirst
+			m.selectedTodoIndex = 0
 		case "2":
 			m.viewMode = FocusSchedule
+			m.selectedTodoIndex = 0
 		case "3":
 			m.viewMode = FocusDelegate
+			m.selectedTodoIndex = 0
 		case "4":
 			m.viewMode = FocusEliminate
+			m.selectedTodoIndex = 0
 		case "esc":
 			m.viewMode = Overview
 		case "a":
@@ -149,6 +154,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.viewMode != Overview {
 				m.inputMode = true
 				m.input.Focus()
+			}
+		case "down", "s":
+			// Navigate down in focus mode
+			if m.viewMode != Overview {
+				m = m.moveSelectionDown()
+			}
+		case "up", "w":
+			// Navigate up in focus mode
+			if m.viewMode != Overview {
+				m = m.moveSelectionUp()
+			}
+		case "enter":
+			// Toggle completion in focus mode
+			if m.viewMode != Overview {
+				m = m.toggleCompletion()
 			}
 		}
 	case tea.WindowSizeMsg:
@@ -194,6 +214,9 @@ func (m Model) saveTodo() Model {
 
 	// Refresh tag lists
 	m.allProjects, m.allContexts = extractAllTags(m.matrix)
+
+	// Reset selection to first todo
+	m.selectedTodoIndex = 0
 
 	// Exit input mode
 	m.inputMode = false
@@ -265,6 +288,86 @@ func (m Model) currentQuadrantPriority() todo.Priority {
 	}
 }
 
+// currentQuadrantTodos returns the todos for the current focused quadrant
+func (m Model) currentQuadrantTodos() []todo.Todo {
+	switch m.viewMode {
+	case FocusDoFirst:
+		return m.matrix.DoFirst()
+	case FocusSchedule:
+		return m.matrix.Schedule()
+	case FocusDelegate:
+		return m.matrix.Delegate()
+	case FocusEliminate:
+		return m.matrix.Eliminate()
+	default:
+		return []todo.Todo{}
+	}
+}
+
+// currentQuadrantType returns the quadrant type for the current view mode
+func (m Model) currentQuadrantType() matrix.QuadrantType {
+	switch m.viewMode {
+	case FocusDoFirst:
+		return matrix.DoFirstQuadrant
+	case FocusSchedule:
+		return matrix.ScheduleQuadrant
+	case FocusDelegate:
+		return matrix.DelegateQuadrant
+	case FocusEliminate:
+		return matrix.EliminateQuadrant
+	default:
+		return matrix.DoFirstQuadrant
+	}
+}
+
+// moveSelectionDown moves the selection to the next todo (with wrap-around)
+func (m Model) moveSelectionDown() Model {
+	todos := m.currentQuadrantTodos()
+	if len(todos) == 0 {
+		return m
+	}
+	m.selectedTodoIndex = (m.selectedTodoIndex + 1) % len(todos)
+	return m
+}
+
+// moveSelectionUp moves the selection to the previous todo (with wrap-around)
+func (m Model) moveSelectionUp() Model {
+	todos := m.currentQuadrantTodos()
+	if len(todos) == 0 {
+		return m
+	}
+	m.selectedTodoIndex = (m.selectedTodoIndex - 1 + len(todos)) % len(todos)
+	return m
+}
+
+// toggleCompletion toggles the completion status of the selected todo
+func (m Model) toggleCompletion() Model {
+	todos := m.currentQuadrantTodos()
+	if len(todos) == 0 || m.selectedTodoIndex >= len(todos) {
+		return m
+	}
+
+	selectedTodo := todos[m.selectedTodoIndex]
+	updatedTodo := selectedTodo.ToggleCompletion()
+
+	// Update in matrix
+	quadrant := m.currentQuadrantType()
+	m.matrix = m.matrix.UpdateTodoAtIndex(quadrant, m.selectedTodoIndex, updatedTodo)
+
+	// Write entire matrix back to file
+	if m.writer != nil {
+		_ = usecases.SaveAllTodos(m.writer, m.matrix)
+	}
+
+	// If we just completed a todo, move selection to next (or wrap to 0)
+	// If we just unmarked a todo, keep selection on same todo
+	if updatedTodo.IsCompleted() && len(todos) > 1 {
+		m.selectedTodoIndex = (m.selectedTodoIndex + 1) % len(todos)
+	}
+
+	return m
+}
+
 // View renders the model (required by tea.Model interface)
 func (m Model) View() string {
 	var content string
@@ -293,6 +396,7 @@ func (m Model) View() string {
 				"DO FIRST",
 				lipgloss.Color("#FF6B6B"),
 				m.filePath,
+				m.selectedTodoIndex,
 				m.width,
 				m.height,
 			)
@@ -319,6 +423,7 @@ func (m Model) View() string {
 				"SCHEDULE",
 				lipgloss.Color("#4ECDC4"),
 				m.filePath,
+				m.selectedTodoIndex,
 				m.width,
 				m.height,
 			)
@@ -345,6 +450,7 @@ func (m Model) View() string {
 				"DELEGATE",
 				lipgloss.Color("#FFE66D"),
 				m.filePath,
+				m.selectedTodoIndex,
 				m.width,
 				m.height,
 			)
@@ -371,6 +477,7 @@ func (m Model) View() string {
 				"ELIMINATE",
 				lipgloss.Color("#95E1D3"),
 				m.filePath,
+				m.selectedTodoIndex,
 				m.width,
 				m.height,
 			)

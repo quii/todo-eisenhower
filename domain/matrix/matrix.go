@@ -69,3 +69,46 @@ func (m Matrix) AddTodo(t todo.Todo) Matrix {
 	}
 	return m
 }
+
+// QuadrantType identifies which quadrant a todo belongs to
+type QuadrantType int
+
+const (
+	DoFirstQuadrant QuadrantType = iota
+	ScheduleQuadrant
+	DelegateQuadrant
+	EliminateQuadrant
+)
+
+// UpdateTodoAtIndex updates the todo at the given index in the specified quadrant
+func (m Matrix) UpdateTodoAtIndex(quadrant QuadrantType, index int, newTodo todo.Todo) Matrix {
+	switch quadrant {
+	case DoFirstQuadrant:
+		if index >= 0 && index < len(m.doFirst) {
+			m.doFirst[index] = newTodo
+		}
+	case ScheduleQuadrant:
+		if index >= 0 && index < len(m.schedule) {
+			m.schedule[index] = newTodo
+		}
+	case DelegateQuadrant:
+		if index >= 0 && index < len(m.delegate) {
+			m.delegate[index] = newTodo
+		}
+	case EliminateQuadrant:
+		if index >= 0 && index < len(m.eliminate) {
+			m.eliminate[index] = newTodo
+		}
+	}
+	return m
+}
+
+// AllTodos returns all todos from all quadrants
+func (m Matrix) AllTodos() []todo.Todo {
+	all := make([]todo.Todo, 0)
+	all = append(all, m.doFirst...)
+	all = append(all, m.schedule...)
+	all = append(all, m.delegate...)
+	all = append(all, m.eliminate...)
+	return all
+}

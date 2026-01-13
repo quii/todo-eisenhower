@@ -50,6 +50,11 @@ func parseLine(line string) todo.Todo {
 		description = completedPrefix.ReplaceAllString(description, "")
 	}
 
+	// Remove completion date if present at the beginning (format: x DATE (A) Description)
+	if completed && datePattern.MatchString(description) {
+		description = datePattern.ReplaceAllString(description, "")
+	}
+
 	// Check for priority
 	if priorityPattern.MatchString(description) {
 		matches := priorityPattern.FindStringSubmatch(description)
@@ -59,7 +64,7 @@ func parseLine(line string) todo.Todo {
 		description = priorityPattern.ReplaceAllString(description, "")
 	}
 
-	// Remove completion date if present (after priority)
+	// Remove completion date if present after priority (format: x (A) DATE Description - backward compat)
 	if completed && datePattern.MatchString(description) {
 		description = datePattern.ReplaceAllString(description, "")
 	}

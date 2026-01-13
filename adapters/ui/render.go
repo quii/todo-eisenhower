@@ -127,7 +127,7 @@ func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeigh
 }
 
 // RenderFocusedQuadrant renders a single quadrant in fullscreen focus mode
-func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color, filePath string, terminalWidth, terminalHeight int) string {
+func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color, filePath string, selectedIndex int, terminalWidth, terminalHeight int) string {
 	var output strings.Builder
 
 	// Render file path header with full width and center alignment
@@ -180,6 +180,15 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 			} else {
 				todoLine = activeTodoStyle.Render("• ") + description
 			}
+
+			// Highlight selected todo
+			if i == selectedIndex {
+				selectedStyle := lipgloss.NewStyle().
+					Background(lipgloss.Color("#444444")).
+					Bold(true)
+				todoLine = selectedStyle.Render(todoLine)
+			}
+
 			lines = append(lines, todoLine)
 		}
 	}
@@ -189,7 +198,7 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 	output.WriteString("\n\n")
 
 	// Render help text at bottom
-	helpText := renderHelp("Press a to add a task", "Press 1/2/3/4 to focus on a quadrant", "Press ESC to return")
+	helpText := renderHelp("↑↓/w/s navigate", "Enter mark done", "Press a to add a task", "Press 1/2/3/4 to focus on a quadrant", "Press ESC to return")
 	centeredHelp := lipgloss.NewStyle().
 		Align(lipgloss.Center).
 		Width(terminalWidth).

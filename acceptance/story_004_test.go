@@ -241,6 +241,21 @@ func (s *StubTodoSource) SaveTodo(line string) error {
 	return err
 }
 
+func (s *StubTodoSource) ReplaceAll(content string) error {
+	if s.writer == nil {
+		return nil
+	}
+	// For testing, we use a strings.Builder which doesn't support truncation
+	// So we'll just reset and write the new content
+	if sb, ok := s.writer.(*strings.Builder); ok {
+		sb.Reset()
+		_, err := sb.WriteString(content)
+		return err
+	}
+	_, err := s.writer.Write([]byte(content))
+	return err
+}
+
 // Integration test: Load matrix from realistic todo.txt with mixed tags
 func TestStory004_Integration_MixedTagsInMatrix(t *testing.T) {
 	// Given a realistic todo.txt with various tags across all quadrants

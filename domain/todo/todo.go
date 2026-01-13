@@ -83,3 +83,14 @@ func (t Todo) Projects() []string {
 func (t Todo) Contexts() []string {
 	return t.contexts
 }
+
+// ToggleCompletion returns a new Todo with the completion status toggled
+func (t Todo) ToggleCompletion() Todo {
+	return Todo{
+		description: t.description,
+		priority:    t.priority,
+		completed:   !t.completed,
+		projects:    t.projects,
+		contexts:    t.contexts,
+	}
+}
