@@ -359,12 +359,7 @@ func (m Model) toggleCompletion() Model {
 		_ = usecases.SaveAllTodos(m.writer, m.matrix)
 	}
 
-	// If we just completed a todo, move selection to next (or wrap to 0)
-	// If we just unmarked a todo, keep selection on same todo
-	if updatedTodo.IsCompleted() && len(todos) > 1 {
-		m.selectedTodoIndex = (m.selectedTodoIndex + 1) % len(todos)
-	}
-
+	// Keep selection on same todo (no auto-navigation)
 	return m
 }
 
