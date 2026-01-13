@@ -165,8 +165,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.viewMode != Overview {
 				m = m.moveSelectionUp()
 			}
-		case "enter":
-			// Toggle completion in focus mode
+		case " ":
+			// Toggle completion in focus mode (space bar)
 			if m.viewMode != Overview {
 				m = m.toggleCompletion()
 			}

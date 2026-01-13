@@ -198,7 +198,7 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 	output.WriteString("\n\n")
 
 	// Render help text at bottom
-	helpText := renderHelp("↑↓/w/s navigate", "Enter mark done", "Press a to add a task", "Press 1/2/3/4 to focus on a quadrant", "Press ESC to return")
+	helpText := renderHelp("↑↓/w/s navigate", "Space to toggle", "Press a to add a task", "Press 1/2/3/4 to focus on a quadrant", "Press ESC to return")
 	centeredHelp := lipgloss.NewStyle().
 		Align(lipgloss.Center).
 		Width(terminalWidth).

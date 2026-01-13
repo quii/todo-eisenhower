@@ -54,7 +54,7 @@ func renderHelp(parts ...string) string {
 func isKeyBinding(word string) bool {
 	// Check for single keys or key combinations
 	keyBindings := []string{
-		"a", "q", "esc", "enter",
+		"a", "q", "esc", "enter", "space",
 		"1", "2", "3", "4",
 		"1/2/3/4",
 		"ctrl+c",

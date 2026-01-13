@@ -116,8 +116,8 @@ func TestStory011_MarkTodoAsComplete(t *testing.T) {
 	model = updatedModel.(ui.Model)
 
 	// First todo is selected by default
-	// Press Enter to mark as complete
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	// Press Space to mark as complete
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}})
 	model = updatedModel.(ui.Model)
 
 	// Check that todo is marked as complete in view
@@ -180,8 +180,8 @@ func TestStory011_UnmarkCompletedTodo(t *testing.T) {
 	model = updatedModel.(ui.Model)
 
 	// First todo (completed) is selected by default
-	// Press Enter to unmark
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	// Press Space to unmark
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}})
 	model = updatedModel.(ui.Model)
 
 	// Check that file was updated without completion marker
@@ -224,8 +224,8 @@ func TestStory011_EmptyQuadrantNoSelection(t *testing.T) {
 		t.Error("expected to see '(no tasks)' in empty quadrant")
 	}
 
-	// Pressing Enter should do nothing (no panic)
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	// Pressing Space should do nothing (no panic)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}})
 	model = updatedModel.(ui.Model)
 
 	// Pressing navigation keys should do nothing (no panic)
@@ -325,9 +325,9 @@ func TestStory011_InputModePreservesSelection(t *testing.T) {
 	model = updatedModel.(ui.Model)
 
 	// Selection should still be on third todo (we can't easily verify this
-	// without exposing internal state, but pressing Enter should toggle
+	// without exposing internal state, but pressing Space should toggle
 	// the third todo)
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}})
 	model = updatedModel.(ui.Model)
 
 	// Verify third todo was toggled by checking written output
