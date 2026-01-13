@@ -17,6 +17,9 @@ func RenderFocusedQuadrantWithInput(
 	filePath string,
 	input textinput.Model,
 	projects, contexts []string,
+	showSuggestions bool,
+	suggestions []string,
+	selectedSuggestion int,
 	terminalWidth, terminalHeight int,
 ) string {
 	var output strings.Builder
@@ -89,15 +92,25 @@ func RenderFocusedQuadrantWithInput(
 		Render("Add todo: ")
 	output.WriteString(inputPrompt)
 	output.WriteString(input.View())
-	output.WriteString("\n\n")
-
-	// Render tag reference
-	projectLine := renderTagReference("Projects", projects, terminalWidth)
-	contextLine := renderTagReference("Contexts", contexts, terminalWidth)
-	output.WriteString(projectLine)
 	output.WriteString("\n")
-	output.WriteString(contextLine)
-	output.WriteString("\n\n")
+
+	// Render autocomplete suggestions if visible, otherwise show tag reference
+	if showSuggestions {
+		trigger, partialTag, _ := detectTrigger(input.Value())
+		autocompleteBox := renderAutocomplete(suggestions, selectedSuggestion, trigger, partialTag, terminalWidth)
+		output.WriteString("\n")
+		output.WriteString(autocompleteBox)
+		output.WriteString("\n\n")
+	} else {
+		output.WriteString("\n")
+		// Render tag reference when not autocompleting
+		projectLine := renderTagReference("Projects", projects, terminalWidth)
+		contextLine := renderTagReference("Contexts", contexts, terminalWidth)
+		output.WriteString(projectLine)
+		output.WriteString("\n")
+		output.WriteString(contextLine)
+		output.WriteString("\n\n")
+	}
 
 	// Render help text at bottom
 	helpText := renderHelp("Enter to save", "ESC to cancel")
@@ -138,4 +151,54 @@ func renderTagReference(label string, tags []string, width int) string {
 	}
 
 	return content
+}
+
+// renderAutocomplete renders the autocomplete suggestion box
+func renderAutocomplete(suggestions []string, selectedIndex int, trigger string, partialTag string, width int) string {
+	if len(suggestions) == 0 {
+		// Show "no matches" message
+		noMatchStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#888888")).
+			Italic(true)
+		return noMatchStyle.Render("  (no matches - press Space to create new tag)")
+	}
+
+	var lines []string
+	maxSuggestions := 5
+	for i, suggestion := range suggestions {
+		if i >= maxSuggestions {
+			break
+		}
+
+		// Use the trigger character passed in (+ or @)
+		tagWithPrefix := trigger + suggestion
+
+		// Color the tag
+		color := HashColor(suggestion)
+
+		if i == selectedIndex {
+			// Highlighted suggestion
+			suggestionStyle := lipgloss.NewStyle().
+				Foreground(color).
+				Background(lipgloss.Color("#444444")).
+				Bold(true).
+				Padding(0, 1)
+			lines = append(lines, suggestionStyle.Render(tagWithPrefix))
+		} else {
+			// Regular suggestion
+			suggestionStyle := lipgloss.NewStyle().
+				Foreground(color).
+				Padding(0, 1)
+			lines = append(lines, suggestionStyle.Render(tagWithPrefix))
+		}
+	}
+
+	// Box style
+	boxStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("#666666")).
+		Padding(0, 1)
+
+	content := strings.Join(lines, "\n")
+	return boxStyle.Render(content)
 }

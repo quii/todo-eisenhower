@@ -138,7 +138,7 @@ func TestStory008_AddTodoWithProjectTags(t *testing.T) {
 	model = updatedModel.(ui.Model)
 
 	// Type the todo with project tags
-	for _, ch := range "Plan sprint +WebApp +Mobile" {
+	for _, ch := range "Plan sprint +WebApp +Mobile " {
 		updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{ch}})
 		model = updatedModel.(ui.Model)
 	}
@@ -192,7 +192,7 @@ func TestStory008_AddTodoWithContextTags(t *testing.T) {
 	model = updatedModel.(ui.Model)
 
 	// Type the todo with context tags
-	for _, ch := range "Reply to emails @phone @office" {
+	for _, ch := range "Reply to emails @phone @office " {
 		updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{ch}})
 		model = updatedModel.(ui.Model)
 	}
@@ -246,7 +246,7 @@ func TestStory008_AddTodoWithMixedTags(t *testing.T) {
 	model = updatedModel.(ui.Model)
 
 	// Type the todo with mixed tags
-	for _, ch := range "Deploy to production +WebApp @computer @work" {
+	for _, ch := range "Deploy to production +WebApp @computer @work " {
 		updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{ch}})
 		model = updatedModel.(ui.Model)
 	}
@@ -533,7 +533,7 @@ func TestStory008_NewTagsAreAccepted(t *testing.T) {
 	model = updatedModel.(ui.Model)
 
 	// Type todo with new tag +Backend
-	for _, ch := range "Build API +Backend" {
+	for _, ch := range "Build API +Backend " {
 		updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{ch}})
 		model = updatedModel.(ui.Model)
 	}

@@ -22,17 +22,20 @@ const (
 
 // Model represents the Bubble Tea model for the Eisenhower matrix UI
 type Model struct {
-	matrix      matrix.Matrix
-	filePath    string
-	width       int
-	height      int
-	viewMode    ViewMode
-	inputMode   bool
-	input       textinput.Model
-	allProjects []string
-	allContexts []string
-	source      usecases.TodoSource
-	writer      usecases.TodoWriter
+	matrix             matrix.Matrix
+	filePath           string
+	width              int
+	height             int
+	viewMode           ViewMode
+	inputMode          bool
+	input              textinput.Model
+	allProjects        []string
+	allContexts        []string
+	source             usecases.TodoSource
+	writer             usecases.TodoWriter
+	showSuggestions    bool
+	suggestions        []string
+	selectedSuggestion int
 }
 
 // NewModel creates a new UI model with the given matrix and file path
@@ -82,21 +85,49 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		// Handle input mode separately
 		if m.inputMode {
+			// Handle autocomplete-specific keys when suggestions are visible
+			if m.showSuggestions && len(m.suggestions) > 0 {
+				switch msg.String() {
+				case "down":
+					m.selectedSuggestion = (m.selectedSuggestion + 1) % len(m.suggestions)
+					return m, nil
+				case "up":
+					m.selectedSuggestion = (m.selectedSuggestion - 1 + len(m.suggestions)) % len(m.suggestions)
+					return m, nil
+				case "tab", "enter":
+					// Complete the suggestion
+					m = m.completeSuggestion()
+					return m, nil
+				case "esc":
+					// Dismiss suggestions but stay in input mode
+					m.showSuggestions = false
+					return m, nil
+				}
+			}
+
+			// Handle regular input mode keys
 			switch msg.String() {
 			case "enter":
-				// Save the todo
-				m = m.saveTodo()
-				return m, nil
+				// Only save if suggestions are not visible
+				if !m.showSuggestions {
+					m = m.saveTodo()
+					return m, nil
+				}
 			case "esc":
-				// Cancel input mode
+				// Cancel input mode entirely
 				m.inputMode = false
 				m.input.SetValue("")
+				m.showSuggestions = false
 				return m, nil
-			default:
-				// Delegate to textinput
-				m.input, cmd = m.input.Update(msg)
-				return m, cmd
 			}
+
+			// Delegate to textinput for character input
+			m.input, cmd = m.input.Update(msg)
+
+			// Update autocomplete suggestions after input changes
+			m = m.updateSuggestions()
+
+			return m, cmd
 		}
 
 		// Normal mode key handling
@@ -163,6 +194,53 @@ func (m Model) saveTodo() Model {
 	return m
 }
 
+// updateSuggestions updates autocomplete suggestions based on current input
+func (m Model) updateSuggestions() Model {
+	inputValue := m.input.Value()
+
+	// Detect if we're at a tag trigger
+	trigger, partialTag, found := detectTrigger(inputValue)
+	if !found {
+		m.showSuggestions = false
+		return m
+	}
+
+	// Get the appropriate tag list
+	var tagList []string
+	if trigger == "+" {
+		tagList = m.allProjects
+	} else if trigger == "@" {
+		tagList = m.allContexts
+	}
+
+	// Filter tags by partial input
+	m.suggestions = filterTags(tagList, partialTag)
+	m.showSuggestions = len(m.suggestions) > 0 || partialTag != ""
+	m.selectedSuggestion = 0 // Reset selection to first item
+
+	return m
+}
+
+// completeSuggestion completes the currently selected suggestion
+func (m Model) completeSuggestion() Model {
+	if len(m.suggestions) == 0 {
+		return m
+	}
+
+	selectedTag := m.suggestions[m.selectedSuggestion]
+	completedValue := completeTag(m.input.Value(), selectedTag)
+
+	m.input.SetValue(completedValue)
+	m.showSuggestions = false
+	m.suggestions = nil
+	m.selectedSuggestion = 0
+
+	// Move cursor to end
+	m.input.SetCursor(len(completedValue))
+
+	return m
+}
+
 // currentQuadrantPriority returns the priority for the current focused quadrant
 func (m Model) currentQuadrantPriority() todo.Priority {
 	switch m.viewMode {
@@ -195,6 +273,9 @@ func (m Model) View() string {
 				m.input,
 				m.allProjects,
 				m.allContexts,
+				m.showSuggestions,
+				m.suggestions,
+				m.selectedSuggestion,
 				m.width,
 				m.height,
 			)
@@ -218,6 +299,9 @@ func (m Model) View() string {
 				m.input,
 				m.allProjects,
 				m.allContexts,
+				m.showSuggestions,
+				m.suggestions,
+				m.selectedSuggestion,
 				m.width,
 				m.height,
 			)
@@ -241,6 +325,9 @@ func (m Model) View() string {
 				m.input,
 				m.allProjects,
 				m.allContexts,
+				m.showSuggestions,
+				m.suggestions,
+				m.selectedSuggestion,
 				m.width,
 				m.height,
 			)
@@ -264,6 +351,9 @@ func (m Model) View() string {
 				m.input,
 				m.allProjects,
 				m.allContexts,
+				m.showSuggestions,
+				m.suggestions,
+				m.selectedSuggestion,
 				m.width,
 				m.height,
 			)
