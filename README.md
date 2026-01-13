@@ -145,10 +145,10 @@ See [CLAUDE.md](./CLAUDE.md) for detailed development conventions and architectu
 - [x] **Story 008**: Add todos with tag reference (press 'a' in focus mode)
 - [x] **Story 009**: Tag autocomplete with + and @ triggers (arrow keys to navigate, Tab/Enter to complete)
 - [x] **Story 010**: Tag inventory display showing counts by tag (sorted by count, overview mode only)
+- [x] **Story 011**: Mark todos complete/incomplete (arrow keys or w/s to navigate, Enter to toggle)
 
 ### Future Ideas 🚀
 - Todo editing capabilities
-- Mark todos as complete
 - Delete todos
 - Filtering by project or context
 - Search functionality
