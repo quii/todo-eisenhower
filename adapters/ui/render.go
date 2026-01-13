@@ -114,6 +114,11 @@ func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeigh
 	output.WriteString(matrix)
 	output.WriteString("\n\n")
 
+	// Add tag inventory
+	inventory := renderTagInventory(m, terminalWidth)
+	output.WriteString(inventory)
+	output.WriteString("\n\n")
+
 	// Add help text
 	helpText := renderHelp("Press 1/2/3/4 to focus on a quadrant")
 	output.WriteString(helpText)
