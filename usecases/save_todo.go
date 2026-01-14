@@ -14,8 +14,8 @@ type TodoWriter interface {
 	ReplaceAll(content string) error
 }
 
-// SaveTodo formats a todo according to todo.txt format and writes it to the sink
-func SaveTodo(writer TodoWriter, t todo.Todo) error {
+// saveTodo formats and appends a single todo to the file (private helper)
+func saveTodo(writer TodoWriter, t todo.Todo) error {
 	line := FormatTodo(t)
 	return writer.SaveTodo(line)
 }
@@ -47,8 +47,8 @@ func FormatTodo(t todo.Todo) string {
 	return result
 }
 
-// SaveAllTodos writes all todos from the matrix back to the file
-func SaveAllTodos(writer TodoWriter, m matrix.Matrix) error {
+// saveAllTodos writes all todos from the matrix back to the file (private helper)
+func saveAllTodos(writer TodoWriter, m matrix.Matrix) error {
 	var content string
 
 	// Format all todos from all quadrants

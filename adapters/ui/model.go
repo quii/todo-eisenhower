@@ -189,28 +189,21 @@ func (m Model) saveTodo() Model {
 		return m
 	}
 
+	if m.writer == nil {
+		return m // No-op if no writer configured
+	}
+
 	// Determine priority from current quadrant
 	priority := m.currentQuadrantPriority()
 
-	// Parse tags from description
-	projects := extractTagsFromDescription(description, `\+(\w+)`)
-	contexts := extractTagsFromDescription(description, `@(\w+)`)
-
-	// Create the todo with tags
-	var t todo.Todo
-	if len(projects) > 0 || len(contexts) > 0 {
-		t = todo.NewWithTags(description, priority, projects, contexts)
-	} else {
-		t = todo.New(description, priority)
+	// Use the AddTodo usecase
+	updatedMatrix, err := usecases.AddTodo(m.writer, m.matrix, description, priority)
+	if err != nil {
+		// TODO: Show error to user in future story
+		return m
 	}
 
-	// Save to file if writer is set
-	if m.writer != nil {
-		_ = usecases.SaveTodo(m.writer, t)
-	}
-
-	// Add the todo to the matrix in memory
-	m.matrix = m.matrix.AddTodo(t)
+	m.matrix = updatedMatrix
 
 	// Refresh tag lists
 	m.allProjects, m.allContexts = extractAllTags(m.matrix)
@@ -342,24 +335,19 @@ func (m Model) moveSelectionUp() Model {
 
 // toggleCompletion toggles the completion status of the selected todo
 func (m Model) toggleCompletion() Model {
-	todos := m.currentQuadrantTodos()
-	if len(todos) == 0 || m.selectedTodoIndex >= len(todos) {
+	if m.writer == nil {
+		return m // No-op if no writer configured
+	}
+
+	// Use the ToggleCompletion usecase
+	quadrant := m.currentQuadrantType()
+	updatedMatrix, err := usecases.ToggleCompletion(m.writer, m.matrix, quadrant, m.selectedTodoIndex)
+	if err != nil {
+		// TODO: Show error to user in future story
 		return m
 	}
 
-	selectedTodo := todos[m.selectedTodoIndex]
-	updatedTodo := selectedTodo.ToggleCompletion()
-
-	// Update in matrix
-	quadrant := m.currentQuadrantType()
-	m.matrix = m.matrix.UpdateTodoAtIndex(quadrant, m.selectedTodoIndex, updatedTodo)
-
-	// Write entire matrix back to file
-	if m.writer != nil {
-		_ = usecases.SaveAllTodos(m.writer, m.matrix)
-	}
-
-	// Keep selection on same todo (no auto-navigation)
+	m.matrix = updatedMatrix
 	return m
 }
 

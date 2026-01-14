@@ -45,6 +45,39 @@ We organize code around three bounded contexts:
 - Keep use cases thin - domain objects do the heavy lifting
 - **Use cases are the application's API** - this is the boundary main.go calls
 
+**Use cases represent user actions, not implementation details:**
+- ✅ `AddTodo()` - user adds a new todo
+- ✅ `ToggleCompletion()` - user marks a todo complete/incomplete
+- ✅ `ChangePriority()` - user moves a todo to different quadrant
+- ❌ `SaveAllTodos()` - implementation detail (private helper)
+- ❌ `FormatTodo()` - implementation detail (private helper)
+
+**Rule of thumb**: If you can infer it from a user story ("As a user, I want to..."), it's probably a usecase. If it's about "how" the system persists or formats data, it's a private helper.
+
+**Usecase pattern:**
+```go
+// Usecase shows the business intent clearly
+func AddTodo(writer TodoWriter, m matrix.Matrix, description string, priority Priority) (Matrix, error) {
+    // 1. Use rich domain model
+    newTodo := todo.New(description, priority)
+    updatedMatrix := m.AddTodo(newTodo)
+
+    // 2. Persist changes (private helper - implementation detail)
+    err := saveTodo(writer, newTodo)
+    if err != nil {
+        return m, err // Return original on failure
+    }
+
+    return updatedMatrix, nil
+}
+
+// Private helper handles persistence details
+func saveTodo(writer TodoWriter, t todo.Todo) error {
+    line := FormatTodo(t)
+    return writer.SaveTodo(line)
+}
+```
+
 ### The main.go Stability Rule
 - **main.go should be stable and rarely change**
 - main.go is just wiring - it calls use cases and sets up infrastructure
