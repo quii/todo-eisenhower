@@ -136,17 +136,41 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "1":
-			m.viewMode = FocusDoFirst
-			m.selectedTodoIndex = 0
+			if m.viewMode == Overview {
+				// Overview mode: focus on quadrant
+				m.viewMode = FocusDoFirst
+				m.selectedTodoIndex = 0
+			} else {
+				// Focus mode: move todo to DO FIRST (priority A)
+				m = m.changeTodoPriority(todo.PriorityA)
+			}
 		case "2":
-			m.viewMode = FocusSchedule
-			m.selectedTodoIndex = 0
+			if m.viewMode == Overview {
+				// Overview mode: focus on quadrant
+				m.viewMode = FocusSchedule
+				m.selectedTodoIndex = 0
+			} else {
+				// Focus mode: move todo to SCHEDULE (priority B)
+				m = m.changeTodoPriority(todo.PriorityB)
+			}
 		case "3":
-			m.viewMode = FocusDelegate
-			m.selectedTodoIndex = 0
+			if m.viewMode == Overview {
+				// Overview mode: focus on quadrant
+				m.viewMode = FocusDelegate
+				m.selectedTodoIndex = 0
+			} else {
+				// Focus mode: move todo to DELEGATE (priority C)
+				m = m.changeTodoPriority(todo.PriorityC)
+			}
 		case "4":
-			m.viewMode = FocusEliminate
-			m.selectedTodoIndex = 0
+			if m.viewMode == Overview {
+				// Overview mode: focus on quadrant
+				m.viewMode = FocusEliminate
+				m.selectedTodoIndex = 0
+			} else {
+				// Focus mode: move todo to ELIMINATE (priority D)
+				m = m.changeTodoPriority(todo.PriorityD)
+			}
 		case "esc":
 			m.viewMode = Overview
 		case "a":
@@ -348,6 +372,36 @@ func (m Model) toggleCompletion() Model {
 	}
 
 	m.matrix = updatedMatrix
+	return m
+}
+
+// changeTodoPriority changes the priority of the selected todo
+func (m Model) changeTodoPriority(newPriority todo.Priority) Model {
+	if m.writer == nil {
+		return m // No-op if no writer configured
+	}
+
+	// Use the ChangePriority usecase
+	quadrant := m.currentQuadrantType()
+	updatedMatrix, err := usecases.ChangePriority(m.writer, m.matrix, quadrant, m.selectedTodoIndex, newPriority)
+	if err != nil {
+		// TODO: Show error to user in future story
+		return m
+	}
+
+	m.matrix = updatedMatrix
+
+	// After moving a todo, adjust the view:
+	// - If the current quadrant is now empty, return to overview
+	// - Otherwise, adjust selection index if needed
+	todos := m.currentQuadrantTodos()
+	if len(todos) == 0 {
+		m.viewMode = Overview
+	} else if m.selectedTodoIndex >= len(todos) {
+		// If selected index is now out of bounds, select the last todo
+		m.selectedTodoIndex = len(todos) - 1
+	}
+
 	return m
 }
 

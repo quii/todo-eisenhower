@@ -94,3 +94,14 @@ func (t Todo) ToggleCompletion() Todo {
 		contexts:    t.contexts,
 	}
 }
+
+// ChangePriority returns a new Todo with the specified priority
+func (t Todo) ChangePriority(newPriority Priority) Todo {
+	return Todo{
+		description: t.description,
+		priority:    newPriority,
+		completed:   t.completed,
+		projects:    t.projects,
+		contexts:    t.contexts,
+	}
+}

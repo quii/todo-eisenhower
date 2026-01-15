@@ -84,11 +84,11 @@ func TestStory007_FocusOnDoFirst(t *testing.T) {
 	}
 
 	// Should show help text
-	if !strings.Contains(view, "Press a to add a task") {
+	if !strings.Contains(view, "Press a to add") {
 		t.Error("expected focused view to contain help text about adding tasks")
 	}
-	if !strings.Contains(view, "Press 1/2/3/4 to focus on a quadrant") {
-		t.Error("expected focused view to contain help text about focusing")
+	if !strings.Contains(view, "Press 1/2/3/4 to move") {
+		t.Error("expected focused view to contain help text about moving todos")
 	}
 	if !strings.Contains(view, "Press ESC to return") {
 		t.Error("expected focused view to contain help text about ESC")
@@ -244,55 +244,8 @@ func TestStory007_ReturnToOverviewWithESC(t *testing.T) {
 	}
 }
 
-func TestStory007_JumpBetweenQuadrantsInFocusMode(t *testing.T) {
-	// Scenario: Jump between quadrants in focus mode
-
-	input := "(A) Task A\n(B) Task B\n(C) Task C\n(D) Task D"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
-
-	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	model := ui.NewModel(m, "test.txt")
-	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
-	model = updatedModel.(ui.Model)
-
-	// Focus on DO FIRST (1)
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
-	model = updatedModel.(ui.Model)
-	view1 := model.View()
-	if !strings.Contains(view1, "DO FIRST") {
-		t.Error("should show DO FIRST")
-	}
-
-	// Jump to SCHEDULE (2)
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'2'}})
-	model = updatedModel.(ui.Model)
-	view2 := model.View()
-	if !strings.Contains(view2, "SCHEDULE") || strings.Contains(view2, "DO FIRST") {
-		t.Error("should show SCHEDULE, not DO FIRST")
-	}
-
-	// Jump to ELIMINATE (4)
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'4'}})
-	model = updatedModel.(ui.Model)
-	view4 := model.View()
-	if !strings.Contains(view4, "ELIMINATE") {
-		t.Error("should show ELIMINATE")
-	}
-
-	// Jump back to DO FIRST (1)
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
-	model = updatedModel.(ui.Model)
-	view1Again := model.View()
-	if !strings.Contains(view1Again, "DO FIRST") {
-		t.Error("should show DO FIRST again")
-	}
-}
+// NOTE: Jump between quadrants feature removed in Story 012
+// Number keys now move todos between quadrants in focus mode
 
 func TestStory007_EmptyQuadrantInFocusMode(t *testing.T) {
 	// Scenario: Empty quadrant in focus mode
@@ -325,7 +278,7 @@ func TestStory007_EmptyQuadrantInFocusMode(t *testing.T) {
 		t.Error("should show '(no tasks)' for empty quadrant")
 	}
 
-	if !strings.Contains(view, "Press 1/2/3/4 to focus on a quadrant") {
+	if !strings.Contains(view, "Press 1/2/3/4 to move") {
 		t.Error("should show help text even for empty quadrant")
 	}
 }
