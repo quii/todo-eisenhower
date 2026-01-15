@@ -144,6 +144,59 @@ domain/todo/
 - Acceptance tests verify stories work end-to-end at the business logic level
 - We accept some risk with UI (Bubble Tea) for now, but use case tests give confidence
 
+### CRITICAL: Use Tests to Verify Behavior, Not Manual Scripts
+
+**The architecture is designed for testability - use it.**
+
+❌ **NEVER** resort to:
+- Writing temporary Go scripts in /tmp to test parsing
+- Creating one-off test files that aren't part of the test suite
+- Manual testing without writing automated tests first
+- Running the full TUI app just to verify a domain or parser change
+
+✅ **ALWAYS**:
+- Write unit tests to verify behavior
+- Run existing tests with `go test ./domain/parser -v`
+- Add new tests to the existing test suite
+- Use `strings.NewReader()` for parser tests
+- Trust the architecture - it's designed to make testing easy
+
+**Why this matters:**
+1. **Token efficiency**: Writing a test is faster than writing temporary scripts
+2. **Permanent artifact**: Tests document expected behavior forever
+3. **Regression prevention**: Tests prevent future breakage
+4. **TDD compliance**: This is what TDD means - test first, always
+5. **Architecture justification**: The entire hexagonal design is for testability
+
+**Example - Testing parser changes:**
+```go
+// ❌ DON'T: Create /tmp/test_parser.go
+// ✅ DO: Write a unit test in domain/parser/parser_test.go
+
+func TestParse_CreationDates(t *testing.T) {
+    input := "(A) 2026-01-10 Task created on Jan 10"
+    todos, err := Parse(strings.NewReader(input))
+
+    if err != nil {
+        t.Fatalf("unexpected error: %v", err)
+    }
+
+    if cd := todos[0].CreationDate(); cd == nil {
+        t.Error("expected creation date to be parsed")
+    } else if cd.Format("2006-01-02") != "2026-01-10" {
+        t.Errorf("expected date 2026-01-10, got %s", cd.Format("2006-01-02"))
+    }
+}
+```
+
+**If you need to verify something works:**
+1. Look for existing tests you can run
+2. Write a new test if none exists
+3. Run tests with `go test ./path/to/package -v`
+4. Use test output to verify behavior
+
+**Remember**: If you're reaching for a temporary script, you've abandoned TDD.
+
 **Example:**
 ```go
 // acceptance/story_002_test.go
