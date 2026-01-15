@@ -11,7 +11,7 @@ func TestNewCompleted(t *testing.T) {
 		description := "Deploy hotfix"
 		priority := todo.PriorityA
 
-		item := todo.NewCompleted(description, priority)
+		item := todo.NewCompleted(description, priority, nil)
 
 		if item.Description() != description {
 			t.Errorf("got description %q, want %q", item.Description(), description)
@@ -23,6 +23,10 @@ func TestNewCompleted(t *testing.T) {
 
 		if !item.IsCompleted() {
 			t.Error("expected todo to be completed")
+		}
+
+		if item.CompletionDate() != nil {
+			t.Error("expected no completion date when passing nil")
 		}
 	})
 }

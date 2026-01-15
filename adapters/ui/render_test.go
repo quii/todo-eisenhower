@@ -64,7 +64,7 @@ func TestRenderMatrix(t *testing.T) {
 	t.Run("renders completed todos with visual distinction", func(t *testing.T) {
 		todos := []todo.Todo{
 			todo.New("Active task", todo.PriorityA),
-			todo.NewCompleted("Completed task", todo.PriorityA),
+			todo.NewCompleted("Completed task", todo.PriorityA, nil),
 		}
 		m := matrix.New(todos)
 

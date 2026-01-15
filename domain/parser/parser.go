@@ -5,6 +5,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/quii/todo-eisenhower/domain/todo"
 )
@@ -41,6 +42,7 @@ func Parse(r io.Reader) ([]todo.Todo, error) {
 
 func parseLine(line string) todo.Todo {
 	completed := false
+	var completionDate *time.Time
 	priority := todo.PriorityNone
 	description := line
 
@@ -50,8 +52,13 @@ func parseLine(line string) todo.Todo {
 		description = completedPrefix.ReplaceAllString(description, "")
 	}
 
-	// Remove completion date if present at the beginning (format: x DATE (A) Description)
+	// Extract and remove completion date if present at the beginning (format: x DATE (A) Description)
 	if completed && datePattern.MatchString(description) {
+		// Extract the date string
+		dateStr := strings.TrimSpace(datePattern.FindString(description))
+		if parsedDate, err := time.Parse("2006-01-02", dateStr); err == nil {
+			completionDate = &parsedDate
+		}
 		description = datePattern.ReplaceAllString(description, "")
 	}
 
@@ -64,8 +71,12 @@ func parseLine(line string) todo.Todo {
 		description = priorityPattern.ReplaceAllString(description, "")
 	}
 
-	// Remove completion date if present after priority (format: x (A) DATE Description - backward compat)
-	if completed && datePattern.MatchString(description) {
+	// Extract and remove completion date if present after priority (format: x (A) DATE Description - backward compat)
+	if completed && completionDate == nil && datePattern.MatchString(description) {
+		dateStr := strings.TrimSpace(datePattern.FindString(description))
+		if parsedDate, err := time.Parse("2006-01-02", dateStr); err == nil {
+			completionDate = &parsedDate
+		}
 		description = datePattern.ReplaceAllString(description, "")
 	}
 
@@ -77,8 +88,10 @@ func parseLine(line string) todo.Todo {
 
 	// Create todo with tags (completed or not)
 	if completed {
-		// Note: NewCompleted doesn't support tags yet - limitation for completed todos with tags
-		return todo.NewCompleted(description, priority)
+		if len(projects) > 0 || len(contexts) > 0 {
+			return todo.NewCompletedWithTags(description, priority, completionDate, projects, contexts)
+		}
+		return todo.NewCompleted(description, priority, completionDate)
 	}
 
 	if len(projects) > 0 || len(contexts) > 0 {

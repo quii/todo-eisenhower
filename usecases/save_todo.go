@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/quii/todo-eisenhower/domain/matrix"
 	"github.com/quii/todo-eisenhower/domain/todo"
@@ -25,10 +24,12 @@ func FormatTodo(t todo.Todo) string {
 	// Format: x YYYY-MM-DD (PRIORITY) Description +project @context
 	var result string
 
-	// Add completion marker if completed
+	// Add completion marker and date if completed
 	if t.IsCompleted() {
-		completionDate := time.Now().Format("2006-01-02")
-		result = fmt.Sprintf("x %s ", completionDate)
+		result = "x "
+		if completionDate := t.CompletionDate(); completionDate != nil {
+			result += completionDate.Format("2006-01-02") + " "
+		}
 	}
 
 	// Add priority if present

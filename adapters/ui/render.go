@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/quii/todo-eisenhower/domain/matrix"
@@ -177,6 +178,11 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 			var todoLine string
 			if t.IsCompleted() {
 				todoLine = completedTodoStyle.Render("✓ ") + description
+				// Add completion date if present
+				if dateStr := formatCompletionDate(t.CompletionDate()); dateStr != "" {
+					dateInfo := emptyStyle.Render(fmt.Sprintf(" (completed %s)", dateStr))
+					todoLine += dateInfo
+				}
 			} else {
 				todoLine = activeTodoStyle.Render("• ") + description
 			}
@@ -269,6 +275,32 @@ func createVerticalDivider(height int) string {
 	return dividerStyle.Render(strings.TrimSuffix(divider.String(), "\n"))
 }
 
+// formatCompletionDate formats a completion date with relative formatting for recent dates
+func formatCompletionDate(completionDate *time.Time) string {
+	if completionDate == nil {
+		return ""
+	}
+
+	now := time.Now()
+	// Normalize both to start of day for comparison
+	completedDay := time.Date(completionDate.Year(), completionDate.Month(), completionDate.Day(), 0, 0, 0, 0, completionDate.Location())
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+
+	daysDiff := int(today.Sub(completedDay).Hours() / 24)
+
+	switch daysDiff {
+	case 0:
+		return "today"
+	case 1:
+		return "yesterday"
+	case 2, 3, 4, 5, 6:
+		return fmt.Sprintf("%d days ago", daysDiff)
+	default:
+		// For older dates, use absolute format
+		return completionDate.Format("Jan 2, 2006")
+	}
+}
+
 // colorizeDescription replaces project and context tags with colored versions
 func colorizeDescription(description string) string {
 	// Colorize project tags (+tag) with bold styling
@@ -321,6 +353,11 @@ func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo
 			var todoLine string
 			if t.IsCompleted() {
 				todoLine = completedTodoStyle.Render("✓ ") + description
+				// Add completion date if present
+				if dateStr := formatCompletionDate(t.CompletionDate()); dateStr != "" {
+					dateInfo := emptyStyle.Render(fmt.Sprintf(" (%s)", dateStr))
+					todoLine += dateInfo
+				}
 			} else {
 				todoLine = activeTodoStyle.Render("• ") + description
 			}
