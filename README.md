@@ -141,12 +141,13 @@ See [CLAUDE.md](./CLAUDE.md) for detailed development conventions and architectu
 - [x] **Story 004**: Parse and render todo.txt project (+tag) and context (@tag) tags with colors
 - [x] **Story 005**: Fullscreen TUI with alt-screen mode
 - [x] **Story 006**: Responsive matrix sizing that adapts to terminal dimensions
-- [x] **Story 007**: Quadrant focus mode (press 1/2/3/4 to focus, ESC to return)
+- [x] **Story 007**: Quadrant focus mode (press 1/2/3/4 to jump between quadrants, ESC to return)
 - [x] **Story 008**: Add todos with tag reference (press 'a' in focus mode)
 - [x] **Story 009**: Tag autocomplete with + and @ triggers (arrow keys to navigate, Tab/Enter to complete)
 - [x] **Story 010**: Tag inventory display showing counts by tag (sorted by count, overview mode only)
 - [x] **Story 011**: Mark todos complete/incomplete (arrow keys or w/s to navigate, Space to toggle)
-- [x] **Story 012**: Move todos between quadrants (press 1/2/3/4 in focus mode to change priority)
+- [x] **Story 012**: Move todos between quadrants (Shift+1/2/3/4 to move, 1/2/3/4 to jump)
+- [x] **Story 013**: Preserve and render completion dates (shows relative dates like "yesterday", "2 days ago")
 
 ### Future Ideas 🚀
 - Todo editing capabilities
