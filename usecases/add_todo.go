@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"regexp"
+	"time"
 
 	"github.com/quii/todo-eisenhower/domain/matrix"
 	"github.com/quii/todo-eisenhower/domain/todo"
@@ -13,12 +14,16 @@ func AddTodo(writer TodoWriter, m matrix.Matrix, description string, priority to
 	projects := extractTagsFromDescription(description, `\+(\w+)`)
 	contexts := extractTagsFromDescription(description, `@(\w+)`)
 
-	// Create the todo using rich domain model
+	// Set creation date to now
+	now := time.Now()
+	creationDate := &now
+
+	// Create the todo using rich domain model with creation date
 	var newTodo todo.Todo
 	if len(projects) > 0 || len(contexts) > 0 {
-		newTodo = todo.NewWithTags(description, priority, projects, contexts)
+		newTodo = todo.NewWithTagsAndDates(description, priority, creationDate, projects, contexts)
 	} else {
-		newTodo = todo.New(description, priority)
+		newTodo = todo.NewWithCreationDate(description, priority, creationDate)
 	}
 
 	// Add todo to matrix

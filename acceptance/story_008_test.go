@@ -3,6 +3,7 @@ package acceptance_test
 import (
 	"strings"
 	"testing"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/quii/todo-eisenhower/adapters/ui"
@@ -106,10 +107,18 @@ func TestStory008_AddSimpleTodoWithoutTags(t *testing.T) {
 		t.Error("expected view to exit input mode after saving")
 	}
 
-	// Check that the todo was written to the file with priority (A)
+	// Check that the todo was written to the file with priority (A) and creation date
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "(A) Fix critical bug") {
-		t.Errorf("expected todo to be written to file with priority (A), got: %s", written)
+	if !strings.Contains(written, "(A)") {
+		t.Errorf("expected todo to have priority (A), got: %s", written)
+	}
+	if !strings.Contains(written, "Fix critical bug") {
+		t.Errorf("expected todo to contain description, got: %s", written)
+	}
+	// Should have today's creation date
+	today := time.Now().Format("2006-01-02")
+	if !strings.Contains(written, today) {
+		t.Errorf("expected todo to have today's creation date %s, got: %s", today, written)
 	}
 }
 
@@ -160,10 +169,17 @@ func TestStory008_AddTodoWithProjectTags(t *testing.T) {
 		t.Error("expected view to show +Mobile tag")
 	}
 
-	// Check that the todo was written with priority (B)
+	// Check that the todo was written with priority (B) and creation date
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "(B) Plan sprint +WebApp +Mobile") {
-		t.Errorf("expected todo to be written with priority (B) and tags, got: %s", written)
+	if !strings.Contains(written, "(B)") {
+		t.Errorf("expected todo to have priority (B), got: %s", written)
+	}
+	if !strings.Contains(written, "Plan sprint +WebApp +Mobile") {
+		t.Errorf("expected todo to contain description with tags, got: %s", written)
+	}
+	today := time.Now().Format("2006-01-02")
+	if !strings.Contains(written, today) {
+		t.Errorf("expected todo to have today's creation date %s, got: %s", today, written)
 	}
 }
 
@@ -214,10 +230,17 @@ func TestStory008_AddTodoWithContextTags(t *testing.T) {
 		t.Error("expected view to show @office tag")
 	}
 
-	// Check that the todo was written with priority (C)
+	// Check that the todo was written with priority (C) and creation date
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "(C) Reply to emails @phone @office") {
-		t.Errorf("expected todo to be written with priority (C) and tags, got: %s", written)
+	if !strings.Contains(written, "(C)") {
+		t.Errorf("expected todo to have priority (C), got: %s", written)
+	}
+	if !strings.Contains(written, "Reply to emails @phone @office") {
+		t.Errorf("expected todo to contain description with tags, got: %s", written)
+	}
+	today := time.Now().Format("2006-01-02")
+	if !strings.Contains(written, today) {
+		t.Errorf("expected todo to have today's creation date %s, got: %s", today, written)
 	}
 }
 
@@ -273,8 +296,16 @@ func TestStory008_AddTodoWithMixedTags(t *testing.T) {
 
 	// Check written content
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "(A) Deploy to production +WebApp @computer @work") {
-		t.Errorf("expected todo with all tags, got: %s", written)
+	if !strings.Contains(written, "(A)") {
+		t.Errorf("expected todo to have priority (A), got: %s", written)
+	}
+	if !strings.Contains(written, "Deploy to production +WebApp @computer @work") {
+		t.Errorf("expected todo to contain description with all tags, got: %s", written)
+	}
+	// Should have today's creation date
+	today := time.Now().Format("2006-01-02")
+	if !strings.Contains(written, today) {
+		t.Errorf("expected todo to have today's creation date %s, got: %s", today, written)
 	}
 }
 
@@ -501,8 +532,16 @@ func TestStory008_AutoAssignPriorityFromQuadrant(t *testing.T) {
 
 			// Check written content
 			written := source.writer.(*strings.Builder).String()
-			if !strings.Contains(written, tt.expectedPrio+" Test todo") {
-				t.Errorf("expected todo with priority %s, got: %s", tt.expectedPrio, written)
+			if !strings.Contains(written, tt.expectedPrio) {
+				t.Errorf("expected todo to have priority %s, got: %s", tt.expectedPrio, written)
+			}
+			if !strings.Contains(written, "Test todo") {
+				t.Errorf("expected todo to contain description, got: %s", written)
+			}
+			// Should have today's creation date
+			today := time.Now().Format("2006-01-02")
+			if !strings.Contains(written, today) {
+				t.Errorf("expected todo to have today's creation date %s, got: %s", today, written)
 			}
 		})
 	}
@@ -554,7 +593,15 @@ func TestStory008_NewTagsAreAccepted(t *testing.T) {
 
 	// Check written content
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "(A) Build API +Backend") {
-		t.Errorf("expected todo with +Backend tag, got: %s", written)
+	if !strings.Contains(written, "(A)") {
+		t.Errorf("expected todo to have priority (A), got: %s", written)
+	}
+	if !strings.Contains(written, "Build API +Backend") {
+		t.Errorf("expected todo to contain description with +Backend tag, got: %s", written)
+	}
+	// Should have today's creation date
+	today := time.Now().Format("2006-01-02")
+	if !strings.Contains(written, today) {
+		t.Errorf("expected todo to have today's creation date %s, got: %s", today, written)
 	}
 }

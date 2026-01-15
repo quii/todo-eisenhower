@@ -71,8 +71,23 @@ func RenderFocusedQuadrantWithInput(
 			var todoLine string
 			if t.IsCompleted() {
 				todoLine = completedTodoStyle.Render("✓ ") + description
+				// Add date information
+				createdStr := formatDate(t.CreationDate())
+				completedStr := formatDate(t.CompletionDate())
+				if createdStr != "" && completedStr != "" {
+					dateInfo := emptyStyle.Render(fmt.Sprintf(" (added %s, completed %s)", createdStr, completedStr))
+					todoLine += dateInfo
+				} else if completedStr != "" {
+					dateInfo := emptyStyle.Render(fmt.Sprintf(" (completed %s)", completedStr))
+					todoLine += dateInfo
+				}
 			} else {
 				todoLine = activeTodoStyle.Render("• ") + description
+				// Add creation date for active todos
+				if createdStr := formatDate(t.CreationDate()); createdStr != "" {
+					dateInfo := emptyStyle.Render(fmt.Sprintf(" (added %s)", createdStr))
+					todoLine += dateInfo
+				}
 			}
 			lines = append(lines, todoLine)
 		}

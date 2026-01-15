@@ -19,6 +19,7 @@ type Todo struct {
 	priority       Priority
 	completed      bool
 	completionDate *time.Time // nil if not completed or no date recorded
+	creationDate   *time.Time // nil if no creation date recorded
 	projects       []string
 	contexts       []string
 }
@@ -30,6 +31,20 @@ func New(description string, priority Priority) Todo {
 		priority:       priority,
 		completed:      false,
 		completionDate: nil,
+		creationDate:   nil,
+		projects:       []string{},
+		contexts:       []string{},
+	}
+}
+
+// NewWithCreationDate creates a new Todo with creation date
+func NewWithCreationDate(description string, priority Priority, creationDate *time.Time) Todo {
+	return Todo{
+		description:    description,
+		priority:       priority,
+		completed:      false,
+		completionDate: nil,
+		creationDate:   creationDate,
 		projects:       []string{},
 		contexts:       []string{},
 	}
@@ -42,6 +57,20 @@ func NewCompleted(description string, priority Priority, completionDate *time.Ti
 		priority:       priority,
 		completed:      true,
 		completionDate: completionDate,
+		creationDate:   nil,
+		projects:       []string{},
+		contexts:       []string{},
+	}
+}
+
+// NewCompletedWithDates creates a new completed Todo with both completion and creation dates
+func NewCompletedWithDates(description string, priority Priority, completionDate, creationDate *time.Time) Todo {
+	return Todo{
+		description:    description,
+		priority:       priority,
+		completed:      true,
+		completionDate: completionDate,
+		creationDate:   creationDate,
 		projects:       []string{},
 		contexts:       []string{},
 	}
@@ -60,13 +89,33 @@ func NewWithTags(description string, priority Priority, projects, contexts []str
 		priority:       priority,
 		completed:      false,
 		completionDate: nil,
+		creationDate:   nil,
+		projects:       projects,
+		contexts:       contexts,
+	}
+}
+
+// NewWithTagsAndDates creates a new Todo with tags and dates
+func NewWithTagsAndDates(description string, priority Priority, creationDate *time.Time, projects, contexts []string) Todo {
+	if projects == nil {
+		projects = []string{}
+	}
+	if contexts == nil {
+		contexts = []string{}
+	}
+	return Todo{
+		description:    description,
+		priority:       priority,
+		completed:      false,
+		completionDate: nil,
+		creationDate:   creationDate,
 		projects:       projects,
 		contexts:       contexts,
 	}
 }
 
 // NewCompletedWithTags creates a new completed Todo with tags and optional completion date
-func NewCompletedWithTags(description string, priority Priority, completionDate *time.Time, projects, contexts []string) Todo {
+func NewCompletedWithTags(description string, priority Priority, completionDate *time.Time, projects, contexts []string) Todo{
 	if projects == nil {
 		projects = []string{}
 	}
@@ -78,6 +127,26 @@ func NewCompletedWithTags(description string, priority Priority, completionDate 
 		priority:       priority,
 		completed:      true,
 		completionDate: completionDate,
+		creationDate:   nil,
+		projects:       projects,
+		contexts:       contexts,
+	}
+}
+
+// NewCompletedWithTagsAndDates creates a new completed Todo with tags and both dates
+func NewCompletedWithTagsAndDates(description string, priority Priority, completionDate, creationDate *time.Time, projects, contexts []string) Todo {
+	if projects == nil {
+		projects = []string{}
+	}
+	if contexts == nil {
+		contexts = []string{}
+	}
+	return Todo{
+		description:    description,
+		priority:       priority,
+		completed:      true,
+		completionDate: completionDate,
+		creationDate:   creationDate,
 		projects:       projects,
 		contexts:       contexts,
 	}
@@ -101,6 +170,11 @@ func (t Todo) IsCompleted() bool {
 // CompletionDate returns the todo's completion date (nil if not completed or no date)
 func (t Todo) CompletionDate() *time.Time {
 	return t.completionDate
+}
+
+// CreationDate returns the todo's creation date (nil if no date recorded)
+func (t Todo) CreationDate() *time.Time {
+	return t.creationDate
 }
 
 // Projects returns the todo's project tags
@@ -134,6 +208,7 @@ func (t Todo) ToggleCompletion() Todo {
 		priority:       t.priority,
 		completed:      newCompleted,
 		completionDate: newCompletionDate,
+		creationDate:   t.creationDate,
 		projects:       t.projects,
 		contexts:       t.contexts,
 	}
@@ -146,6 +221,7 @@ func (t Todo) ChangePriority(newPriority Priority) Todo {
 		priority:       newPriority,
 		completed:      t.completed,
 		completionDate: t.completionDate,
+		creationDate:   t.creationDate,
 		projects:       t.projects,
 		contexts:       t.contexts,
 	}

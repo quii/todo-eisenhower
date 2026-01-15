@@ -178,13 +178,23 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 			var todoLine string
 			if t.IsCompleted() {
 				todoLine = completedTodoStyle.Render("✓ ") + description
-				// Add completion date if present
-				if dateStr := formatCompletionDate(t.CompletionDate()); dateStr != "" {
-					dateInfo := emptyStyle.Render(fmt.Sprintf(" (completed %s)", dateStr))
+				// Add date information
+				createdStr := formatDate(t.CreationDate())
+				completedStr := formatDate(t.CompletionDate())
+				if createdStr != "" && completedStr != "" {
+					dateInfo := emptyStyle.Render(fmt.Sprintf(" (added %s, completed %s)", createdStr, completedStr))
+					todoLine += dateInfo
+				} else if completedStr != "" {
+					dateInfo := emptyStyle.Render(fmt.Sprintf(" (completed %s)", completedStr))
 					todoLine += dateInfo
 				}
 			} else {
 				todoLine = activeTodoStyle.Render("• ") + description
+				// Add creation date for active todos
+				if createdStr := formatDate(t.CreationDate()); createdStr != "" {
+					dateInfo := emptyStyle.Render(fmt.Sprintf(" (added %s)", createdStr))
+					todoLine += dateInfo
+				}
 			}
 
 			// Highlight selected todo
@@ -275,29 +285,28 @@ func createVerticalDivider(height int) string {
 	return dividerStyle.Render(strings.TrimSuffix(divider.String(), "\n"))
 }
 
-// formatCompletionDate formats a completion date with relative formatting for recent dates
-func formatCompletionDate(completionDate *time.Time) string {
-	if completionDate == nil {
+// formatDate formats a date with consistent friendly formatting
+// Returns "today", "yesterday", or "N days ago" for all dates
+func formatDate(date *time.Time) string {
+	if date == nil {
 		return ""
 	}
 
 	now := time.Now()
 	// Normalize both to start of day for comparison
-	completedDay := time.Date(completionDate.Year(), completionDate.Month(), completionDate.Day(), 0, 0, 0, 0, completionDate.Location())
+	dateDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 
-	daysDiff := int(today.Sub(completedDay).Hours() / 24)
+	daysDiff := int(today.Sub(dateDay).Hours() / 24)
 
 	switch daysDiff {
 	case 0:
 		return "today"
 	case 1:
 		return "yesterday"
-	case 2, 3, 4, 5, 6:
-		return fmt.Sprintf("%d days ago", daysDiff)
 	default:
-		// For older dates, use absolute format
-		return completionDate.Format("Jan 2, 2006")
+		// Always use "N days ago" for consistency
+		return fmt.Sprintf("%d days ago", daysDiff)
 	}
 }
 
@@ -353,13 +362,23 @@ func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo
 			var todoLine string
 			if t.IsCompleted() {
 				todoLine = completedTodoStyle.Render("✓ ") + description
-				// Add completion date if present
-				if dateStr := formatCompletionDate(t.CompletionDate()); dateStr != "" {
-					dateInfo := emptyStyle.Render(fmt.Sprintf(" (%s)", dateStr))
+				// Add date information (briefer for overview mode)
+				createdStr := formatDate(t.CreationDate())
+				completedStr := formatDate(t.CompletionDate())
+				if createdStr != "" && completedStr != "" {
+					dateInfo := emptyStyle.Render(fmt.Sprintf(" (added %s, completed %s)", createdStr, completedStr))
+					todoLine += dateInfo
+				} else if completedStr != "" {
+					dateInfo := emptyStyle.Render(fmt.Sprintf(" (%s)", completedStr))
 					todoLine += dateInfo
 				}
 			} else {
 				todoLine = activeTodoStyle.Render("• ") + description
+				// Add creation date for active todos
+				if createdStr := formatDate(t.CreationDate()); createdStr != "" {
+					dateInfo := emptyStyle.Render(fmt.Sprintf(" (%s)", createdStr))
+					todoLine += dateInfo
+				}
 			}
 			lines = append(lines, todoLine)
 		}

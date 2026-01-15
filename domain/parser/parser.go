@@ -43,6 +43,7 @@ func Parse(r io.Reader) ([]todo.Todo, error) {
 func parseLine(line string) todo.Todo {
 	completed := false
 	var completionDate *time.Time
+	var creationDate *time.Time
 	priority := todo.PriorityNone
 	description := line
 
@@ -52,12 +53,22 @@ func parseLine(line string) todo.Todo {
 		description = completedPrefix.ReplaceAllString(description, "")
 	}
 
-	// Extract and remove completion date if present at the beginning (format: x DATE (A) Description)
+	// Extract and remove completion date if present at the beginning (format: x DATE ...)
 	if completed && datePattern.MatchString(description) {
 		// Extract the date string
 		dateStr := strings.TrimSpace(datePattern.FindString(description))
 		if parsedDate, err := time.Parse("2006-01-02", dateStr); err == nil {
 			completionDate = &parsedDate
+		}
+		description = datePattern.ReplaceAllString(description, "")
+	}
+
+	// For completed todos, next date (before priority) is creation date
+	// Format: x COMP_DATE CREATION_DATE (A) Description
+	if completed && datePattern.MatchString(description) {
+		dateStr := strings.TrimSpace(datePattern.FindString(description))
+		if parsedDate, err := time.Parse("2006-01-02", dateStr); err == nil {
+			creationDate = &parsedDate
 		}
 		description = datePattern.ReplaceAllString(description, "")
 	}
@@ -71,11 +82,12 @@ func parseLine(line string) todo.Todo {
 		description = priorityPattern.ReplaceAllString(description, "")
 	}
 
-	// Extract and remove completion date if present after priority (format: x (A) DATE Description - backward compat)
-	if completed && completionDate == nil && datePattern.MatchString(description) {
+	// After priority, any date is the creation date
+	// Format: (A) CREATION_DATE Description (for active todos or if not parsed yet)
+	if creationDate == nil && datePattern.MatchString(description) {
 		dateStr := strings.TrimSpace(datePattern.FindString(description))
 		if parsedDate, err := time.Parse("2006-01-02", dateStr); err == nil {
-			completionDate = &parsedDate
+			creationDate = &parsedDate
 		}
 		description = datePattern.ReplaceAllString(description, "")
 	}
@@ -86,16 +98,23 @@ func parseLine(line string) todo.Todo {
 	projects := extractTags(description, projectPattern)
 	contexts := extractTags(description, contextPattern)
 
-	// Create todo with tags (completed or not)
+	// Create todo with appropriate constructor based on what we have
 	if completed {
 		if len(projects) > 0 || len(contexts) > 0 {
-			return todo.NewCompletedWithTags(description, priority, completionDate, projects, contexts)
+			return todo.NewCompletedWithTagsAndDates(description, priority, completionDate, creationDate, projects, contexts)
 		}
-		return todo.NewCompleted(description, priority, completionDate)
+		return todo.NewCompletedWithDates(description, priority, completionDate, creationDate)
 	}
 
 	if len(projects) > 0 || len(contexts) > 0 {
+		if creationDate != nil {
+			return todo.NewWithTagsAndDates(description, priority, creationDate, projects, contexts)
+		}
 		return todo.NewWithTags(description, priority, projects, contexts)
+	}
+
+	if creationDate != nil {
+		return todo.NewWithCreationDate(description, priority, creationDate)
 	}
 
 	return todo.New(description, priority)
