@@ -215,7 +215,7 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 	output.WriteString("\n\n")
 
 	// Render help text at bottom
-	helpText := renderHelp("↑↓/w/s navigate", "Space to toggle", "Press a to add", "Press 1-4 to jump", "Shift+1-4 to move", "Press ESC to return")
+	helpText := renderHelp("↑↓/w/s navigate", "Space to toggle", "Press a to add", "Press 1-4 to jump", "m to move", "Press ESC to return")
 	centeredHelp := lipgloss.NewStyle().
 		Align(lipgloss.Center).
 		Width(terminalWidth).
@@ -445,7 +445,7 @@ func RenderFocusedQuadrantWithTable(
 	output.WriteString("\n\n")
 
 	// Render help text at bottom
-	helpText := renderHelp("Press a to add", "Press 1-4 to jump", "Shift+1-4 to move", "Press ESC to return")
+	helpText := renderHelp("Press a to add", "Press 1-4 to jump", "m to move", "Press ESC to return")
 	centeredHelp := lipgloss.NewStyle().
 		Align(lipgloss.Center).
 		Width(terminalWidth).
@@ -566,4 +566,40 @@ func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight int, select
 	}
 
 	return t
+}
+
+// RenderMoveOverlay renders an overlay for move mode
+func RenderMoveOverlay(terminalWidth, terminalHeight int) string {
+	// Build overlay content
+	content := lipgloss.NewStyle().
+		Bold(true).
+		Render("Move to quadrant:") + "\n\n"
+
+	content += "  1. DO FIRST\n"
+	content += "  2. SCHEDULE\n"
+	content += "  3. DELEGATE\n"
+	content += "  4. ELIMINATE\n\n"
+
+	content += lipgloss.NewStyle().
+		Foreground(lipgloss.Color("240")).
+		Italic(true).
+		Render("Press ESC to cancel")
+
+	// Create bordered box
+	boxStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("57")).
+		Padding(1, 2).
+		Width(30)
+
+	box := boxStyle.Render(content)
+
+	// Center the box in the terminal
+	return lipgloss.Place(
+		terminalWidth,
+		terminalHeight,
+		lipgloss.Center,
+		lipgloss.Center,
+		box,
+	)
 }

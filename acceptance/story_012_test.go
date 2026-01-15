@@ -32,8 +32,10 @@ func TestStory012_MoveFromDoFirstToSchedule(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
 	model = updatedModel.(ui.Model)
 
-	// Press Shift+2 (@) to move to SCHEDULE
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'@'}})
+	// Press 'm' to enter move mode, then '2' to move to SCHEDULE
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
+	model = updatedModel.(ui.Model)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'2'}})
 	model = updatedModel.(ui.Model)
 
 	// Check file was updated with priority B
@@ -69,8 +71,10 @@ func TestStory012_MoveFromDelegateToDoFirst(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'3'}})
 	model = updatedModel.(ui.Model)
 
-	// Press Shift+1 (!) to move to DO FIRST
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'!'}})
+	// Press 'm' to enter move mode, then '1' to move to DO FIRST
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
+	model = updatedModel.(ui.Model)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
 	model = updatedModel.(ui.Model)
 
 	// Check file was updated with priority A
@@ -103,8 +107,10 @@ func TestStory012_MoveToEliminate(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'2'}})
 	model = updatedModel.(ui.Model)
 
-	// Press Shift+4 ($) to move to ELIMINATE
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'$'}})
+	// Press 'm' to enter move mode, then '4' to move to ELIMINATE
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
+	model = updatedModel.(ui.Model)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'4'}})
 	model = updatedModel.(ui.Model)
 
 	// Check file was updated with priority D
@@ -143,8 +149,10 @@ func TestStory012_MovingTodoAdjustsSelection(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyDown})
 	model = updatedModel.(ui.Model)
 
-	// Move second task to SCHEDULE (press Shift+2)
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'@'}})
+	// Move second task to SCHEDULE (press 'm' then '2')
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
+	model = updatedModel.(ui.Model)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'2'}})
 	model = updatedModel.(ui.Model)
 
 	// Check file shows second task moved to priority B
@@ -189,8 +197,10 @@ func TestStory012_MovingLastTodoReturnsToOverview(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'3'}})
 	model = updatedModel.(ui.Model)
 
-	// Move to DO FIRST (press Shift+1)
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'!'}})
+	// Move to DO FIRST (press 'm' then '1')
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
+	model = updatedModel.(ui.Model)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
 	model = updatedModel.(ui.Model)
 
 	// Should return to overview mode
@@ -230,8 +240,10 @@ func TestStory012_PreservesTagsAndCompletion(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
 	model = updatedModel.(ui.Model)
 
-	// Move to DELEGATE (press Shift+3)
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'#'}})
+	// Move to DELEGATE (press 'm' then '3')
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
+	model = updatedModel.(ui.Model)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'3'}})
 	model = updatedModel.(ui.Model)
 
 	// Check file preserves everything
@@ -289,21 +301,25 @@ func TestStory012_PressingCurrentQuadrantDoesNothing(t *testing.T) {
 		t.Error("should still show the todo")
 	}
 
-	// Press Shift+2 (@) again - should be a no-op since todo is already priority B
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'@'}})
+	// Press 'm' then '2' again - should be a no-op since todo is already priority B
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
+	model = updatedModel.(ui.Model)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'2'}})
 	model = updatedModel.(ui.Model)
 
 	// Verify todo is still in SCHEDULE with priority B
 	view = model.View()
 	if !strings.Contains(view, "SCHEDULE") {
-		t.Error("should still be viewing SCHEDULE quadrant after Shift+2")
+		t.Error("should still be viewing SCHEDULE quadrant after pressing 'm' then '2'")
 	}
 	if !strings.Contains(view, "Plan sprint") {
-		t.Error("should still show the todo after Shift+2")
+		t.Error("should still show the todo after pressing 'm' then '2'")
 	}
 
-	// Now actually move it to verify moving works (press Shift+1)
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'!'}})
+	// Now actually move it to verify moving works (press 'm' then '1')
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
+	model = updatedModel.(ui.Model)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
 	model = updatedModel.(ui.Model)
 
 	// Check that it was moved to priority A

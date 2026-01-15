@@ -29,6 +29,7 @@ type Model struct {
 	height             int
 	viewMode           ViewMode
 	inputMode          bool
+	moveMode           bool // true when in move mode (selecting quadrant to move to)
 	input              textinput.Model
 	allProjects        []string
 	allContexts        []string
@@ -86,6 +87,33 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		// Handle move mode separately
+		if m.moveMode {
+			switch msg.String() {
+			case "1":
+				m = m.changeTodoPriority(todo.PriorityA)
+				m.moveMode = false
+				return m, nil
+			case "2":
+				m = m.changeTodoPriority(todo.PriorityB)
+				m.moveMode = false
+				return m, nil
+			case "3":
+				m = m.changeTodoPriority(todo.PriorityC)
+				m.moveMode = false
+				return m, nil
+			case "4":
+				m = m.changeTodoPriority(todo.PriorityD)
+				m.moveMode = false
+				return m, nil
+			case "esc":
+				m.moveMode = false
+				return m, nil
+			}
+			// Ignore all other keys in move mode
+			return m, nil
+		}
+
 		// Handle input mode separately
 		if m.inputMode {
 			// Handle autocomplete-specific keys when suggestions are visible
@@ -185,25 +213,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selectedTodoIndex = 0
 				m = m.rebuildTable()
 			}
-		case "!", "shift+1":
-			// Shift+1: Move todo to DO FIRST (priority A)
-			if m.viewMode != Overview {
-				m = m.changeTodoPriority(todo.PriorityA)
-			}
-		case "@", "shift+2":
-			// Shift+2: Move todo to SCHEDULE (priority B)
-			if m.viewMode != Overview {
-				m = m.changeTodoPriority(todo.PriorityB)
-			}
-		case "#", "shift+3":
-			// Shift+3: Move todo to DELEGATE (priority C)
-			if m.viewMode != Overview {
-				m = m.changeTodoPriority(todo.PriorityC)
-			}
-		case "$", "shift+4":
-			// Shift+4: Move todo to ELIMINATE (priority D)
-			if m.viewMode != Overview {
-				m = m.changeTodoPriority(todo.PriorityD)
+		case "m":
+			// Enter move mode (only in focus mode with todos)
+			if m.viewMode != Overview && len(m.currentQuadrantTodos()) > 0 {
+				m.moveMode = true
 			}
 		case "esc":
 			m.viewMode = Overview
@@ -591,6 +604,11 @@ func (m Model) View() string {
 		}
 
 		return content
+	}
+
+	// If in move mode, overlay the move dialog
+	if m.moveMode {
+		return RenderMoveOverlay(m.width, m.height)
 	}
 
 	// Focus mode content is already full-width and properly aligned

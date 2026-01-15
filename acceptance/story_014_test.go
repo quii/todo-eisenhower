@@ -210,8 +210,10 @@ func TestStory014_PreserveCreationDateOnMove(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
 	model = updatedModel.(ui.Model)
 
-	// Move to SCHEDULE quadrant (Shift+2 = @)
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'@'}})
+	// Move to SCHEDULE quadrant (press 'm' then '2')
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
+	model = updatedModel.(ui.Model)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'2'}})
 	model = updatedModel.(ui.Model)
 
 	// Verify creation date is preserved in written output

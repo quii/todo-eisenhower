@@ -359,8 +359,10 @@ func TestStory013_PreserveCompletionDateWhenMovingQuadrants(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
 	model = updatedModel.(ui.Model)
 
-	// Move to SCHEDULE (Shift+2 = @)
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'@'}})
+	// Move to SCHEDULE (press 'm' then '2')
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
+	model = updatedModel.(ui.Model)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'2'}})
 	model = updatedModel.(ui.Model)
 
 	// Check file preserves the completion date

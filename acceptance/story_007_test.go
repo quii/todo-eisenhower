@@ -90,7 +90,7 @@ func TestStory007_FocusOnDoFirst(t *testing.T) {
 	if !strings.Contains(view, "Press 1-4 to jump") {
 		t.Error("expected focused view to contain help text about jumping quadrants")
 	}
-	if !strings.Contains(view, "Shift+1-4 to move") {
+	if !strings.Contains(view, "m to move") {
 		t.Error("expected focused view to contain help text about moving todos")
 	}
 	if !strings.Contains(view, "Press ESC to return") {
@@ -328,7 +328,7 @@ func TestStory007_EmptyQuadrantInFocusMode(t *testing.T) {
 		t.Error("should show '(no tasks)' for empty quadrant")
 	}
 
-	if !strings.Contains(view, "Shift+1-4 to move") {
+	if !strings.Contains(view, "m to move") {
 		t.Error("should show help text even for empty quadrant")
 	}
 }
