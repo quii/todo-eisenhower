@@ -2,6 +2,7 @@ package ui
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/quii/todo-eisenhower/domain/matrix"
@@ -37,6 +38,7 @@ type Model struct {
 	suggestions        []string
 	selectedSuggestion int
 	selectedTodoIndex  int // index of selected todo in current quadrant
+	todoTable          table.Model // table for displaying todos
 }
 
 // NewModel creates a new UI model with the given matrix and file path
@@ -140,40 +142,48 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				// Overview mode: focus on quadrant
 				m.viewMode = FocusDoFirst
 				m.selectedTodoIndex = 0
+				m = m.rebuildTable()
 			} else {
 				// Focus mode: jump to DO FIRST quadrant
 				m.viewMode = FocusDoFirst
 				m.selectedTodoIndex = 0
+				m = m.rebuildTable()
 			}
 		case "2":
 			if m.viewMode == Overview {
 				// Overview mode: focus on quadrant
 				m.viewMode = FocusSchedule
 				m.selectedTodoIndex = 0
+				m = m.rebuildTable()
 			} else {
 				// Focus mode: jump to SCHEDULE quadrant
 				m.viewMode = FocusSchedule
 				m.selectedTodoIndex = 0
+				m = m.rebuildTable()
 			}
 		case "3":
 			if m.viewMode == Overview {
 				// Overview mode: focus on quadrant
 				m.viewMode = FocusDelegate
 				m.selectedTodoIndex = 0
+				m = m.rebuildTable()
 			} else {
 				// Focus mode: jump to DELEGATE quadrant
 				m.viewMode = FocusDelegate
 				m.selectedTodoIndex = 0
+				m = m.rebuildTable()
 			}
 		case "4":
 			if m.viewMode == Overview {
 				// Overview mode: focus on quadrant
 				m.viewMode = FocusEliminate
 				m.selectedTodoIndex = 0
+				m = m.rebuildTable()
 			} else {
 				// Focus mode: jump to ELIMINATE quadrant
 				m.viewMode = FocusEliminate
 				m.selectedTodoIndex = 0
+				m = m.rebuildTable()
 			}
 		case "!", "shift+1":
 			// Shift+1: Move todo to DO FIRST (priority A)
@@ -204,14 +214,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.input.Focus()
 			}
 		case "down", "s":
-			// Navigate down in focus mode
+			// Navigate down in focus mode using table
 			if m.viewMode != Overview {
-				m = m.moveSelectionDown()
+				var cmd tea.Cmd
+				m.todoTable, cmd = m.todoTable.Update(msg)
+				m.selectedTodoIndex = m.todoTable.Cursor()
+				return m, cmd
 			}
 		case "up", "w":
-			// Navigate up in focus mode
+			// Navigate up in focus mode using table
 			if m.viewMode != Overview {
-				m = m.moveSelectionUp()
+				var cmd tea.Cmd
+				m.todoTable, cmd = m.todoTable.Update(msg)
+				m.selectedTodoIndex = m.todoTable.Cursor()
+				return m, cmd
 			}
 		case " ":
 			// Toggle completion in focus mode (space bar)
@@ -262,6 +278,9 @@ func (m Model) saveTodo() Model {
 	// Exit input mode
 	m.inputMode = false
 	m.input.SetValue("")
+
+	// Rebuild table with new todo
+	m = m.rebuildTable()
 
 	return m
 }
@@ -396,6 +415,10 @@ func (m Model) toggleCompletion() Model {
 	}
 
 	m.matrix = updatedMatrix
+
+	// Rebuild table to reflect the change
+	m = m.rebuildTable()
+
 	return m
 }
 
@@ -421,11 +444,26 @@ func (m Model) changeTodoPriority(newPriority todo.Priority) Model {
 	todos := m.currentQuadrantTodos()
 	if len(todos) == 0 {
 		m.viewMode = Overview
-	} else if m.selectedTodoIndex >= len(todos) {
-		// If selected index is now out of bounds, select the last todo
-		m.selectedTodoIndex = len(todos) - 1
+	} else {
+		if m.selectedTodoIndex >= len(todos) {
+			// If selected index is now out of bounds, select the last todo
+			m.selectedTodoIndex = len(todos) - 1
+		}
+		// Rebuild table to reflect the change
+		m = m.rebuildTable()
 	}
 
+	return m
+}
+
+// rebuildTable rebuilds the todo table based on current quadrant
+func (m Model) rebuildTable() Model {
+	if m.viewMode == Overview {
+		return m // No table in overview mode
+	}
+
+	todos := m.currentQuadrantTodos()
+	m.todoTable = buildTodoTable(todos, m.width, m.height, m.selectedTodoIndex)
 	return m
 }
 
@@ -452,12 +490,12 @@ func (m Model) View() string {
 				m.height,
 			)
 		} else {
-			content = RenderFocusedQuadrant(
+			content = RenderFocusedQuadrantWithTable(
 				m.matrix.DoFirst(),
 				"DO FIRST",
 				lipgloss.Color("#FF6B6B"),
 				m.filePath,
-				m.selectedTodoIndex,
+				m.todoTable,
 				m.width,
 				m.height,
 			)
@@ -479,12 +517,12 @@ func (m Model) View() string {
 				m.height,
 			)
 		} else {
-			content = RenderFocusedQuadrant(
+			content = RenderFocusedQuadrantWithTable(
 				m.matrix.Schedule(),
 				"SCHEDULE",
 				lipgloss.Color("#4ECDC4"),
 				m.filePath,
-				m.selectedTodoIndex,
+				m.todoTable,
 				m.width,
 				m.height,
 			)
@@ -506,12 +544,12 @@ func (m Model) View() string {
 				m.height,
 			)
 		} else {
-			content = RenderFocusedQuadrant(
+			content = RenderFocusedQuadrantWithTable(
 				m.matrix.Delegate(),
 				"DELEGATE",
 				lipgloss.Color("#FFE66D"),
 				m.filePath,
-				m.selectedTodoIndex,
+				m.todoTable,
 				m.width,
 				m.height,
 			)
@@ -533,12 +571,12 @@ func (m Model) View() string {
 				m.height,
 			)
 		} else {
-			content = RenderFocusedQuadrant(
+			content = RenderFocusedQuadrantWithTable(
 				m.matrix.Eliminate(),
 				"ELIMINATE",
 				lipgloss.Color("#95E1D3"),
 				m.filePath,
-				m.selectedTodoIndex,
+				m.todoTable,
 				m.width,
 				m.height,
 			)

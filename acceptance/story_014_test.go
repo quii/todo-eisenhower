@@ -131,9 +131,13 @@ func TestStory014_DisplayCreationDatesInUI(t *testing.T) {
 
 	view := model.View()
 
-	// Should display "added 5 days ago"
-	if !strings.Contains(view, "(added 5 days ago)") {
-		t.Errorf("expected view to show '(added 5 days ago)', got: %s", view)
+	// Should display "5 days ago" in the Created column
+	if !strings.Contains(view, "5 days ago") {
+		t.Errorf("expected view to show '5 days ago' in Created column, got: %s", view)
+	}
+	// Should have Created column header
+	if !strings.Contains(view, "Created") {
+		t.Errorf("expected view to show Created column header, got: %s", view)
 	}
 }
 
@@ -257,9 +261,9 @@ func TestStory014_FriendlyDateFormatting(t *testing.T) {
 
 	view := model.View()
 
-	// Should show "today"
-	if !strings.Contains(view, "(added today)") {
-		t.Errorf("expected view to show '(added today)', got: %s", view)
+	// Should show "today" in Created column
+	if !strings.Contains(view, "today") {
+		t.Errorf("expected view to show 'today' in Created column, got: %s", view)
 	}
 
 	// Switch to SCHEDULE quadrant to see "yesterday"
@@ -267,8 +271,8 @@ func TestStory014_FriendlyDateFormatting(t *testing.T) {
 	model = updatedModel.(ui.Model)
 	view = model.View()
 
-	if !strings.Contains(view, "(added yesterday)") {
-		t.Errorf("expected view to show '(added yesterday)', got: %s", view)
+	if !strings.Contains(view, "yesterday") {
+		t.Errorf("expected view to show 'yesterday' in Created column, got: %s", view)
 	}
 
 	// Switch to DELEGATE quadrant to see "7 days ago"
@@ -276,8 +280,8 @@ func TestStory014_FriendlyDateFormatting(t *testing.T) {
 	model = updatedModel.(ui.Model)
 	view = model.View()
 
-	if !strings.Contains(view, "(added 7 days ago)") {
-		t.Errorf("expected view to show '(added 7 days ago)', got: %s", view)
+	if !strings.Contains(view, "7 days ago") {
+		t.Errorf("expected view to show '7 days ago' in Created column, got: %s", view)
 	}
 }
 

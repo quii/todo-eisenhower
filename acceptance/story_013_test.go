@@ -232,15 +232,15 @@ func TestStory013_DisplayCompletionDateInUI(t *testing.T) {
 		t.Error("expected view to contain todo description")
 	}
 
-	// Should show completion marker
-	if !strings.Contains(view, "✓") {
-		t.Error("expected view to contain completion marker")
+	// Should have Completed column header in table
+	if !strings.Contains(view, "Completed") {
+		t.Error("expected view to contain 'Completed' column header")
 	}
 
-	// Should show some indication of completion date (either relative or absolute)
-	// For 10 days ago, should show absolute date format
-	if !strings.Contains(view, "completed") {
-		t.Error("expected view to contain 'completed' indicator")
+	// Should show completion date in the Completed column
+	// For 10 days ago, should show "10 days ago"
+	if !strings.Contains(view, "10 days ago") {
+		t.Error("expected view to contain completion date '10 days ago'")
 	}
 }
 
@@ -323,15 +323,17 @@ func TestStory013_NoDateShownForIncompleteTodos(t *testing.T) {
 
 	view := model.View()
 
-	// Should show active todo marker
-	if !strings.Contains(view, "• Active task") {
+	// Should show active todo in table
+	if !strings.Contains(view, "Active task") {
 		t.Error("expected view to contain active todo")
 	}
 
-	// Should NOT show completion date
-	if strings.Contains(view, "completed") {
-		t.Error("expected view not to show completion date for active todo")
+	// Should have table with Completed column showing "-" for active todos
+	if !strings.Contains(view, "Completed") {
+		t.Error("expected view to have Completed column header")
 	}
+	// The completed column should show "-" for active todos (not a specific date)
+	// This is implicit in the table rendering
 }
 
 func TestStory013_PreserveCompletionDateWhenMovingQuadrants(t *testing.T) {

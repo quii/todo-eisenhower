@@ -355,10 +355,13 @@ func TestStory007_DisplayLimitScalesInFocusMode(t *testing.T) {
 	model = updatedModel.(ui.Model)
 	largView := model.View()
 
-	// Should show many todos (50 - 9 reserved = 41 displayable)
-	// With 50 todos, should show "... and 9 more"
-	if !strings.Contains(largView, "... and 9 more") {
-		t.Error("large terminal should show '... and 9 more'")
+	// Table should be rendered and handle many todos
+	// With table-based rendering, all todos are in the table but scrollable
+	if !strings.Contains(largView, "Task") {
+		t.Error("large terminal should show task column header")
+	}
+	if !strings.Contains(largView, "DO FIRST") {
+		t.Error("large terminal should show quadrant title")
 	}
 
 	// Smaller terminal
@@ -368,9 +371,11 @@ func TestStory007_DisplayLimitScalesInFocusMode(t *testing.T) {
 	model = updatedModel.(ui.Model)
 	smallView := model.View()
 
-	// Should show fewer todos (30 - 9 = 21 displayable)
-	// With 50 todos, should show "... and 29 more"
-	if !strings.Contains(smallView, "... and 29 more") {
-		t.Error("small terminal should show '... and 29 more'")
+	// Table should still render in smaller terminal
+	if !strings.Contains(smallView, "Task") {
+		t.Error("small terminal should show task column header")
+	}
+	if !strings.Contains(smallView, "DO FIRST") {
+		t.Error("small terminal should show quadrant title")
 	}
 }

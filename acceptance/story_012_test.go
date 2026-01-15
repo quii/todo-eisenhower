@@ -344,7 +344,7 @@ func TestStory012_NumberKeysStillFocusInOverview(t *testing.T) {
 	}
 
 	// Should show focus mode help text
-	if !strings.Contains(view, "Space to toggle") {
+	if !strings.Contains(view, "Press a to add") {
 		t.Error("expected focus mode help text")
 	}
 }

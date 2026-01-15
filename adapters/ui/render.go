@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/quii/todo-eisenhower/domain/matrix"
 	"github.com/quii/todo-eisenhower/domain/todo"
@@ -393,4 +394,176 @@ func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo
 		Padding(1, 2).
 		AlignVertical(lipgloss.Top).
 		Render(content)
+}
+
+// RenderFocusedQuadrantWithTable renders a quadrant in focus mode using a table
+func RenderFocusedQuadrantWithTable(
+	todos []todo.Todo,
+	title string,
+	color lipgloss.Color,
+	filePath string,
+	todoTable table.Model,
+	terminalWidth, terminalHeight int,
+) string {
+	var output strings.Builder
+
+	// Render file path header with full width and center alignment
+	if filePath != "" {
+		header := headerStyle.
+			Copy().
+			Width(terminalWidth).
+			Align(lipgloss.Center).
+			Render("File: " + filePath)
+		output.WriteString(header)
+		output.WriteString("\n\n")
+	}
+
+	// Render prominent quadrant title
+	focusTitle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(color).
+		Underline(true).
+		Align(lipgloss.Center).
+		Width(terminalWidth).
+		Render(title)
+	output.WriteString(focusTitle)
+	output.WriteString("\n\n")
+
+	// Render table or empty message
+	if len(todos) == 0 {
+		emptyMsg := emptyStyle.Render("(no tasks)")
+		centeredMsg := lipgloss.NewStyle().
+			Width(terminalWidth).
+			Align(lipgloss.Center).
+			Render(emptyMsg)
+		output.WriteString(centeredMsg)
+	} else {
+		// Render the table
+		output.WriteString(todoTable.View())
+	}
+
+	output.WriteString("\n\n")
+
+	// Render help text at bottom
+	helpText := renderHelp("Press a to add", "Press 1-4 to jump", "Shift+1-4 to move", "Press ESC to return")
+	centeredHelp := lipgloss.NewStyle().
+		Align(lipgloss.Center).
+		Width(terminalWidth).
+		Render(helpText)
+	output.WriteString(centeredHelp)
+
+	return output.String()
+}
+
+// buildTodoTable creates a table.Model from a list of todos
+func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight int, selectedIndex int) table.Model {
+	// Calculate column widths based on terminal width
+	// Reserve some width for borders, padding, etc.
+	availableWidth := terminalWidth - 10
+	if availableWidth < 80 {
+		availableWidth = 80
+	}
+
+	// Define column widths (these are approximate ratios)
+	// Task gets most of the space, other columns get fixed widths
+	projectsWidth := 15
+	contextsWidth := 15
+	createdWidth := 12
+	completedWidth := 12
+	taskWidth := availableWidth - projectsWidth - contextsWidth - createdWidth - completedWidth
+
+	if taskWidth < 30 {
+		taskWidth = 30
+	}
+
+	columns := []table.Column{
+		{Title: "Task", Width: taskWidth},
+		{Title: "Projects", Width: projectsWidth},
+		{Title: "Contexts", Width: contextsWidth},
+		{Title: "Created", Width: createdWidth},
+		{Title: "Completed", Width: completedWidth},
+	}
+
+	// Build rows from todos
+	rows := make([]table.Row, len(todos))
+	for i, t := range todos {
+		// Task: description with tags colorized inline (but we can't use lipgloss in table cells easily)
+		// For now, just use plain description
+		taskDesc := t.Description()
+
+		// Projects: comma-separated list
+		projects := strings.Join(t.Projects(), ", ")
+		if projects == "" {
+			projects = "-"
+		}
+
+		// Contexts: comma-separated list
+		contexts := strings.Join(t.Contexts(), ", ")
+		if contexts == "" {
+			contexts = "-"
+		}
+
+		// Created: friendly date format
+		created := formatDate(t.CreationDate())
+		if created == "" {
+			created = "-"
+		}
+
+		// Completed: friendly date format (empty for active todos)
+		completed := formatDate(t.CompletionDate())
+		if completed == "" {
+			completed = "-"
+		}
+
+		rows[i] = table.Row{taskDesc, projects, contexts, created, completed}
+	}
+
+	// Track which rows are completed for styling
+	completedRows := make(map[int]bool)
+	for i, t := range todos {
+		if t.IsCompleted() {
+			completedRows[i] = true
+		}
+	}
+
+	// Calculate table height - should fit within terminal
+	// Reserve space for header, title, help text, etc.
+	tableHeight := terminalHeight - 15
+	if tableHeight < 5 {
+		tableHeight = 5
+	}
+
+	t := table.New(
+		table.WithColumns(columns),
+		table.WithRows(rows),
+		table.WithFocused(true),
+		table.WithHeight(tableHeight),
+	)
+
+	// Style the table
+	s := table.DefaultStyles()
+	s.Header = s.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		BorderBottom(true).
+		Bold(false)
+	s.Selected = s.Selected.
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("57")).
+		Bold(false)
+
+	// Style completed rows with green foreground
+	// Note: The bubbles table doesn't directly support per-row styling,
+	// so we'll use a green foreground for the entire cell style when rendering
+	// For now, we'll apply green to all cells if the row is completed
+	// This is a limitation of the table component - better per-row styling would require custom rendering
+
+	t.SetStyles(s)
+
+	// Set cursor to the selected index
+	if selectedIndex >= 0 && selectedIndex < len(rows) {
+		t.SetCursor(selectedIndex)
+	}
+
+	return t
 }

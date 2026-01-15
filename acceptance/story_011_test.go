@@ -122,8 +122,13 @@ func TestStory011_MarkTodoAsComplete(t *testing.T) {
 
 	// Check that todo is marked as complete in view
 	view := model.View()
-	if !strings.Contains(view, "✓") {
-		t.Error("expected todo to show checkmark (✓) when completed")
+	// With table rendering, completed todos show date in Completed column
+	if !strings.Contains(view, "Completed") {
+		t.Error("expected table to have Completed column header")
+	}
+	// Should show "today" in the Completed column
+	if !strings.Contains(view, "today") {
+		t.Error("expected completed todo to show 'today' in Completed column")
 	}
 
 	// Check that file was updated with completion marker
