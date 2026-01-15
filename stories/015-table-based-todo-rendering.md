@@ -12,6 +12,8 @@ Currently, todos are rendered as run-on lines with all information (description,
 
 This format becomes difficult to read as we add more metadata (creation dates, completion dates, priority changes, etc.). The bubbles library provides a table component that would allow us to display todo information in a structured, columnar format.
 
+Completed todos will be distinguished by green highlighting and the presence of a completion date, eliminating the need for a separate status column.
+
 ## Goal
 Replace the current line-based todo rendering with a table component from the bubbles library, displaying todos in a structured columnar format that makes metadata easier to scan and read.
 
@@ -21,8 +23,7 @@ Replace the current line-based todo rendering with a table component from the bu
 **Given** I have todos with various metadata (priority, tags, dates)
 **When** I view a quadrant in focus mode
 **Then** I should see todos displayed in a table with columns:
-- Status (✓ or • indicator)
-- Description (with colorized tags inline)
+- Task (description with colorized tags inline)
 - Projects (comma-separated list)
 - Contexts (comma-separated list)
 - Created (friendly date format)
@@ -56,15 +57,16 @@ Replace the current line-based todo rendering with a table component from the bu
 **Given** I have both active and completed todos
 **When** I view them in the table
 **Then** completed todos should have:
-- ✓ in the status column
-- Dimmed/grayed out styling
-- Completion date populated
+- Green text/background highlighting
+- Completion date populated in the Completed column
+**And** active todos should have:
+- Normal/default styling
+- Empty Completed column
 
 ### Scenario 7: Table headers are clear and concise
 **Given** I am viewing a table of todos
 **When** I look at the column headers
 **Then** they should be:
-- Status (or blank)
 - Task
 - Projects
 - Contexts
@@ -86,7 +88,8 @@ Replace the current line-based todo rendering with a table component from the bu
 - Tag colorization should still work within the description column
 
 ## Design Decisions
-- **Column order**: Status, Task, Projects, Contexts, Created, Completed
+- **Column order**: Task, Projects, Contexts, Created, Completed
+- **Completion indicator**: Green highlighting on completed rows instead of status column symbol
 - **Date columns**: Use the existing friendly format ("today", "yesterday", "N days ago")
 - **Tag display**: Keep tags inline with description but also show in dedicated columns for scanning
 - **Navigation**: Reuse existing up/down/w/s handling, just update to work with table rows
