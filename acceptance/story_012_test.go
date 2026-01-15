@@ -24,7 +24,7 @@ func TestStory012_MoveFromDoFirstToSchedule(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -32,8 +32,8 @@ func TestStory012_MoveFromDoFirstToSchedule(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
 	model = updatedModel.(ui.Model)
 
-	// Press '2' to move to SCHEDULE
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'2'}})
+	// Press Shift+2 (@) to move to SCHEDULE
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'@'}})
 	model = updatedModel.(ui.Model)
 
 	// Check file was updated with priority B
@@ -61,7 +61,7 @@ func TestStory012_MoveFromDelegateToDoFirst(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -69,8 +69,8 @@ func TestStory012_MoveFromDelegateToDoFirst(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'3'}})
 	model = updatedModel.(ui.Model)
 
-	// Press '1' to move to DO FIRST
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
+	// Press Shift+1 (!) to move to DO FIRST
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'!'}})
 	model = updatedModel.(ui.Model)
 
 	// Check file was updated with priority A
@@ -95,7 +95,7 @@ func TestStory012_MoveToEliminate(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -103,8 +103,8 @@ func TestStory012_MoveToEliminate(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'2'}})
 	model = updatedModel.(ui.Model)
 
-	// Press '4' to move to ELIMINATE
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'4'}})
+	// Press Shift+4 ($) to move to ELIMINATE
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'$'}})
 	model = updatedModel.(ui.Model)
 
 	// Check file was updated with priority D
@@ -131,7 +131,7 @@ func TestStory012_MovingTodoAdjustsSelection(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -143,8 +143,8 @@ func TestStory012_MovingTodoAdjustsSelection(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyDown})
 	model = updatedModel.(ui.Model)
 
-	// Move second task to SCHEDULE (press '2')
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'2'}})
+	// Move second task to SCHEDULE (press Shift+2)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'@'}})
 	model = updatedModel.(ui.Model)
 
 	// Check file shows second task moved to priority B
@@ -181,7 +181,7 @@ func TestStory012_MovingLastTodoReturnsToOverview(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -189,8 +189,8 @@ func TestStory012_MovingLastTodoReturnsToOverview(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'3'}})
 	model = updatedModel.(ui.Model)
 
-	// Move to DO FIRST (press '1')
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
+	// Move to DO FIRST (press Shift+1)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'!'}})
 	model = updatedModel.(ui.Model)
 
 	// Should return to overview mode
@@ -222,7 +222,7 @@ func TestStory012_PreservesTagsAndCompletion(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -230,8 +230,8 @@ func TestStory012_PreservesTagsAndCompletion(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
 	model = updatedModel.(ui.Model)
 
-	// Move to DELEGATE (press '3')
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'3'}})
+	// Move to DELEGATE (press Shift+3)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'#'}})
 	model = updatedModel.(ui.Model)
 
 	// Check file preserves everything
@@ -268,7 +268,7 @@ func TestStory012_PressingCurrentQuadrantDoesNothing(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -289,15 +289,27 @@ func TestStory012_PressingCurrentQuadrantDoesNothing(t *testing.T) {
 		t.Error("should still show the todo")
 	}
 
-	// Try to move to a different quadrant to verify the todo is really still in SCHEDULE
-	// If we press '1', it should move the todo to DO FIRST and we should see it there
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
+	// Press Shift+2 (@) again - should be a no-op since todo is already priority B
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'@'}})
 	model = updatedModel.(ui.Model)
 
-	// Now check that it was moved (to verify the no-op didn't break anything)
+	// Verify todo is still in SCHEDULE with priority B
+	view = model.View()
+	if !strings.Contains(view, "SCHEDULE") {
+		t.Error("should still be viewing SCHEDULE quadrant after Shift+2")
+	}
+	if !strings.Contains(view, "Plan sprint") {
+		t.Error("should still show the todo after Shift+2")
+	}
+
+	// Now actually move it to verify moving works (press Shift+1)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'!'}})
+	model = updatedModel.(ui.Model)
+
+	// Check that it was moved to priority A
 	written := source.writer.(*strings.Builder).String()
 	if !strings.Contains(written, "(A) Plan sprint") {
-		t.Errorf("after pressing '1', todo should be moved to priority A, got: %s", written)
+		t.Errorf("after pressing Shift+1, todo should be moved to priority A, got: %s", written)
 	}
 }
 
@@ -317,7 +329,7 @@ func TestStory012_NumberKeysStillFocusInOverview(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 

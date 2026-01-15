@@ -6,7 +6,7 @@ import (
 )
 
 // ChangePriority changes the priority of a todo at the specified position
-func ChangePriority(writer TodoWriter, m matrix.Matrix, quadrant matrix.QuadrantType, index int, newPriority todo.Priority) (matrix.Matrix, error) {
+func ChangePriority(source TodoSource, writer TodoWriter, m matrix.Matrix, quadrant matrix.QuadrantType, index int, newPriority todo.Priority) (matrix.Matrix, error) {
 	// Get the todos from the quadrant
 	var todos []todo.Todo
 	switch quadrant {
@@ -43,5 +43,7 @@ func ChangePriority(writer TodoWriter, m matrix.Matrix, quadrant matrix.Quadrant
 		return m, err // Return original matrix if save fails
 	}
 
-	return updatedMatrix, nil
+	// Reload matrix from file to get proper quadrant organization
+	// (changing priority means todo should move to different quadrant)
+	return LoadMatrix(source)
 }

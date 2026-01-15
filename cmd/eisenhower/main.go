@@ -27,7 +27,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	model := ui.NewModel(m, filePath).SetWriter(source)
+	model := ui.NewModel(m, filePath).SetSource(source).SetWriter(source)
 
 	p := tea.NewProgram(model, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {

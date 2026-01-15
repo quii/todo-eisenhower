@@ -141,8 +141,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.viewMode = FocusDoFirst
 				m.selectedTodoIndex = 0
 			} else {
-				// Focus mode: move todo to DO FIRST (priority A)
-				m = m.changeTodoPriority(todo.PriorityA)
+				// Focus mode: jump to DO FIRST quadrant
+				m.viewMode = FocusDoFirst
+				m.selectedTodoIndex = 0
 			}
 		case "2":
 			if m.viewMode == Overview {
@@ -150,8 +151,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.viewMode = FocusSchedule
 				m.selectedTodoIndex = 0
 			} else {
-				// Focus mode: move todo to SCHEDULE (priority B)
-				m = m.changeTodoPriority(todo.PriorityB)
+				// Focus mode: jump to SCHEDULE quadrant
+				m.viewMode = FocusSchedule
+				m.selectedTodoIndex = 0
 			}
 		case "3":
 			if m.viewMode == Overview {
@@ -159,8 +161,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.viewMode = FocusDelegate
 				m.selectedTodoIndex = 0
 			} else {
-				// Focus mode: move todo to DELEGATE (priority C)
-				m = m.changeTodoPriority(todo.PriorityC)
+				// Focus mode: jump to DELEGATE quadrant
+				m.viewMode = FocusDelegate
+				m.selectedTodoIndex = 0
 			}
 		case "4":
 			if m.viewMode == Overview {
@@ -168,7 +171,28 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.viewMode = FocusEliminate
 				m.selectedTodoIndex = 0
 			} else {
-				// Focus mode: move todo to ELIMINATE (priority D)
+				// Focus mode: jump to ELIMINATE quadrant
+				m.viewMode = FocusEliminate
+				m.selectedTodoIndex = 0
+			}
+		case "!", "shift+1":
+			// Shift+1: Move todo to DO FIRST (priority A)
+			if m.viewMode != Overview {
+				m = m.changeTodoPriority(todo.PriorityA)
+			}
+		case "@", "shift+2":
+			// Shift+2: Move todo to SCHEDULE (priority B)
+			if m.viewMode != Overview {
+				m = m.changeTodoPriority(todo.PriorityB)
+			}
+		case "#", "shift+3":
+			// Shift+3: Move todo to DELEGATE (priority C)
+			if m.viewMode != Overview {
+				m = m.changeTodoPriority(todo.PriorityC)
+			}
+		case "$", "shift+4":
+			// Shift+4: Move todo to ELIMINATE (priority D)
+			if m.viewMode != Overview {
 				m = m.changeTodoPriority(todo.PriorityD)
 			}
 		case "esc":
@@ -377,13 +401,13 @@ func (m Model) toggleCompletion() Model {
 
 // changeTodoPriority changes the priority of the selected todo
 func (m Model) changeTodoPriority(newPriority todo.Priority) Model {
-	if m.writer == nil {
-		return m // No-op if no writer configured
+	if m.writer == nil || m.source == nil {
+		return m // No-op if no writer or source configured
 	}
 
 	// Use the ChangePriority usecase
 	quadrant := m.currentQuadrantType()
-	updatedMatrix, err := usecases.ChangePriority(m.writer, m.matrix, quadrant, m.selectedTodoIndex, newPriority)
+	updatedMatrix, err := usecases.ChangePriority(m.source, m.writer, m.matrix, quadrant, m.selectedTodoIndex, newPriority)
 	if err != nil {
 		// TODO: Show error to user in future story
 		return m
