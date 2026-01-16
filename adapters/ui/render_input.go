@@ -119,8 +119,8 @@ func RenderFocusedQuadrantWithInput(
 	} else {
 		output.WriteString("\n")
 		// Render tag reference when not autocompleting
-		projectLine := renderTagReference("Projects", projects, terminalWidth)
-		contextLine := renderTagReference("Contexts", contexts, terminalWidth)
+		projectLine := renderTagReference("Projects (+)", projects, terminalWidth)
+		contextLine := renderTagReference("Contexts (@)", contexts, terminalWidth)
 		output.WriteString(projectLine)
 		output.WriteString("\n")
 		output.WriteString(contextLine)
@@ -151,7 +151,7 @@ func renderTagReference(label string, tags []string, width int) string {
 		// Build tag list with colors
 		var tagParts []string
 		prefix := "+"
-		if label == "Contexts" {
+		if strings.HasPrefix(label, "Contexts") {
 			prefix = "@"
 		}
 		for _, tag := range tags {

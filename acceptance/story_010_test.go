@@ -37,7 +37,7 @@ x (A) Completed task +strategy`
 	view := model.View()
 
 	// Should show project inventory at bottom
-	is.True(strings.Contains(stripANSI(view), "Projects:")) // expected to see 'Projects:' label
+	is.True(strings.Contains(stripANSI(view), "Projects (+):")) // expected to see 'Projects:' label
 
 	// Should show strategy with count 3 (not counting completed)
 	is.True(strings.Contains(stripANSI(view), "strategy") && strings.Contains(stripANSI(view), "(3)")) // expected to see +strategy (3)
@@ -82,7 +82,7 @@ func TestStory010_DisplayContextTagInventory(t *testing.T) {
 	view := model.View()
 
 	// Should show context inventory
-	is.True(strings.Contains(stripANSI(view), "Contexts:")) // expected to see 'Contexts:' label
+	is.True(strings.Contains(stripANSI(view), "Contexts (@):")) // expected to see 'Contexts:' label
 
 	// Should show computer with count 5
 	is.True(strings.Contains(stripANSI(view), "computer") && strings.Contains(stripANSI(view), "(5)")) // expected to see @computer (5)
@@ -117,8 +117,8 @@ func TestStory010_DisplayBothProjectAndContextInventory(t *testing.T) {
 	view := model.View()
 
 	// Should show both project and context lines
-	is.True(strings.Contains(stripANSI(view), "Projects:")) // expected to see 'Projects:' label
-	is.True(strings.Contains(stripANSI(view), "Contexts:")) // expected to see 'Contexts:' label
+	is.True(strings.Contains(stripANSI(view), "Projects (+):")) // expected to see 'Projects:' label
+	is.True(strings.Contains(stripANSI(view), "Contexts (@):")) // expected to see 'Contexts:' label
 
 	// Should show counts for both
 	is.True(strings.Contains(stripANSI(view), "strategy")) // expected to see +strategy
@@ -147,10 +147,10 @@ func TestStory010_NoTagsInUse(t *testing.T) {
 	view := model.View()
 
 	// Should show (none) for both
-	projectsLine := extractLine(view, "Projects:")
+	projectsLine := extractLine(view, "Projects (+):")
 	is.True(strings.Contains(projectsLine, "(none)")) // expected to see 'Projects: (none)'
 
-	contextsLine := extractLine(view, "Contexts:")
+	contextsLine := extractLine(view, "Contexts (@):")
 	is.True(strings.Contains(contextsLine, "(none)")) // expected to see 'Contexts: (none)'
 }
 
@@ -180,7 +180,7 @@ func TestStory010_InventoryNotShownInFocusMode(t *testing.T) {
 	view := model.View()
 
 	// Should NOT show inventory in focus mode
-	is.True(!(strings.Contains(stripANSI(view), "Projects:") && strings.Contains(stripANSI(view), "strategy (1)"))) // expected inventory NOT to be shown in focus mode
+	is.True(!(strings.Contains(stripANSI(view), "Projects (+):") && strings.Contains(stripANSI(view), "strategy (1)"))) // expected inventory NOT to be shown in focus mode
 }
 
 func TestStory010_CountsUpdateWhenAddingTodos(t *testing.T) {

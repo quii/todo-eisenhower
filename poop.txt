@@ -1,2 +1,3 @@
-(A) 2026-01-16 OK lets see +engineering @projectA
-(B) 2026-01-16 lol +engineering @projectA
+(C) 2026-01-16 Update architectural diagram +Snapp @tech
+(A) 2026-01-16 Clarify auditing questions +Snapp @tech
+(A) 2026-01-16 Tell David Wickes off +Snapp @people

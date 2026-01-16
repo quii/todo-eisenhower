@@ -47,8 +47,8 @@ func TestStory008_PressAToEnterInputMode(t *testing.T) {
 	is.True(strings.Contains(stripANSI(view), "ESC to cancel")) // expected view to show 'ESC to cancel' help text
 
 	// Should show tag reference headers
-	is.True(strings.Contains(stripANSI(view), "Projects:")) // expected view to show 'Projects:' label
-	is.True(strings.Contains(stripANSI(view), "Contexts:")) // expected view to show 'Contexts:' label
+	is.True(strings.Contains(stripANSI(view), "Projects (+):")) // expected view to show 'Projects:' label
+	is.True(strings.Contains(stripANSI(view), "Contexts (@):")) // expected view to show 'Contexts:' label
 }
 
 func TestStory008_AddSimpleTodoWithoutTags(t *testing.T) {
@@ -322,12 +322,12 @@ func TestStory008_TagReferenceShowsExistingTags(t *testing.T) {
 	view := model.View()
 
 	// Should show project tags
-	is.True(strings.Contains(stripANSI(view), "Projects:")) // expected view to show 'Projects:' label
+	is.True(strings.Contains(stripANSI(view), "Projects (+):")) // expected view to show 'Projects:' label
 	is.True(strings.Contains(stripANSI(view), "WebApp")) // expected view to show +WebApp in tag reference
 	is.True(strings.Contains(stripANSI(view), "Mobile")) // expected view to show +Mobile in tag reference
 
 	// Should show context tags
-	is.True(strings.Contains(stripANSI(view), "Contexts:")) // expected view to show 'Contexts:' label
+	is.True(strings.Contains(stripANSI(view), "Contexts (@):")) // expected view to show 'Contexts:' label
 	is.True(strings.Contains(stripANSI(view), "computer")) // expected view to show @computer in tag reference
 	is.True(strings.Contains(stripANSI(view), "phone")) // expected view to show @phone in tag reference
 	is.True(strings.Contains(stripANSI(view), "office")) // expected view to show @office in tag reference
@@ -358,8 +358,8 @@ func TestStory008_EmptyTagReferenceWhenNoTags(t *testing.T) {
 	view := model.View()
 
 	// Should show "(none)" for projects and contexts
-	is.True(strings.Contains(stripANSI(view), "Projects: (none)")) // expected view to show 'Projects: (none)'
-	is.True(strings.Contains(stripANSI(view), "Contexts: (none)")) // expected view to show 'Contexts: (none)'
+	is.True(strings.Contains(stripANSI(view), "Projects (+): (none)")) // expected view to show 'Projects: (none)'
+	is.True(strings.Contains(stripANSI(view), "Contexts (@): (none)")) // expected view to show 'Contexts: (none)'
 }
 
 func TestStory008_InputOnlyAvailableInFocusMode(t *testing.T) {

@@ -75,7 +75,7 @@ func renderTagInventory(m matrix.Matrix, width int) string {
 	var output strings.Builder
 
 	// Render projects line
-	output.WriteString(labelStyle.Render("Projects: "))
+	output.WriteString(labelStyle.Render("Projects (+): "))
 	if len(projectCounts) == 0 {
 		output.WriteString(labelStyle.Render("(none)"))
 	} else {
@@ -96,7 +96,7 @@ func renderTagInventory(m matrix.Matrix, width int) string {
 	output.WriteString("\n")
 
 	// Render contexts line
-	output.WriteString(labelStyle.Render("Contexts: "))
+	output.WriteString(labelStyle.Render("Contexts (@): "))
 	if len(contextCounts) == 0 {
 		output.WriteString(labelStyle.Render("(none)"))
 	} else {
