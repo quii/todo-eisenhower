@@ -98,6 +98,13 @@ func parseLine(line string) todo.Todo {
 	projects := extractTags(description, projectPattern)
 	contexts := extractTags(description, contextPattern)
 
+	// Remove tags from description now that they're extracted
+	description = projectPattern.ReplaceAllString(description, "")
+	description = contextPattern.ReplaceAllString(description, "")
+	// Clean up extra whitespace
+	description = strings.Join(strings.Fields(description), " ")
+	description = strings.TrimSpace(description)
+
 	// Create todo with appropriate constructor based on what we have
 	if completed {
 		if len(projects) > 0 || len(contexts) > 0 {

@@ -14,6 +14,9 @@ func AddTodo(writer TodoWriter, m matrix.Matrix, description string, priority to
 	projects := extractTagsFromDescription(description, `\+(\w+)`)
 	contexts := extractTagsFromDescription(description, `@(\w+)`)
 
+	// Strip tags from description (they're stored separately)
+	cleanDescription := stripTagsFromDescription(description)
+
 	// Set creation date to now
 	now := time.Now()
 	creationDate := &now
@@ -21,9 +24,9 @@ func AddTodo(writer TodoWriter, m matrix.Matrix, description string, priority to
 	// Create the todo using rich domain model with creation date
 	var newTodo todo.Todo
 	if len(projects) > 0 || len(contexts) > 0 {
-		newTodo = todo.NewWithTagsAndDates(description, priority, creationDate, projects, contexts)
+		newTodo = todo.NewWithTagsAndDates(cleanDescription, priority, creationDate, projects, contexts)
 	} else {
-		newTodo = todo.NewWithCreationDate(description, priority, creationDate)
+		newTodo = todo.NewWithCreationDate(cleanDescription, priority, creationDate)
 	}
 
 	// Add todo to matrix
@@ -49,4 +52,21 @@ func extractTagsFromDescription(description string, pattern string) []string {
 		}
 	}
 	return tags
+}
+
+// stripTagsFromDescription removes project and context tags from description
+func stripTagsFromDescription(description string) string {
+	// Remove project tags (+tag)
+	projectPattern := regexp.MustCompile(`\+\w+`)
+	description = projectPattern.ReplaceAllString(description, "")
+	
+	// Remove context tags (@tag)
+	contextPattern := regexp.MustCompile(`@\w+`)
+	description = contextPattern.ReplaceAllString(description, "")
+	
+	// Clean up extra whitespace
+	re := regexp.MustCompile(`\s+`)
+	description = re.ReplaceAllString(description, " ")
+	
+	return regexp.MustCompile(`^\s+|\s+$`).ReplaceAllString(description, "")
 }

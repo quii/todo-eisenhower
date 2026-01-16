@@ -24,6 +24,23 @@ var (
 	contextTagPattern = regexp.MustCompile(`@(\w+)`)
 )
 
+// buildDescriptionWithTags reconstructs the full description with tags for display
+func buildDescriptionWithTags(t todo.Todo) string {
+	description := t.Description()
+	
+	// Add project tags
+	for _, project := range t.Projects() {
+		description += " +" + project
+	}
+	
+	// Add context tags
+	for _, context := range t.Contexts() {
+		description += " @" + context
+	}
+	
+	return description
+}
+
 var (
 	// Color palette - Eisenhower matrix themed
 	urgentImportantColor = lipgloss.Color("#FF6B6B") // Red - Do First
@@ -175,8 +192,11 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 				break
 			}
 
+			// Build full description with tags for display
+			description := buildDescriptionWithTags(t)
+			
 			// Colorize tags in description
-			description := colorizeDescription(t.Description())
+			description = colorizeDescription(description)
 
 			var todoLine string
 			if t.IsCompleted() {
@@ -381,8 +401,11 @@ func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo
 				break
 			}
 
+			// Build full description with tags for display
+			description := buildDescriptionWithTags(t)
+			
 			// Colorize tags in description
-			description := colorizeDescription(t.Description())
+			description = colorizeDescription(description)
 
 			var todoLine string
 			if t.IsCompleted() {
@@ -497,8 +520,7 @@ func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight int, select
 	// Build rows from todos
 	rows := make([]table.Row, len(todos))
 	for i, t := range todos {
-		// Task: description with tags colorized inline (but we can't use lipgloss in table cells easily)
-		// For now, just use plain description
+		// Task: description is already clean (tags extracted by parser)
 		taskDesc := t.Description()
 
 		// Projects: comma-separated list

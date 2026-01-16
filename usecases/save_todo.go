@@ -53,8 +53,15 @@ func FormatTodo(t todo.Todo) string {
 	// Add description
 	result += t.Description()
 
-	// Note: tags are already included in the description
-	// The todo.txt format has tags inline with the description
+	// Add project tags
+	for _, project := range t.Projects() {
+		result += " +" + project
+	}
+
+	// Add context tags
+	for _, context := range t.Contexts() {
+		result += " @" + context
+	}
 
 	result += "\n"
 	return result

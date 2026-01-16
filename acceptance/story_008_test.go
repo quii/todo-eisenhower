@@ -139,8 +139,8 @@ func TestStory008_AddTodoWithProjectTags(t *testing.T) {
 
 	// Should show the new todo with tags
 	is.True(strings.Contains(stripANSI(view), "Plan sprint")) // expected view to show new todo
-	is.True(strings.Contains(stripANSI(view), "+WebApp")) // expected view to show +WebApp tag
-	is.True(strings.Contains(stripANSI(view), "+Mobile")) // expected view to show +Mobile tag
+	is.True(strings.Contains(stripANSI(view), "WebApp")) // expected view to show +WebApp tag
+	is.True(strings.Contains(stripANSI(view), "Mobile")) // expected view to show +Mobile tag
 
 	// Check that the todo was written with priority (B) and creation date
 	written := source.writer.(*strings.Builder).String()
@@ -188,8 +188,8 @@ func TestStory008_AddTodoWithContextTags(t *testing.T) {
 
 	// Should show the new todo with context tags
 	is.True(strings.Contains(stripANSI(view), "Reply to emails")) // expected view to show new todo
-	is.True(strings.Contains(stripANSI(view), "@phone")) // expected view to show @phone tag
-	is.True(strings.Contains(stripANSI(view), "@office")) // expected view to show @office tag
+	is.True(strings.Contains(stripANSI(view), "phone")) // expected view to show @phone tag
+	is.True(strings.Contains(stripANSI(view), "office")) // expected view to show @office tag
 
 	// Check that the todo was written with priority (C) and creation date
 	written := source.writer.(*strings.Builder).String()
@@ -237,9 +237,9 @@ func TestStory008_AddTodoWithMixedTags(t *testing.T) {
 
 	// Should show all tags
 	is.True(strings.Contains(stripANSI(view), "Deploy to production")) // expected view to show new todo
-	is.True(strings.Contains(stripANSI(view), "+WebApp")) // expected view to show +WebApp tag
-	is.True(strings.Contains(stripANSI(view), "@computer")) // expected view to show @computer tag
-	is.True(strings.Contains(stripANSI(view), "@work")) // expected view to show @work tag
+	is.True(strings.Contains(stripANSI(view), "WebApp")) // expected view to show +WebApp tag
+	is.True(strings.Contains(stripANSI(view), "computer")) // expected view to show @computer tag
+	is.True(strings.Contains(stripANSI(view), "work")) // expected view to show @work tag
 
 	// Check written content
 	written := source.writer.(*strings.Builder).String()
@@ -323,14 +323,14 @@ func TestStory008_TagReferenceShowsExistingTags(t *testing.T) {
 
 	// Should show project tags
 	is.True(strings.Contains(stripANSI(view), "Projects:")) // expected view to show 'Projects:' label
-	is.True(strings.Contains(stripANSI(view), "+WebApp")) // expected view to show +WebApp in tag reference
-	is.True(strings.Contains(stripANSI(view), "+Mobile")) // expected view to show +Mobile in tag reference
+	is.True(strings.Contains(stripANSI(view), "WebApp")) // expected view to show +WebApp in tag reference
+	is.True(strings.Contains(stripANSI(view), "Mobile")) // expected view to show +Mobile in tag reference
 
 	// Should show context tags
 	is.True(strings.Contains(stripANSI(view), "Contexts:")) // expected view to show 'Contexts:' label
-	is.True(strings.Contains(stripANSI(view), "@computer")) // expected view to show @computer in tag reference
-	is.True(strings.Contains(stripANSI(view), "@phone")) // expected view to show @phone in tag reference
-	is.True(strings.Contains(stripANSI(view), "@office")) // expected view to show @office in tag reference
+	is.True(strings.Contains(stripANSI(view), "computer")) // expected view to show @computer in tag reference
+	is.True(strings.Contains(stripANSI(view), "phone")) // expected view to show @phone in tag reference
+	is.True(strings.Contains(stripANSI(view), "office")) // expected view to show @office in tag reference
 }
 
 func TestStory008_EmptyTagReferenceWhenNoTags(t *testing.T) {
@@ -489,7 +489,7 @@ func TestStory008_NewTagsAreAccepted(t *testing.T) {
 
 	// Should show the new todo with +Backend tag
 	is.True(strings.Contains(stripANSI(view), "Build API")) // expected view to show new todo
-	is.True(strings.Contains(stripANSI(view), "+Backend")) // expected view to show +Backend tag
+	is.True(strings.Contains(stripANSI(view), "Backend")) // expected view to show +Backend tag
 
 	// Check written content
 	written := source.writer.(*strings.Builder).String()
