@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/matryer/is"
 	"github.com/quii/todo-eisenhower/domain/matrix"
 	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/usecases"
@@ -13,11 +14,7 @@ import (
 // Story 004: Parse and render todo.txt project and context tags
 
 func TestStory004_ParseSingleProjectTag(t *testing.T) {
-	// Scenario: Parse single project tag
-	// Given a todo.txt file containing:
-	//   (A) Deploy new feature +WebApp
-	// When I run the application
-	// Then the todo is parsed with project ["WebApp"]
+	is := is.New(t)
 
 	input := "(A) Deploy new feature +WebApp"
 	source := &StubTodoSource{
@@ -25,30 +22,18 @@ func TestStory004_ParseSingleProjectTag(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	doFirst := m.DoFirst()
-	if len(doFirst) != 1 {
-		t.Fatalf("expected 1 todo in Do First, got %d", len(doFirst))
-	}
+	is.Equal(len(doFirst), 1) // expected 1 todo in Do First
 
 	projects := doFirst[0].Projects()
-	if len(projects) != 1 {
-		t.Fatalf("expected 1 project, got %d", len(projects))
-	}
-	if projects[0] != "WebApp" {
-		t.Errorf("expected project 'WebApp', got %q", projects[0])
-	}
+	is.Equal(len(projects), 1) // expected 1 project
+	is.Equal(projects[0], "WebApp")
 }
 
 func TestStory004_ParseSingleContextTag(t *testing.T) {
-	// Scenario: Parse single context tag
-	// Given a todo.txt file containing:
-	//   (B) Call client @phone
-	// When I run the application
-	// Then the todo is parsed with context ["phone"]
+	is := is.New(t)
 
 	input := "(B) Call client @phone"
 	source := &StubTodoSource{
@@ -56,31 +41,18 @@ func TestStory004_ParseSingleContextTag(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	schedule := m.Schedule()
-	if len(schedule) != 1 {
-		t.Fatalf("expected 1 todo in Schedule, got %d", len(schedule))
-	}
+	is.Equal(len(schedule), 1) // expected 1 todo in Schedule
 
 	contexts := schedule[0].Contexts()
-	if len(contexts) != 1 {
-		t.Fatalf("expected 1 context, got %d", len(contexts))
-	}
-	if contexts[0] != "phone" {
-		t.Errorf("expected context 'phone', got %q", contexts[0])
-	}
+	is.Equal(len(contexts), 1) // expected 1 context
+	is.Equal(contexts[0], "phone")
 }
 
 func TestStory004_ParseMultipleProjectsAndContexts(t *testing.T) {
-	// Scenario: Parse multiple projects and contexts
-	// Given a todo.txt file containing:
-	//   (A) Write quarterly report +Work +Q1Goals @office @computer
-	// When I run the application
-	// Then the todo is parsed with projects ["Work", "Q1Goals"]
-	// And the todo is parsed with contexts ["office", "computer"]
+	is := is.New(t)
 
 	input := "(A) Write quarterly report +Work +Q1Goals @office @computer"
 	source := &StubTodoSource{
@@ -88,39 +60,24 @@ func TestStory004_ParseMultipleProjectsAndContexts(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	doFirst := m.DoFirst()
-	if len(doFirst) != 1 {
-		t.Fatalf("expected 1 todo in Do First, got %d", len(doFirst))
-	}
+	is.Equal(len(doFirst), 1) // expected 1 todo in Do First
 
 	projects := doFirst[0].Projects()
-	if len(projects) != 2 {
-		t.Fatalf("expected 2 projects, got %d", len(projects))
-	}
-	if projects[0] != "Work" || projects[1] != "Q1Goals" {
-		t.Errorf("expected projects ['Work', 'Q1Goals'], got %v", projects)
-	}
+	is.Equal(len(projects), 2) // expected 2 projects
+	is.Equal(projects[0], "Work")
+	is.Equal(projects[1], "Q1Goals")
 
 	contexts := doFirst[0].Contexts()
-	if len(contexts) != 2 {
-		t.Fatalf("expected 2 contexts, got %d", len(contexts))
-	}
-	if contexts[0] != "office" || contexts[1] != "computer" {
-		t.Errorf("expected contexts ['office', 'computer'], got %v", contexts)
-	}
+	is.Equal(len(contexts), 2) // expected 2 contexts
+	is.Equal(contexts[0], "office")
+	is.Equal(contexts[1], "computer")
 }
 
 func TestStory004_ParseTagsAnywhereInDescription(t *testing.T) {
-	// Scenario: Parse tags anywhere in description
-	// Given a todo.txt file containing:
-	//   (A) Review +OpenSource code for @github issues
-	// When I run the application
-	// Then the todo is parsed with project ["OpenSource"]
-	// And the todo is parsed with context ["github"]
+	is := is.New(t)
 
 	input := "(A) Review +OpenSource code for @github issues"
 	source := &StubTodoSource{
@@ -128,33 +85,22 @@ func TestStory004_ParseTagsAnywhereInDescription(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	doFirst := m.DoFirst()
-	if len(doFirst) != 1 {
-		t.Fatalf("expected 1 todo in Do First, got %d", len(doFirst))
-	}
+	is.Equal(len(doFirst), 1) // expected 1 todo in Do First
 
 	projects := doFirst[0].Projects()
-	if len(projects) != 1 || projects[0] != "OpenSource" {
-		t.Errorf("expected project ['OpenSource'], got %v", projects)
-	}
+	is.Equal(len(projects), 1) // expected 1 project
+	is.Equal(projects[0], "OpenSource")
 
 	contexts := doFirst[0].Contexts()
-	if len(contexts) != 1 || contexts[0] != "github" {
-		t.Errorf("expected context ['github'], got %v", contexts)
-	}
+	is.Equal(len(contexts), 1) // expected 1 context
+	is.Equal(contexts[0], "github")
 }
 
 func TestStory004_TodosWithoutTagsRenderNormally(t *testing.T) {
-	// Scenario: Todos without tags render normally
-	// Given a todo.txt file containing:
-	//   (A) Simple task without tags
-	// When I run the application
-	// Then the todo is displayed in the Do First quadrant
-	// And no tags are shown
+	is := is.New(t)
 
 	input := "(A) Simple task without tags"
 	source := &StubTodoSource{
@@ -162,30 +108,16 @@ func TestStory004_TodosWithoutTagsRenderNormally(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	doFirst := m.DoFirst()
-	if len(doFirst) != 1 {
-		t.Fatalf("expected 1 todo in Do First, got %d", len(doFirst))
-	}
-
-	if len(doFirst[0].Projects()) != 0 {
-		t.Errorf("expected no projects, got %v", doFirst[0].Projects())
-	}
-	if len(doFirst[0].Contexts()) != 0 {
-		t.Errorf("expected no contexts, got %v", doFirst[0].Contexts())
-	}
+	is.Equal(len(doFirst), 1) // expected 1 todo in Do First
+	is.Equal(len(doFirst[0].Projects()), 0) // expected no projects
+	is.Equal(len(doFirst[0].Contexts()), 0) // expected no contexts
 }
 
 func TestStory004_ConsistentColorForSameTag(t *testing.T) {
-	// Scenario: Render tags with consistent colors
-	// Given a todo.txt file containing multiple todos with the same tag:
-	//   (A) First task +WebApp
-	//   (B) Second task +WebApp
-	// When I run the application
-	// Then the +WebApp tag renders with the same color in both todos
+	is := is.New(t)
 
 	input := `(A) First task +WebApp
 (B) Second task +WebApp`
@@ -194,26 +126,16 @@ func TestStory004_ConsistentColorForSameTag(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	// Verify both todos parsed correctly with same project tag
 	doFirst := m.DoFirst()
-	if len(doFirst) != 1 {
-		t.Fatalf("expected 1 todo in Do First, got %d", len(doFirst))
-	}
-	if doFirst[0].Projects()[0] != "WebApp" {
-		t.Errorf("expected project 'WebApp' in Do First, got %v", doFirst[0].Projects())
-	}
+	is.Equal(len(doFirst), 1) // expected 1 todo in Do First
+	is.Equal(doFirst[0].Projects()[0], "WebApp")
 
 	schedule := m.Schedule()
-	if len(schedule) != 1 {
-		t.Fatalf("expected 1 todo in Schedule, got %d", len(schedule))
-	}
-	if schedule[0].Projects()[0] != "WebApp" {
-		t.Errorf("expected project 'WebApp' in Schedule, got %v", schedule[0].Projects())
-	}
+	is.Equal(len(schedule), 1) // expected 1 todo in Schedule
+	is.Equal(schedule[0].Projects()[0], "WebApp")
 
 	// Note: Color consistency is verified by the HashColor function using deterministic hashing
 	// The UI layer will apply the same color to both instances of +WebApp
@@ -258,7 +180,8 @@ func (s *StubTodoSource) ReplaceAll(content string) error {
 
 // Integration test: Load matrix from realistic todo.txt with mixed tags
 func TestStory004_Integration_MixedTagsInMatrix(t *testing.T) {
-	// Given a realistic todo.txt with various tags across all quadrants
+	is := is.New(t)
+
 	input := `(A) Deploy feature +WebApp @computer
 (B) Plan sprint +Work @office
 (C) Reply to emails @computer
@@ -271,70 +194,52 @@ No priority task +PersonalProject`
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	// Verify distribution across matrix
-	assertMatrixDistribution(t, m, 2, 1, 1, 2)
+	assertMatrixDistribution(is, m, 2, 1, 1, 2)
 
 	// Verify Do First has correct projects and contexts
 	doFirst := m.DoFirst()
-	verifyTodoHasTags(t, doFirst[0], []string{"WebApp"}, []string{"computer"})
-	verifyTodoHasTags(t, doFirst[1], []string{"MobileApp"}, []string{"phone"})
+	verifyTodoHasTags(is, doFirst[0], []string{"WebApp"}, []string{"computer"})
+	verifyTodoHasTags(is, doFirst[1], []string{"MobileApp"}, []string{"phone"})
 
 	// Verify Schedule has correct tags
 	schedule := m.Schedule()
-	verifyTodoHasTags(t, schedule[0], []string{"Work"}, []string{"office"})
+	verifyTodoHasTags(is, schedule[0], []string{"Work"}, []string{"office"})
 
 	// Verify Delegate has correct tags
 	delegate := m.Delegate()
-	verifyTodoHasTags(t, delegate[0], []string{}, []string{"computer"})
+	verifyTodoHasTags(is, delegate[0], []string{}, []string{"computer"})
 
 	// Verify Eliminate has mixed scenarios
 	eliminate := m.Eliminate()
-	verifyTodoHasTags(t, eliminate[0], []string{}, []string{"office"})
-	verifyTodoHasTags(t, eliminate[1], []string{"PersonalProject"}, []string{})
+	verifyTodoHasTags(is, eliminate[0], []string{}, []string{"office"})
+	verifyTodoHasTags(is, eliminate[1], []string{"PersonalProject"}, []string{})
 }
 
-func assertMatrixDistribution(t *testing.T, m matrix.Matrix, doFirst, schedule, delegate, eliminate int) {
-	t.Helper()
-	if len(m.DoFirst()) != doFirst {
-		t.Errorf("expected %d todos in Do First, got %d", doFirst, len(m.DoFirst()))
-	}
-	if len(m.Schedule()) != schedule {
-		t.Errorf("expected %d todos in Schedule, got %d", schedule, len(m.Schedule()))
-	}
-	if len(m.Delegate()) != delegate {
-		t.Errorf("expected %d todos in Delegate, got %d", delegate, len(m.Delegate()))
-	}
-	if len(m.Eliminate()) != eliminate {
-		t.Errorf("expected %d todos in Eliminate, got %d", eliminate, len(m.Eliminate()))
-	}
+func assertMatrixDistribution(is *is.I, m matrix.Matrix, doFirst, schedule, delegate, eliminate int) {
+	is.Helper()
+	is.Equal(len(m.DoFirst()), doFirst) // expected todos in Do First
+	is.Equal(len(m.Schedule()), schedule) // expected todos in Schedule
+	is.Equal(len(m.Delegate()), delegate) // expected todos in Delegate
+	is.Equal(len(m.Eliminate()), eliminate) // expected todos in Eliminate
 }
 
-func verifyTodoHasTags(t *testing.T, td todo.Todo, expectedProjects, expectedContexts []string) {
-	t.Helper()
+func verifyTodoHasTags(is *is.I, td todo.Todo, expectedProjects, expectedContexts []string) {
+	is.Helper()
 
 	projects := td.Projects()
-	if len(projects) != len(expectedProjects) {
-		t.Errorf("expected %d projects, got %d", len(expectedProjects), len(projects))
-		return
-	}
+	is.Equal(len(projects), len(expectedProjects)) // expected projects count
+
 	for i, expected := range expectedProjects {
-		if projects[i] != expected {
-			t.Errorf("project[%d]: expected %q, got %q", i, expected, projects[i])
-		}
+		is.Equal(projects[i], expected) // expected project
 	}
 
 	contexts := td.Contexts()
-	if len(contexts) != len(expectedContexts) {
-		t.Errorf("expected %d contexts, got %d", len(expectedContexts), len(contexts))
-		return
-	}
+	is.Equal(len(contexts), len(expectedContexts)) // expected contexts count
+
 	for i, expected := range expectedContexts {
-		if contexts[i] != expected {
-			t.Errorf("context[%d]: expected %q, got %q", i, expected, contexts[i])
-		}
+		is.Equal(contexts[i], expected) // expected context
 	}
 }
