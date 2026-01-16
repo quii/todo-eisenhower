@@ -151,18 +151,15 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 		displayLimit = 5
 	}
 
-	// Render prominent quadrant title with gradient-style block
-	titleBlock := lipgloss.NewStyle().
-		Bold(true).
-		Background(color).
-		Foreground(lipgloss.Color("#000000")).
-		Padding(0, 2).
-		Render(title)
+	// Render prominent quadrant title with gradient background
+	titleText := fmt.Sprintf(" %s ", title)
+	gradientTitle := GradientBackground(titleText, color, lightenColor(color, 0.5))
 	
 	focusTitle := lipgloss.NewStyle().
 		Align(lipgloss.Center).
 		Width(terminalWidth).
-		Render(titleBlock)
+		Bold(true).
+		Render(gradientTitle)
 	output.WriteString(focusTitle)
 	output.WriteString("\n\n")
 
@@ -359,21 +356,17 @@ func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo
 		taskWord = "task"
 	}
 	
-	// Create title with colored background block
+	// Create title with gradient background
 	titleText := fmt.Sprintf(" %s ", title)
+	gradientTitle := GradientBackground(titleText, color, lightenColor(color, 0.5))
 	statsText := fmt.Sprintf(" %d %s · %d completed ", totalTasks, taskWord, completedTasks)
-	
-	titleBlock := quadrantTitleStyle.
-		Copy().
-		Background(color).
-		Foreground(lipgloss.Color("#000000")).
-		Render(titleText)
 	
 	statsBlock := lipgloss.NewStyle().
 		Foreground(color).
+		Bold(true).
 		Render(statsText)
 	
-	quadrantTitle := lipgloss.JoinHorizontal(lipgloss.Top, titleBlock, statsBlock)
+	quadrantTitle := lipgloss.JoinHorizontal(lipgloss.Top, gradientTitle, statsBlock)
 	lines = append(lines, quadrantTitle)
 	lines = append(lines, "") // spacing
 
@@ -434,18 +427,15 @@ func RenderFocusedQuadrantWithTable(
 		output.WriteString("\n\n")
 	}
 
-	// Render prominent quadrant title with gradient-style block
-	titleBlock := lipgloss.NewStyle().
-		Bold(true).
-		Background(color).
-		Foreground(lipgloss.Color("#000000")).
-		Padding(0, 2).
-		Render(title)
+	// Render prominent quadrant title with gradient background
+	titleText := fmt.Sprintf(" %s ", title)
+	gradientTitle := GradientBackground(titleText, color, lightenColor(color, 0.5))
 	
 	focusTitle := lipgloss.NewStyle().
 		Align(lipgloss.Center).
 		Width(terminalWidth).
-		Render(titleBlock)
+		Bold(true).
+		Render(gradientTitle)
 	output.WriteString(focusTitle)
 	output.WriteString("\n\n")
 

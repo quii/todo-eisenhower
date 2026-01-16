@@ -38,10 +38,10 @@ x 2026-01-15 (A) Completed task
 	t.Logf("View output:\n%s", view)
 
 	// Check for summary stats in each quadrant
-	is.True(strings.Contains(stripANSI(view), "Do First   3 tasks · 1 completed")) // expected DO FIRST to show task count and completion stats
-	is.True(strings.Contains(stripANSI(view), "Schedule   1 task · 0 completed")) // expected SCHEDULE to show task count and completion stats
-	is.True(strings.Contains(stripANSI(view), "Delegate   1 task · 0 completed")) // expected DELEGATE to show task count and completion stats
-	is.True(strings.Contains(stripANSI(view), "Eliminate   1 task · 0 completed")) // expected ELIMINATE to show task count and completion stats
+	is.True(strings.Contains(stripANSI(view), "Do First  3 tasks · 1 completed")) // expected DO FIRST to show task count and completion stats
+	is.True(strings.Contains(stripANSI(view), "Schedule  1 task · 0 completed")) // expected SCHEDULE to show task count and completion stats
+	is.True(strings.Contains(stripANSI(view), "Delegate  1 task · 0 completed")) // expected DELEGATE to show task count and completion stats
+	is.True(strings.Contains(stripANSI(view), "Eliminate  1 task · 0 completed")) // expected ELIMINATE to show task count and completion stats
 }
 
 func TestStory017_ShowTopNTodosAsSimpleList(t *testing.T) {
@@ -134,9 +134,9 @@ func TestStory017_EmptyQuadrantShowsHelpfulMessage(t *testing.T) {
 	view := model.View()
 
 	// Empty quadrants should show stats
-	is.True(strings.Contains(stripANSI(view), "Schedule   0 tasks")) // expected SCHEDULE to show 0 tasks in stats
-	is.True(strings.Contains(stripANSI(view), "Delegate   0 tasks")) // expected DELEGATE to show 0 tasks in stats
-	is.True(strings.Contains(stripANSI(view), "Eliminate   0 tasks")) // expected ELIMINATE to show 0 tasks in stats
+	is.True(strings.Contains(stripANSI(view), "Schedule  0 tasks")) // expected SCHEDULE to show 0 tasks in stats
+	is.True(strings.Contains(stripANSI(view), "Delegate  0 tasks")) // expected DELEGATE to show 0 tasks in stats
+	is.True(strings.Contains(stripANSI(view), "Eliminate  0 tasks")) // expected ELIMINATE to show 0 tasks in stats
 
 	// Empty quadrants should show "(no tasks)"
 	// Note: There will be multiple instances since we have multiple empty quadrants
@@ -166,7 +166,7 @@ x 2026-01-15 (A) Completed three`
 	view := model.View()
 
 	// Should show all tasks completed
-	is.True(strings.Contains(stripANSI(view), "Do First   3 tasks · 3 completed")) // expected DO FIRST to show 3 tasks, 3 completed
+	is.True(strings.Contains(stripANSI(view), "Do First  3 tasks · 3 completed")) // expected DO FIRST to show 3 tasks, 3 completed
 }
 
 func TestStory017_CompletedTodosShownWithVisualIndicator(t *testing.T) {
