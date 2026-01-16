@@ -65,15 +65,70 @@ func TestAnalyzeInventory_ContextBreakdown(t *testing.T) {
 
 	// Should have context breakdown
 	is.True(len(metrics.ContextBreakdown) > 0)
-	
+
 	// People context should have 2 items
 	peopleMetrics, found := metrics.ContextBreakdown["people"]
 	is.True(found)
 	is.Equal(peopleMetrics.Count, 2)
-	
+
 	// Average age should be ~18 days
 	is.True(peopleMetrics.AvgAgeDays >= 17)
 	is.True(peopleMetrics.AvgAgeDays <= 19)
+}
+
+func TestAnalyzeInventory_ProjectBreakdown(t *testing.T) {
+	is := is.New(t)
+
+	// Create todos with projects
+	old := time.Now().AddDate(0, 0, -20)
+	recent := time.Now().AddDate(0, 0, -5)
+
+	todo1 := todo.NewWithTagsAndDates("Task 1", todo.PriorityA, &old, []string{"WebApp"}, nil)
+	todo2 := todo.NewWithTagsAndDates("Task 2", todo.PriorityA, &old, []string{"WebApp"}, nil)
+	todo3 := todo.NewWithTagsAndDates("Task 3", todo.PriorityB, &recent, []string{"Mobile"}, nil)
+
+	m := matrix.New([]todo.Todo{todo1, todo2, todo3})
+
+	metrics := usecases.AnalyzeInventory(m)
+
+	// Should have project breakdown
+	is.True(len(metrics.ProjectBreakdown) > 0)
+
+	// WebApp project should have 2 items
+	webappMetrics, found := metrics.ProjectBreakdown["WebApp"]
+	is.True(found)
+	is.Equal(webappMetrics.Count, 2)
+
+	// Average age should be ~20 days
+	is.True(webappMetrics.AvgAgeDays >= 19)
+	is.True(webappMetrics.AvgAgeDays <= 21)
+}
+
+func TestAnalyzeInventory_ExcludesTodosWithoutCreationDates(t *testing.T) {
+	is := is.New(t)
+
+	// Create todos: one with date, one without
+	withDate := time.Now().AddDate(0, 0, -10)
+	todoWithDate := todo.NewWithTagsAndDates("Has date", todo.PriorityA, &withDate, []string{"project1"}, []string{"context1"})
+	todoNoDate := todo.NewWithTagsAndDates("No date", todo.PriorityA, nil, []string{"project2"}, []string{"context2"})
+
+	m := matrix.New([]todo.Todo{todoWithDate, todoNoDate})
+
+	metrics := usecases.AnalyzeInventory(m)
+
+	// Should count both as active
+	is.Equal(metrics.DoFirstActive, 2)
+	is.Equal(metrics.TotalActive, 2)
+
+	// But only the one with date should appear in breakdowns
+	is.Equal(len(metrics.ProjectBreakdown), 1)
+	is.Equal(len(metrics.ContextBreakdown), 1)
+
+	_, hasProject1 := metrics.ProjectBreakdown["project1"]
+	is.True(hasProject1)
+
+	_, hasProject2 := metrics.ProjectBreakdown["project2"]
+	is.True(!hasProject2) // Should not include project from todo without date
 }
 
 func TestAnalyzeInventory_Throughput(t *testing.T) {
