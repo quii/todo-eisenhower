@@ -5,11 +5,13 @@ import (
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/matryer/is"
 	"github.com/quii/todo-eisenhower/adapters/ui"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
 func TestStory016_EnterMoveModeWithMKey(t *testing.T) {
+	is := is.New(t)
 	// Scenario: Enter move mode with 'm' key
 
 	input := `(A) Review quarterly goals`
@@ -20,9 +22,7 @@ func TestStory016_EnterMoveModeWithMKey(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -38,27 +38,16 @@ func TestStory016_EnterMoveModeWithMKey(t *testing.T) {
 
 	// Should see move mode overlay
 	view := model.View()
-	if !strings.Contains(view, "Move to quadrant:") {
-		t.Error("expected to see move mode overlay title")
-	}
-	if !strings.Contains(view, "1. DO FIRST") {
-		t.Error("expected to see DO FIRST option")
-	}
-	if !strings.Contains(view, "2. SCHEDULE") {
-		t.Error("expected to see SCHEDULE option")
-	}
-	if !strings.Contains(view, "3. DELEGATE") {
-		t.Error("expected to see DELEGATE option")
-	}
-	if !strings.Contains(view, "4. ELIMINATE") {
-		t.Error("expected to see ELIMINATE option")
-	}
-	if !strings.Contains(view, "Press ESC to cancel") {
-		t.Error("expected to see cancel instruction")
-	}
+	is.True(strings.Contains(view, "Move to quadrant:"))   // expected to see move mode overlay title
+	is.True(strings.Contains(view, "1. DO FIRST"))         // expected to see DO FIRST option
+	is.True(strings.Contains(view, "2. SCHEDULE"))         // expected to see SCHEDULE option
+	is.True(strings.Contains(view, "3. DELEGATE"))         // expected to see DELEGATE option
+	is.True(strings.Contains(view, "4. ELIMINATE"))        // expected to see ELIMINATE option
+	is.True(strings.Contains(view, "Press ESC to cancel")) // expected to see cancel instruction
 }
 
 func TestStory016_SelectDestinationQuadrant(t *testing.T) {
+	is := is.New(t)
 	// Scenario: Select destination quadrant
 
 	input := `(A) Review quarterly goals`
@@ -69,9 +58,7 @@ func TestStory016_SelectDestinationQuadrant(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -91,18 +78,15 @@ func TestStory016_SelectDestinationQuadrant(t *testing.T) {
 
 	// Should exit move mode
 	view := model.View()
-	if strings.Contains(view, "Move to quadrant:") {
-		t.Error("expected to exit move mode after selection")
-	}
+	is.True(!strings.Contains(view, "Move to quadrant:")) // expected to exit move mode after selection
 
 	// Should have moved todo to priority B
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "(B) Review quarterly goals") {
-		t.Errorf("expected todo to be moved to priority B, got: %s", written)
-	}
+	is.True(strings.Contains(written, "(B) Review quarterly goals")) // expected todo to be moved to priority B
 }
 
 func TestStory016_CancelMoveModeWithESC(t *testing.T) {
+	is := is.New(t)
 	// Scenario: Cancel move mode with ESC
 
 	input := `(A) Review quarterly goals`
@@ -113,9 +97,7 @@ func TestStory016_CancelMoveModeWithESC(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -131,9 +113,7 @@ func TestStory016_CancelMoveModeWithESC(t *testing.T) {
 
 	// Should be in move mode
 	view := model.View()
-	if !strings.Contains(view, "Move to quadrant:") {
-		t.Error("expected to be in move mode")
-	}
+	is.True(strings.Contains(view, "Move to quadrant:")) // expected to be in move mode
 
 	// Press ESC to cancel
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyEsc})
@@ -141,25 +121,21 @@ func TestStory016_CancelMoveModeWithESC(t *testing.T) {
 
 	// Should exit move mode
 	view = model.View()
-	if strings.Contains(view, "Move to quadrant:") {
-		t.Error("expected to exit move mode after ESC")
-	}
+	is.True(!strings.Contains(view, "Move to quadrant:")) // expected to exit move mode after ESC
 
 	// Todo should remain in DO FIRST (priority A)
 	written := source.writer.(*strings.Builder).String()
 	// No write should have happened - the builder should be empty
-	if written != "" {
-		t.Errorf("expected no changes to file after canceling move, got: %s", written)
-	}
+	is.Equal(written, "") // expected no changes to file after canceling move
 }
 
 func TestStory016_MoveToEachQuadrant(t *testing.T) {
 	// Scenario: Move to each quadrant
 
 	tests := []struct {
-		name            string
-		initialPriority string
-		destinationKey  string
+		name             string
+		initialPriority  string
+		destinationKey   string
 		expectedPriority string
 	}{
 		{"Move to DO FIRST", "(B)", "1", "(A)"},
@@ -345,6 +321,7 @@ func TestStory016_MoveModeOnlyAvailableWhenTodoSelected(t *testing.T) {
 }
 
 func TestStory016_OtherKeysIgnoredInMoveMode(t *testing.T) {
+	is := is.New(t)
 	// Scenario: Other keys should be ignored while in move mode
 
 	input := `(A) Review quarterly goals`
@@ -355,9 +332,7 @@ func TestStory016_OtherKeysIgnoredInMoveMode(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -373,37 +348,27 @@ func TestStory016_OtherKeysIgnoredInMoveMode(t *testing.T) {
 
 	// Should be in move mode
 	view := model.View()
-	if !strings.Contains(view, "Move to quadrant:") {
-		t.Error("expected to be in move mode")
-	}
+	is.True(strings.Contains(view, "Move to quadrant:")) // expected to be in move mode
 
 	// Press various other keys (should be ignored)
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}})
 	model = updatedModel.(ui.Model)
 	view = model.View()
-	if !strings.Contains(view, "Move to quadrant:") {
-		t.Error("expected to remain in move mode after pressing 'a'")
-	}
+	is.True(strings.Contains(view, "Move to quadrant:")) // expected to remain in move mode after pressing 'a'
 
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}})
 	model = updatedModel.(ui.Model)
 	view = model.View()
-	if !strings.Contains(view, "Move to quadrant:") {
-		t.Error("expected to remain in move mode after pressing space")
-	}
+	is.True(strings.Contains(view, "Move to quadrant:")) // expected to remain in move mode after pressing space
 
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyDown})
 	model = updatedModel.(ui.Model)
 	view = model.View()
-	if !strings.Contains(view, "Move to quadrant:") {
-		t.Error("expected to remain in move mode after pressing down arrow")
-	}
+	is.True(strings.Contains(view, "Move to quadrant:")) // expected to remain in move mode after pressing down arrow
 
 	// Should still have no changes to the file
 	written := source.writer.(*strings.Builder).String()
-	if written != "" {
-		t.Errorf("expected no changes to file while in move mode, got: %s", written)
-	}
+	is.Equal(written, "") // expected no changes to file while in move mode
 
 	// Press ESC to exit
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyEsc})
@@ -411,7 +376,5 @@ func TestStory016_OtherKeysIgnoredInMoveMode(t *testing.T) {
 
 	// Should exit move mode
 	view = model.View()
-	if strings.Contains(view, "Move to quadrant:") {
-		t.Error("expected to exit move mode after ESC")
-	}
+	is.True(!strings.Contains(view, "Move to quadrant:")) // expected to exit move mode after ESC
 }

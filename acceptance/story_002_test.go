@@ -35,11 +35,9 @@ func TestStory002_LoadFromHardcodedPath(t *testing.T) {
 
 		// When I run "eisenhower"
 		m, err := usecases.LoadMatrix(source)
-
-		// Then the matrix displays todos from "~/todo.txt"
 		is.NoErr(err)
 
-		// And the "DO FIRST" quadrant contains "Fix critical bug"
+		// The "DO FIRST" quadrant contains "Fix critical bug"
 		doFirst := m.DoFirst()
 		is.Equal(len(doFirst), 1) // expected 1 todo in DO FIRST
 		is.Equal(doFirst[0].Description(), "Fix critical bug")
@@ -126,8 +124,8 @@ x (A) 2026-01-11 Completed task
 			}
 		}
 
-		is.True(hasActiveTodo)      // expected to find active 'Active task'
-		is.True(hasCompletedTodo)   // expected to find completed 'Completed task'
+		is.True(hasActiveTodo)    // expected to find active 'Active task'
+		is.True(hasCompletedTodo) // expected to find completed 'Completed task'
 	})
 
 	t.Run("Scenario: Handle todos without priority", func(t *testing.T) {
