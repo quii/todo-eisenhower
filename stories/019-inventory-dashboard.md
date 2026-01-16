@@ -34,17 +34,27 @@ Feature: Digital Inventory Dashboard
     And I see "Added: 11 items"
     And I see a warning "Adding faster than completing"
 
-  Scenario: Dashboard groups by context tags
+  Scenario: Dashboard groups by context and project tags
     Given I have 6 todos with @people context
     And the average age is 18 days
+    And I have 4 todos with +WebApp project
     When I view the inventory dashboard
     Then I see "people: 6 items (avg 18 days old)"
-    And I see a health indicator based on count and age
+    And I see "WebApp: 4 items (avg X days old)"
+    And I see health indicators based on count and age
 
   Scenario: Press 'i' again to exit dashboard
     Given I am viewing the inventory dashboard
     When I press 'i' or ESC
     Then I return to the overview mode
+
+  Scenario: Todos without creation dates are excluded from age metrics
+    Given I have 5 active todos in Do First
+    And only 3 have creation dates
+    When I view the inventory dashboard
+    Then I see "Do First: 5 active items"
+    And the oldest age is calculated from the 3 with dates
+    And the 2 without dates do not appear in tag breakdowns
 ```
 
 ## Technical Notes
@@ -53,29 +63,34 @@ Feature: Digital Inventory Dashboard
 - No new domain logic needed - use existing Matrix and Todo data
 - Calculate metrics from existing creation/completion dates
 
-**Use Case Layer:**
+**Use Case Layer:** ✅ COMPLETE
 - `AnalyzeInventory(m matrix.Matrix) InventoryMetrics`
 - Returns struct with:
   - Per-quadrant active counts and oldest item age
-  - Context breakdown with counts and avg ages
+  - Both context (@) and project (+) breakdowns with counts and avg ages
   - 7-day throughput (completed vs added)
   - Health indicators based on thresholds
+- Edge cases handled:
+  - Todos without creation dates: counted as active, excluded from age/tag metrics
+  - Empty tags: filtered out from breakdowns
+  - All tests passing
 
-**UI Layer:**
+**UI Layer:** 🚧 TODO
 - Add `inventoryMode` flag to Model
-- Press 'i' in overview toggles inventory view
+- Press 'i' in overview mode only (not in focus/move modes)
 - New `RenderInventoryDashboard()` function
 - Colorize health indicators (green/yellow/red)
+- Display metrics only - no advice/recommendations
 
-**Thresholds (research-based):**
+**Thresholds:**
 - Do First: >5 = HIGH, >8 = OVERLOADED
-- Schedule: >3 = HIGH, >6 = OVERLOADED  
+- Schedule: >3 = HIGH, >6 = OVERLOADED
 - Age: >14 days = STALE, >21 days = VERY STALE
-- Context groups: >4 items = HIGH
+- Tag groups: >4 items = HIGH
 
 **Metrics Calculations:**
 - Active work: Count todos where IsCompleted() == false
-- Age: time.Since(CreationDate) if date exists
+- Age: time.Since(CreationDate) only for todos WITH creation dates
 - Throughput: Count todos with CompletionDate in last 7 days
 - Add rate: Count todos with CreationDate in last 7 days
-- Context groups: Extract contexts, group todos, calc avg age
+- Tag groups: Extract contexts/projects, group todos, calc avg age (excluding no-date todos)
