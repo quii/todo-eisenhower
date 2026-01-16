@@ -32,12 +32,23 @@ func TestSource(t *testing.T) {
 		is.Equal(string(got), content)
 	})
 
-	t.Run("returns error for non-existent file", func(t *testing.T) {
+	t.Run("creates empty file if it doesn't exist", func(t *testing.T) {
 		is := is.New(t)
-		source := file.NewSource("/non/existent/file.txt")
+		tmpDir := t.TempDir()
+		tmpFile := filepath.Join(tmpDir, "new-todo.txt")
 
-		_, err := source.GetTodos()
+		source := file.NewSource(tmpFile)
+		reader, err := source.GetTodos()
 
-		is.True(err != nil) // expected error for non-existent file
+		is.NoErr(err)
+		defer reader.Close()
+
+		got, err := io.ReadAll(reader)
+		is.NoErr(err)
+		is.Equal(string(got), "")
+
+		// Verify file was actually created
+		_, err = os.Stat(tmpFile)
+		is.NoErr(err) // file should exist
 	})
 }

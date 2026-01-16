@@ -16,7 +16,13 @@ func NewSource(path string) Source {
 }
 
 // GetTodos opens the file and returns its contents as an io.ReadCloser
+// If the file doesn't exist, it creates an empty one
 func (s Source) GetTodos() (io.ReadCloser, error) {
+	if _, err := os.Stat(s.path); os.IsNotExist(err) {
+		if err := os.WriteFile(s.path, []byte(""), 0644); err != nil {
+			return nil, err
+		}
+	}
 	return os.Open(s.path)
 }
 
