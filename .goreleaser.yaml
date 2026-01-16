@@ -50,7 +50,7 @@ brews:
     repository:
       owner: quii
       name: homebrew-tap
-      token: "{{ .Env.GITHUB_TOKEN }}"
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
     homepage: "https://github.com/quii/todo-eisenhower"
     description: "Visualize todo.txt files as an Eisenhower matrix in your terminal"
     license: "MIT"
