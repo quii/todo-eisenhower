@@ -2,13 +2,35 @@
 
 A beautiful, fullscreen terminal-based Eisenhower matrix viewer for [todo.txt](http://todotxt.org/) files, built with Go and [Bubble Tea](https://github.com/charmbracelet/bubbletea).
 
+## Quickstart
+
+Install via Homebrew:
+
+```bash
+brew install quii/tap/todo-eisenhower
+```
+
+Run with your todo.txt file:
+
+```bash
+eisenhower ~/todo.txt
+```
+
+Or use the default location (`~/todo.txt`):
+
+```bash
+eisenhower
+```
+
+Press `1`, `2`, `3`, or `4` to focus on a quadrant. Press `q` to quit.
+
 ## What's an Eisenhower Matrix?
 
 The Eisenhower Matrix helps prioritize tasks by organizing them into four quadrants:
-- **DO FIRST** (Q1): Urgent & Important - Priority A tasks
-- **SCHEDULE** (Q2): Important, Not Urgent - Priority B tasks
-- **DELEGATE** (Q3): Urgent, Not Important - Priority C tasks
-- **ELIMINATE** (Q4): Neither Urgent nor Important - Priority D and untagged tasks
+- **Do First** (Q1): Urgent & Important - Priority A tasks
+- **Schedule** (Q2): Important, Not Urgent - Priority B tasks
+- **Delegate** (Q3): Urgent, Not Important - Priority C tasks
+- **Eliminate** (Q4): Neither Urgent nor Important - Priority D and untagged tasks
 
 ## Features
 
@@ -28,7 +50,7 @@ The Eisenhower Matrix helps prioritize tasks by organizing them into four quadra
 
 ## Installation
 
-### Homebrew (macOS/Linux)
+### Homebrew (macOS/Linux) - Recommended
 
 ```bash
 brew install quii/tap/todo-eisenhower
@@ -76,14 +98,26 @@ go install ./cmd/eisenhower
 ## Usage
 
 ```bash
-# View your ~/todo.txt file
-./eisenhower
+# Run with default ~/todo.txt
+eisenhower
 
-# View a specific todo.txt file
-./eisenhower /path/to/todo.txt
-
-# Press 'q' or Ctrl+C to quit
+# Run with a specific file
+eisenhower /path/to/your/todo.txt
 ```
+
+### Keyboard Controls
+
+**Overview Mode:**
+- `1`, `2`, `3`, `4` - Focus on a quadrant
+- `q` - Quit
+
+**Focus Mode:**
+- `↑`/`↓` or `w`/`s` - Navigate todos
+- `Space` - Toggle completion
+- `a` - Add new todo
+- `m` - Move todo to another quadrant
+- `1`, `2`, `3`, `4` - Jump to different quadrant
+- `ESC` - Return to overview
 
 ### Example todo.txt
 
