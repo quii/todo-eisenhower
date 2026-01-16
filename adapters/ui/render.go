@@ -140,7 +140,7 @@ func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeigh
 	output.WriteString("\n\n")
 
 	// Add help text
-	helpText := renderHelp("Press 1/2/3/4 to focus on a quadrant")
+	helpText := renderHelp("Press 1/2/3/4 to focus on a quadrant", "Press q to quit")
 	output.WriteString(helpText)
 
 	return output.String()

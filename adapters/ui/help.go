@@ -56,8 +56,8 @@ func isKeyBinding(word string) bool {
 	keyBindings := []string{
 		"a", "q", "esc", "enter", "space",
 		"1", "2", "3", "4",
-		"1/2/3/4",
-		"ctrl+c",
+		"1/2/3/4", "1-4",
+		"↑↓/w/s", "ctrl+c", "m",
 	}
 
 	lower := strings.ToLower(word)

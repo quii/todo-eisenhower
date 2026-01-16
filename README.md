@@ -108,34 +108,6 @@ go test -cover ./...
 golangci-lint run
 ```
 
-## Project Structure
-
-This project follows Domain-Driven Design (DDD) with a hexagonal (ports & adapters) architecture:
-
-```
-.
-├── domain/           # Domain layer (business logic)
-│   ├── todo/        # Todo entities and value objects
-│   ├── matrix/      # Matrix categorization logic
-│   └── parser/      # todo.txt format parser
-├── usecases/        # Application use cases (orchestration)
-├── adapters/        # Adapters layer (external interfaces)
-│   ├── ui/          # Bubble Tea TUI with Lipgloss styling
-│   └── file/        # File system operations
-├── cmd/
-│   └── eisenhower/  # Main entry point (wiring)
-├── acceptance/      # Acceptance tests (black-box)
-└── stories/         # User stories (Gherkin format)
-```
-
-## Development
-
-This project is developed using:
-- **Test-Driven Development (TDD)** with black-box testing
-- **Small vertical slices** - each story is a complete, releasable feature
-- **Trunk-based development** - all commits go directly to main
-- **Gherkin scenarios** for acceptance criteria
-
 See [CLAUDE.md](./CLAUDE.md) for detailed development conventions and architecture guidelines.
 
 ## Roadmap
