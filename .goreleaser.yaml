@@ -56,7 +56,7 @@ brews:
     homepage: "https://github.com/quii/todo-eisenhower"
     description: "Visualize todo.txt files as an Eisenhower matrix in your terminal"
     license: "MIT"
-    folder: Formula
+    directory: Formula
     install: |
       bin.install "eisenhower"
     test: |
