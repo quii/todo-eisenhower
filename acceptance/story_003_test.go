@@ -27,7 +27,7 @@ func TestStory003_AcceptCustomFilePath(t *testing.T) {
 		// Then the header displays "File: /Users/chris/projects/todo.txt"
 		output := ui.RenderMatrix(m, filePath, 0, 0)
 
-		is.True(strings.Contains(stripANSI(output), "File:")) // expected header to contain 'File:'
+		is.True(strings.Contains(stripANSI(output), "File:"))  // expected header to contain 'File:'
 		is.True(strings.Contains(stripANSI(output), filePath)) // expected header to contain file path
 
 		// And the matrix is displayed below the header

@@ -111,7 +111,7 @@ func TestStory004_TodosWithoutTagsRenderNormally(t *testing.T) {
 	is.NoErr(err)
 
 	doFirst := m.DoFirst()
-	is.Equal(len(doFirst), 1) // expected 1 todo in Do First
+	is.Equal(len(doFirst), 1)               // expected 1 todo in Do First
 	is.Equal(len(doFirst[0].Projects()), 0) // expected no projects
 	is.Equal(len(doFirst[0].Contexts()), 0) // expected no contexts
 }
@@ -220,9 +220,9 @@ No priority task +PersonalProject`
 
 func assertMatrixDistribution(is *is.I, m matrix.Matrix, doFirst, schedule, delegate, eliminate int) {
 	is.Helper()
-	is.Equal(len(m.DoFirst()), doFirst) // expected todos in Do First
-	is.Equal(len(m.Schedule()), schedule) // expected todos in Schedule
-	is.Equal(len(m.Delegate()), delegate) // expected todos in Delegate
+	is.Equal(len(m.DoFirst()), doFirst)     // expected todos in Do First
+	is.Equal(len(m.Schedule()), schedule)   // expected todos in Schedule
+	is.Equal(len(m.Delegate()), delegate)   // expected todos in Delegate
 	is.Equal(len(m.Eliminate()), eliminate) // expected todos in Eliminate
 }
 

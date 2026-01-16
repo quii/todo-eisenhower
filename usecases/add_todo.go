@@ -59,14 +59,14 @@ func stripTagsFromDescription(description string) string {
 	// Remove project tags (+tag)
 	projectPattern := regexp.MustCompile(`\+\w+`)
 	description = projectPattern.ReplaceAllString(description, "")
-	
+
 	// Remove context tags (@tag)
 	contextPattern := regexp.MustCompile(`@\w+`)
 	description = contextPattern.ReplaceAllString(description, "")
-	
+
 	// Clean up extra whitespace
 	re := regexp.MustCompile(`\s+`)
 	description = re.ReplaceAllString(description, " ")
-	
+
 	return regexp.MustCompile(`^\s+|\s+$`).ReplaceAllString(description, "")
 }
