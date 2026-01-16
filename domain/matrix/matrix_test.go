@@ -96,3 +96,25 @@ func assertContainsTodo(is *is.I, todos []todo.Todo, description string) {
 	}
 	is.Fail() // expected to find todo with description
 }
+
+func TestMatrix_RemoveTodo(t *testing.T) {
+	is := is.New(t)
+
+	// Create todos
+	todo1 := todo.New("First task", todo.PriorityA)
+	todo2 := todo.New("Second task", todo.PriorityA)
+	todo3 := todo.New("Third task", todo.PriorityB)
+
+	m := matrix.New([]todo.Todo{todo1, todo2, todo3})
+
+	// Remove a todo
+	updated := m.RemoveTodo(todo2)
+
+	// Should have 2 todos now
+	is.Equal(len(updated.AllTodos()), 2)
+
+	// Should still have todo1 and todo3
+	allTodos := updated.AllTodos()
+	is.Equal(allTodos[0].Description(), "First task")
+	is.Equal(allTodos[1].Description(), "Third task")
+}

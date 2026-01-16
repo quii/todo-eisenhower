@@ -1,3 +1,2 @@
-(C) 2026-01-16 Update architectural diagram +Snapp @tech
 (A) 2026-01-16 Clarify auditing questions +Snapp @tech
-(A) 2026-01-16 Tell David Wickes off +Snapp @people
+(C) 2026-01-16 Update architectural diagram +Snapp @tech

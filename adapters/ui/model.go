@@ -29,7 +29,8 @@ type Model struct {
 	height             int
 	viewMode           ViewMode
 	inputMode          bool
-	moveMode           bool // true when in move mode (selecting quadrant to move to)
+	moveMode           bool       // true when in move mode (selecting quadrant to move to)
+	deleteMode         bool       // true when in delete confirmation mode
 	input              textinput.Model
 	allProjects        []string
 	allContexts        []string
@@ -87,6 +88,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		// Handle delete mode separately
+		if m.deleteMode {
+			switch msg.String() {
+			case "y":
+				// Confirm deletion
+				m = m.deleteTodo()
+				m.deleteMode = false
+				return m, nil
+			case "n", "esc":
+				// Cancel deletion
+				m.deleteMode = false
+				return m, nil
+			}
+			// Ignore all other keys in delete mode
+			return m, nil
+		}
+
 		// Handle move mode separately
 		if m.moveMode {
 			switch msg.String() {
@@ -217,6 +235,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Enter move mode (only in focus mode with todos)
 			if m.viewMode != Overview && len(m.currentQuadrantTodos()) > 0 {
 				m.moveMode = true
+			}
+		case "backspace":
+			// Enter delete mode (only in focus mode with todos)
+			if m.viewMode != Overview && len(m.currentQuadrantTodos()) > 0 {
+				m.deleteMode = true
 			}
 		case "esc":
 			m.viewMode = Overview
@@ -469,6 +492,47 @@ func (m Model) changeTodoPriority(newPriority todo.Priority) Model {
 	return m
 }
 
+// deleteTodo deletes the currently selected todo
+func (m Model) deleteTodo() Model {
+	if m.writer == nil {
+		return m // No-op if no writer configured
+	}
+
+	// Get the todo to delete
+	todos := m.currentQuadrantTodos()
+	if m.selectedTodoIndex < 0 || m.selectedTodoIndex >= len(todos) {
+		return m // Invalid index
+	}
+
+	todoToDelete := todos[m.selectedTodoIndex]
+
+	// Use the DeleteTodo usecase
+	updatedMatrix, err := usecases.DeleteTodo(m.writer, m.matrix, todoToDelete)
+	if err != nil {
+		// TODO: Show error to user in future story
+		return m
+	}
+
+	m.matrix = updatedMatrix
+
+	// After deleting a todo:
+	// - If the current quadrant is now empty, return to overview
+	// - Otherwise, adjust selection index if needed
+	todos = m.currentQuadrantTodos()
+	if len(todos) == 0 {
+		m.viewMode = Overview
+	} else {
+		if m.selectedTodoIndex >= len(todos) {
+			// If selected index is now out of bounds, select the last todo
+			m.selectedTodoIndex = len(todos) - 1
+		}
+		// Rebuild table to reflect the change
+		m = m.rebuildTable()
+	}
+
+	return m
+}
+
 // rebuildTable rebuilds the todo table based on current quadrant
 func (m Model) rebuildTable() Model {
 	if m.viewMode == Overview {
@@ -611,6 +675,24 @@ func (m Model) View() string {
 		return RenderMoveOverlay(m.width, m.height)
 	}
 
+	// If in delete mode, overlay the delete confirmation dialog
+	if m.deleteMode {
+		return RenderDeleteOverlay(m.width, m.height)
+	}
+
 	// Focus mode content is already full-width and properly aligned
 	return content
+}
+
+// NewModelWithWriter creates a model with explicit writer (for testing)
+func NewModelWithWriter(m matrix.Matrix, filePath string, source usecases.TodoSource, writer usecases.TodoWriter) Model {
+	model := NewModel(m, filePath)
+	model.source = source
+	model.writer = writer
+	return model
+}
+
+// GetMatrix returns the current matrix (for testing)
+func (m Model) GetMatrix() matrix.Matrix {
+	return m.matrix
 }

@@ -103,6 +103,28 @@ func (m Matrix) UpdateTodoAtIndex(quadrant QuadrantType, index int, newTodo todo
 	return m
 }
 
+// RemoveTodo removes a todo from the matrix by comparing descriptions
+// Returns a new Matrix without the specified todo
+func (m Matrix) RemoveTodo(todoToRemove todo.Todo) Matrix {
+	m.doFirst = removeFromSlice(m.doFirst, todoToRemove)
+	m.schedule = removeFromSlice(m.schedule, todoToRemove)
+	m.delegate = removeFromSlice(m.delegate, todoToRemove)
+	m.eliminate = removeFromSlice(m.eliminate, todoToRemove)
+	return m
+}
+
+// removeFromSlice removes todos matching the given todo from a slice
+func removeFromSlice(todos []todo.Todo, todoToRemove todo.Todo) []todo.Todo {
+	result := make([]todo.Todo, 0, len(todos))
+	for _, t := range todos {
+		// Compare by description since Todo doesn't have an ID
+		if t.Description() != todoToRemove.Description() {
+			result = append(result, t)
+		}
+	}
+	return result
+}
+
 // AllTodos returns all todos from all quadrants
 func (m Matrix) AllTodos() []todo.Todo {
 	all := make([]todo.Todo, 0)
