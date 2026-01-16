@@ -5,11 +5,13 @@ import (
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/matryer/is"
 	"github.com/quii/todo-eisenhower/adapters/ui"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
 func TestStory012_MoveFromDoFirstToSchedule(t *testing.T) {
+	is := is.New(t)
 	// Scenario: Move todo from DO FIRST to SCHEDULE
 
 	input := `(A) Review quarterly goals`
@@ -20,9 +22,7 @@ func TestStory012_MoveFromDoFirstToSchedule(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -40,15 +40,12 @@ func TestStory012_MoveFromDoFirstToSchedule(t *testing.T) {
 
 	// Check file was updated with priority B
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "(B) Review quarterly goals") {
-		t.Errorf("expected file to contain '(B) Review quarterly goals', got: %s", written)
-	}
-	if strings.Contains(written, "(A)") {
-		t.Errorf("expected priority A to be changed to B, got: %s", written)
-	}
+	is.True(strings.Contains(written, "(B) Review quarterly goals"))  // expected file to contain '(B) Review quarterly goals'
+	is.True(!strings.Contains(written, "(A)"))  // expected priority A to be changed to B
 }
 
 func TestStory012_MoveFromDelegateToDoFirst(t *testing.T) {
+	is := is.New(t)
 	// Scenario: Move todo from DELEGATE to DO FIRST
 
 	input := `(C) Update documentation`
@@ -59,9 +56,7 @@ func TestStory012_MoveFromDelegateToDoFirst(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -79,12 +74,11 @@ func TestStory012_MoveFromDelegateToDoFirst(t *testing.T) {
 
 	// Check file was updated with priority A
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "(A) Update documentation") {
-		t.Errorf("expected file to contain '(A) Update documentation', got: %s", written)
-	}
+	is.True(strings.Contains(written, "(A) Update documentation"))  // expected file to contain '(A) Update documentation'
 }
 
 func TestStory012_MoveToEliminate(t *testing.T) {
+	is := is.New(t)
 	// Scenario: Move todo to ELIMINATE (priority D)
 
 	input := `(B) Optional feature idea`
@@ -95,9 +89,7 @@ func TestStory012_MoveToEliminate(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -115,12 +107,11 @@ func TestStory012_MoveToEliminate(t *testing.T) {
 
 	// Check file was updated with priority D
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "(D) Optional feature idea") {
-		t.Errorf("expected file to contain '(D) Optional feature idea', got: %s", written)
-	}
+	is.True(strings.Contains(written, "(D) Optional feature idea"))  // expected file to contain '(D) Optional feature idea'
 }
 
 func TestStory012_MovingTodoAdjustsSelection(t *testing.T) {
+	is := is.New(t)
 	// Scenario: Moving todo adjusts selection
 
 	input := `(A) First task
@@ -133,9 +124,7 @@ func TestStory012_MovingTodoAdjustsSelection(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -157,9 +146,7 @@ func TestStory012_MovingTodoAdjustsSelection(t *testing.T) {
 
 	// Check file shows second task moved to priority B
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "(B) Second task") {
-		t.Errorf("expected second task to have priority B, got: %s", written)
-	}
+	is.True(strings.Contains(written, "(B) Second task"))  // expected second task to have priority B
 
 	// First and third tasks should still be priority A
 	lines := strings.Split(strings.TrimSpace(written), "\n")
@@ -169,12 +156,11 @@ func TestStory012_MovingTodoAdjustsSelection(t *testing.T) {
 			priorityACount++
 		}
 	}
-	if priorityACount != 2 {
-		t.Errorf("expected 2 tasks with priority A, got %d", priorityACount)
-	}
+	is.Equal(priorityACount, 2)  // expected 2 tasks with priority A
 }
 
 func TestStory012_MovingLastTodoReturnsToOverview(t *testing.T) {
+	is := is.New(t)
 	// Scenario: Moving last todo in quadrant returns to overview
 
 	input := `(C) Only delegate task`
@@ -185,9 +171,7 @@ func TestStory012_MovingLastTodoReturnsToOverview(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -205,19 +189,15 @@ func TestStory012_MovingLastTodoReturnsToOverview(t *testing.T) {
 
 	// Should return to overview mode
 	view := model.View()
-	if !strings.Contains(view, "DO FIRST") && !strings.Contains(view, "SCHEDULE") &&
-	   !strings.Contains(view, "DELEGATE") && !strings.Contains(view, "ELIMINATE") {
-		t.Error("expected to return to overview mode showing all quadrants")
-	}
+	is.True(strings.Contains(view, "DO FIRST") || strings.Contains(view, "SCHEDULE") || strings.Contains(view, "DELEGATE") || strings.Contains(view, "ELIMINATE"))  // expected to return to overview mode showing all quadrants
 
 	// Verify the moved todo is in the file with priority A
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "(A) Only delegate task") {
-		t.Errorf("expected todo to be moved to priority A, got: %s", written)
-	}
+	is.True(strings.Contains(written, "(A) Only delegate task"))  // expected todo to be moved to priority A
 }
 
 func TestStory012_PreservesTagsAndCompletion(t *testing.T) {
+	is := is.New(t)
 	// Scenario: Moving todo preserves tags and completion status
 
 	input := `x 2025-01-10 (A) Fix bug +WebApp @computer`
@@ -228,9 +208,7 @@ func TestStory012_PreservesTagsAndCompletion(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -248,24 +226,15 @@ func TestStory012_PreservesTagsAndCompletion(t *testing.T) {
 
 	// Check file preserves everything
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "x ") {
-		t.Error("expected completion marker to be preserved")
-	}
-	if !strings.Contains(written, "(C)") {
-		t.Error("expected priority to change to C")
-	}
-	if !strings.Contains(written, "+WebApp") {
-		t.Error("expected project tag to be preserved")
-	}
-	if !strings.Contains(written, "@computer") {
-		t.Error("expected context tag to be preserved")
-	}
-	if !strings.Contains(written, "Fix bug") {
-		t.Error("expected description to be preserved")
-	}
+	is.True(strings.Contains(written, "x "))  // expected completion marker to be preserved
+	is.True(strings.Contains(written, "(C)"))  // expected priority to change to C
+	is.True(strings.Contains(written, "+WebApp"))  // expected project tag to be preserved
+	is.True(strings.Contains(written, "@computer"))  // expected context tag to be preserved
+	is.True(strings.Contains(written, "Fix bug"))  // expected description to be preserved
 }
 
 func TestStory012_PressingCurrentQuadrantDoesNothing(t *testing.T) {
+	is := is.New(t)
 	// Scenario: Pressing current quadrant number does nothing
 
 	input := `(B) Plan sprint`
@@ -276,9 +245,7 @@ func TestStory012_PressingCurrentQuadrantDoesNothing(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -294,12 +261,8 @@ func TestStory012_PressingCurrentQuadrantDoesNothing(t *testing.T) {
 
 	// Verify we're still viewing SCHEDULE (not moved to overview or other quadrant)
 	view := model.View()
-	if !strings.Contains(view, "SCHEDULE") {
-		t.Error("should still be viewing SCHEDULE quadrant")
-	}
-	if !strings.Contains(view, "Plan sprint") {
-		t.Error("should still show the todo")
-	}
+	is.True(strings.Contains(view, "SCHEDULE"))  // should still be viewing SCHEDULE quadrant
+	is.True(strings.Contains(view, "Plan sprint"))  // should still show the todo
 
 	// Press 'm' then '2' again - should be a no-op since todo is already priority B
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
@@ -309,12 +272,8 @@ func TestStory012_PressingCurrentQuadrantDoesNothing(t *testing.T) {
 
 	// Verify todo is still in SCHEDULE with priority B
 	view = model.View()
-	if !strings.Contains(view, "SCHEDULE") {
-		t.Error("should still be viewing SCHEDULE quadrant after pressing 'm' then '2'")
-	}
-	if !strings.Contains(view, "Plan sprint") {
-		t.Error("should still show the todo after pressing 'm' then '2'")
-	}
+	is.True(strings.Contains(view, "SCHEDULE"))  // should still be viewing SCHEDULE quadrant after pressing 'm' then '2'
+	is.True(strings.Contains(view, "Plan sprint"))  // should still show the todo after pressing 'm' then '2'
 
 	// Now actually move it to verify moving works (press 'm' then '1')
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
@@ -324,12 +283,11 @@ func TestStory012_PressingCurrentQuadrantDoesNothing(t *testing.T) {
 
 	// Check that it was moved to priority A
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "(A) Plan sprint") {
-		t.Errorf("after pressing Shift+1, todo should be moved to priority A, got: %s", written)
-	}
+	is.True(strings.Contains(written, "(A) Plan sprint"))  // after pressing Shift+1, todo should be moved to priority A
 }
 
 func TestStory012_NumberKeysStillFocusInOverview(t *testing.T) {
+	is := is.New(t)
 	// Scenario: Number keys still focus quadrants in overview mode
 
 	input := `(A) Task one
@@ -341,9 +299,7 @@ func TestStory012_NumberKeysStillFocusInOverview(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -355,12 +311,8 @@ func TestStory012_NumberKeysStillFocusInOverview(t *testing.T) {
 
 	// Should be in focus mode on DO FIRST
 	view := model.View()
-	if !strings.Contains(view, "DO FIRST") {
-		t.Error("expected to focus on DO FIRST quadrant")
-	}
+	is.True(strings.Contains(view, "DO FIRST"))  // expected to focus on DO FIRST quadrant
 
 	// Should show focus mode help text
-	if !strings.Contains(view, "Press a to add") {
-		t.Error("expected focus mode help text")
-	}
+	is.True(strings.Contains(view, "Press a to add"))  // expected focus mode help text
 }

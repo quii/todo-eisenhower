@@ -6,6 +6,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/matryer/is"
 	"github.com/quii/todo-eisenhower/adapters/ui"
 	"github.com/quii/todo-eisenhower/usecases"
 )
@@ -13,6 +14,7 @@ import (
 // Story 013: Preserve and Render Completion Dates
 
 func TestStory013_ParseAndPreserveCompletionDates(t *testing.T) {
+	is := is.New(t)
 	// Scenario: Parse and preserve completion dates
 
 	input := `x 2026-01-10 (A) Completed task from last week
@@ -23,50 +25,34 @@ func TestStory013_ParseAndPreserveCompletionDates(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	// Check that completed todo has the preserved date
 	completedTodos := m.DoFirst()
-	if len(completedTodos) != 1 {
-		t.Fatalf("expected 1 completed todo in DO FIRST, got %d", len(completedTodos))
-	}
+	is.Equal(len(completedTodos), 1) // expected 1 completed todo in DO FIRST
 
 	completedTodo := completedTodos[0]
-	if !completedTodo.IsCompleted() {
-		t.Error("expected todo to be completed")
-	}
+	is.True(completedTodo.IsCompleted()) // expected todo to be completed
 
 	completionDate := completedTodo.CompletionDate()
-	if completionDate == nil {
-		t.Fatal("expected completion date to be preserved, got nil")
-	}
+	is.True(completionDate != nil) // expected completion date to be preserved, got nil
 
 	expectedDate := time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC)
-	if completionDate.Format("2006-01-02") != expectedDate.Format("2006-01-02") {
-		t.Errorf("expected date 2026-01-10, got %s", completionDate.Format("2006-01-02"))
-	}
+	is.Equal(completionDate.Format("2006-01-02"), expectedDate.Format("2006-01-02")) // expected date 2026-01-10
 
 	// Check that active todo has no completion date
 	activeTodos := m.Schedule()
-	if len(activeTodos) != 1 {
-		t.Fatalf("expected 1 active todo in SCHEDULE, got %d", len(activeTodos))
-	}
+	is.Equal(len(activeTodos), 1) // expected 1 active todo in SCHEDULE
 
 	activeTodo := activeTodos[0]
-	if activeTodo.IsCompleted() {
-		t.Error("expected todo to be active (not completed)")
-	}
+	is.True(!activeTodo.IsCompleted()) // expected todo to be active (not completed)
 
-	if activeTodo.CompletionDate() != nil {
-		t.Error("expected no completion date for active todo")
-	}
+	is.True(activeTodo.CompletionDate() == nil) // expected no completion date for active todo
 }
 
 func TestStory013_SetCompletionDateWhenMarkingComplete(t *testing.T) {
 	// Scenario: Set completion date when marking complete
-
+	is := is.New(t)
 	input := `(A) Review documentation`
 
 	source := &StubTodoSource{
@@ -75,9 +61,7 @@ func TestStory013_SetCompletionDateWhenMarkingComplete(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -110,7 +94,7 @@ func TestStory013_SetCompletionDateWhenMarkingComplete(t *testing.T) {
 
 func TestStory013_ClearCompletionDateWhenTogglingIncomplete(t *testing.T) {
 	// Scenario: Clear completion date when toggling incomplete
-
+	is := is.New(t)
 	input := `x 2026-01-10 (A) Review documentation`
 
 	source := &StubTodoSource{
@@ -119,9 +103,7 @@ func TestStory013_ClearCompletionDateWhenTogglingIncomplete(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -152,7 +134,7 @@ func TestStory013_ClearCompletionDateWhenTogglingIncomplete(t *testing.T) {
 
 func TestStory013_NewCompletionDateWhenRecompleting(t *testing.T) {
 	// Scenario: New completion date when re-completing
-
+	is := is.New(t)
 	input := `x 2026-01-10 (A) Review documentation`
 
 	source := &StubTodoSource{
@@ -161,9 +143,7 @@ func TestStory013_NewCompletionDateWhenRecompleting(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -203,6 +183,7 @@ func TestStory013_NewCompletionDateWhenRecompleting(t *testing.T) {
 
 func TestStory013_DisplayCompletionDateInUI(t *testing.T) {
 	// Scenario: Display completion date in UI
+	is := is.New(t)
 
 	// Create a todo with a specific completion date (10 days ago)
 	tenDaysAgo := time.Now().AddDate(0, 0, -10).Format("2006-01-02")
@@ -213,9 +194,7 @@ func TestStory013_DisplayCompletionDateInUI(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -246,7 +225,7 @@ func TestStory013_DisplayCompletionDateInUI(t *testing.T) {
 
 func TestStory013_DisplayCompletionDateRelativeFormatting(t *testing.T) {
 	// Scenario: Display completion date with relative formatting
-
+	is := is.New(t)
 	// Create todos with different completion dates
 	today := time.Now().Format("2006-01-02")
 	yesterday := time.Now().AddDate(0, 0, -1).Format("2006-01-02")
@@ -261,9 +240,7 @@ func TestStory013_DisplayCompletionDateRelativeFormatting(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -301,7 +278,7 @@ func TestStory013_DisplayCompletionDateRelativeFormatting(t *testing.T) {
 
 func TestStory013_NoDateShownForIncompleteTodos(t *testing.T) {
 	// Scenario: No date shown for incomplete todos
-
+	is := is.New(t)
 	input := `(A) Active task`
 
 	source := &StubTodoSource{
@@ -309,9 +286,7 @@ func TestStory013_NoDateShownForIncompleteTodos(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -338,7 +313,7 @@ func TestStory013_NoDateShownForIncompleteTodos(t *testing.T) {
 
 func TestStory013_PreserveCompletionDateWhenMovingQuadrants(t *testing.T) {
 	// Scenario: Preserve completion date when moving quadrants
-
+	is := is.New(t)
 	input := `x 2026-01-10 (A) Completed urgent task`
 
 	source := &StubTodoSource{
@@ -347,9 +322,7 @@ func TestStory013_PreserveCompletionDateWhenMovingQuadrants(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})

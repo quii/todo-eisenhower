@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/matryer/is"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/quii/todo-eisenhower/adapters/ui"
 	"github.com/quii/todo-eisenhower/usecases"
@@ -17,6 +18,7 @@ func TestStory006_MatrixFillsAvailableSpace(t *testing.T) {
 	// When I run the application in a 120x40 terminal
 	// Then the matrix quadrants are larger than the default 40x10
 	// And more todos are visible per quadrant
+	is := is.New(t)
 
 	// Create todos (15 in Priority A to test display limit)
 	input := generateManyTodos(15)
@@ -25,9 +27,7 @@ func TestStory006_MatrixFillsAvailableSpace(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
 
@@ -39,14 +39,10 @@ func TestStory006_MatrixFillsAvailableSpace(t *testing.T) {
 
 	// Overview mode shows top 5 todos per quadrant (Story 017)
 	// We have 15 todos, so should see "... and 10 more"
-	if !strings.Contains(view, "... and 10 more") {
-		t.Errorf("expected to see '... and 10 more' in overview mode")
-	}
+	is.True(strings.Contains(view, "... and 10 more")) // expected to see '... and 10 more' in overview mode
 
 	// Verify matrix content is present
-	if !strings.Contains(view, "DO FIRST") {
-		t.Error("expected view to contain matrix content")
-	}
+	is.True(strings.Contains(view, "DO FIRST")) // expected view to contain matrix content
 }
 
 func TestStory006_MatrixAdjustsToDifferentSizes(t *testing.T) {
@@ -54,6 +50,7 @@ func TestStory006_MatrixAdjustsToDifferentSizes(t *testing.T) {
 	// Given I have a todo.txt file
 	// When I run the application in a 200x60 terminal
 	// Then the quadrants are larger than in a 120x40 terminal
+	is := is.New(t)
 
 	input := generateManyTodos(30)
 	source := &StubTodoSource{
@@ -61,9 +58,7 @@ func TestStory006_MatrixAdjustsToDifferentSizes(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
 
@@ -74,9 +69,7 @@ func TestStory006_MatrixAdjustsToDifferentSizes(t *testing.T) {
 
 	// Overview mode shows top 5 todos per quadrant (Story 017)
 	// We have 30 todos, so should see "... and 25 more"
-	if !strings.Contains(view, "... and 25 more") {
-		t.Errorf("expected to see '... and 25 more' in overview mode")
-	}
+	is.True(strings.Contains(view, "... and 25 more")) // expected to see '... and 25 more' in overview mode
 }
 
 func TestStory006_MatrixRespectsMinimumDimensions(t *testing.T) {
@@ -85,6 +78,7 @@ func TestStory006_MatrixRespectsMinimumDimensions(t *testing.T) {
 	// When I run the application in a very small terminal (80x24)
 	// Then the matrix uses minimum viable dimensions
 	// And does not break the layout
+	is := is.New(t)
 
 	input := "(A) Test todo"
 	source := &StubTodoSource{
@@ -92,9 +86,7 @@ func TestStory006_MatrixRespectsMinimumDimensions(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
 
@@ -104,14 +96,10 @@ func TestStory006_MatrixRespectsMinimumDimensions(t *testing.T) {
 	view := updatedModel.View()
 
 	// Matrix should still render without errors
-	if !strings.Contains(view, "DO FIRST") {
-		t.Error("expected view to contain matrix content even in small terminal")
-	}
+	is.True(strings.Contains(view, "DO FIRST")) // expected view to contain matrix content even in small terminal
 
 	// Should show the test todo
-	if !strings.Contains(view, "Test todo") {
-		t.Error("expected view to contain test todo")
-	}
+	is.True(strings.Contains(view, "Test todo")) // expected view to contain test todo
 }
 
 func TestStory006_DisplayLimitScalesWithHeight(t *testing.T) {
@@ -139,24 +127,22 @@ func TestStory006_DisplayLimitScalesWithHeight(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			is := is.New(t)
+
 			input := generateManyTodos(20)
 			source := &StubTodoSource{
 				reader: strings.NewReader(input),
 			}
 
 			m, err := usecases.LoadMatrix(source)
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
+			is.NoErr(err)
 
 			model := ui.NewModel(m, "test.txt")
 			updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: tt.terminalHeight})
 
 			view := updatedModel.View()
 
-			if !strings.Contains(view, tt.expectedMessage) {
-				t.Errorf("expected to see %q, but didn't see it in output", tt.expectedMessage)
-			}
+			is.True(strings.Contains(view, tt.expectedMessage)) // expected to see message
 		})
 	}
 }
@@ -166,6 +152,7 @@ func TestStory006_WindowResizeHandledGracefully(t *testing.T) {
 	// Given the application is running
 	// When I resize my terminal window
 	// Then the matrix re-renders with new dimensions
+	is := is.New(t)
 
 	input := generateManyTodos(15)
 	source := &StubTodoSource{
@@ -173,9 +160,7 @@ func TestStory006_WindowResizeHandledGracefully(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
 
@@ -188,19 +173,16 @@ func TestStory006_WindowResizeHandledGracefully(t *testing.T) {
 	view2 := model2.View()
 
 	// Views should be different (different dimensions)
-	if view1 == view2 {
-		t.Error("expected views to be different after resize")
-	}
+	is.True(view1 != view2) // expected views to be different after resize
 
 	// Both should contain matrix content
-	if !strings.Contains(view1, "DO FIRST") || !strings.Contains(view2, "DO FIRST") {
-		t.Error("expected both views to contain matrix content")
-	}
+	is.True(strings.Contains(view1, "DO FIRST") && strings.Contains(view2, "DO FIRST")) // expected both views to contain matrix content
 }
 
 func TestStory006_DefaultDimensionsWhenNoWindowSize(t *testing.T) {
 	// Verify that default dimensions are used when no window size is received
 	// (edge case for initial render before WindowSizeMsg)
+	is := is.New(t)
 
 	input := generateManyTodos(10)
 	source := &StubTodoSource{
@@ -208,9 +190,7 @@ func TestStory006_DefaultDimensionsWhenNoWindowSize(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
 
@@ -218,14 +198,10 @@ func TestStory006_DefaultDimensionsWhenNoWindowSize(t *testing.T) {
 	view := model.View()
 
 	// Overview mode shows top 5, so with 10 todos should see "... and 5 more"
-	if !strings.Contains(view, "... and 5 more") {
-		t.Error("expected overview to show top 5 todos (... and 5 more)")
-	}
+	is.True(strings.Contains(view, "... and 5 more")) // expected overview to show top 5 todos (... and 5 more)
 
 	// Should still contain matrix content
-	if !strings.Contains(view, "DO FIRST") {
-		t.Error("expected view to contain matrix content")
-	}
+	is.True(strings.Contains(view, "DO FIRST")) // expected view to contain matrix content
 }
 
 // Helper function to generate many Priority A todos for testing

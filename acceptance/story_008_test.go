@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/matryer/is"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/quii/todo-eisenhower/adapters/ui"
 	"github.com/quii/todo-eisenhower/usecases"
@@ -14,6 +15,7 @@ import (
 
 func TestStory008_PressAToEnterInputMode(t *testing.T) {
 	// Scenario: Press 'a' to enter input mode in focused quadrant
+	is := is.New(t)
 
 	input := "(A) Existing task"
 	source := &StubTodoSource{
@@ -21,9 +23,7 @@ func TestStory008_PressAToEnterInputMode(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -40,29 +40,20 @@ func TestStory008_PressAToEnterInputMode(t *testing.T) {
 	view := model.View()
 
 	// Should show input field
-	if !strings.Contains(view, "Add todo:") {
-		t.Error("expected view to show input prompt")
-	}
+	is.True(strings.Contains(view, "Add todo:")) // expected view to show input prompt
 
 	// Should show help text for input mode
-	if !strings.Contains(view, "Enter to save") {
-		t.Error("expected view to show 'Enter to save' help text")
-	}
-	if !strings.Contains(view, "ESC to cancel") {
-		t.Error("expected view to show 'ESC to cancel' help text")
-	}
+	is.True(strings.Contains(view, "Enter to save")) // expected view to show 'Enter to save' help text
+	is.True(strings.Contains(view, "ESC to cancel")) // expected view to show 'ESC to cancel' help text
 
 	// Should show tag reference headers
-	if !strings.Contains(view, "Projects:") {
-		t.Error("expected view to show 'Projects:' label")
-	}
-	if !strings.Contains(view, "Contexts:") {
-		t.Error("expected view to show 'Contexts:' label")
-	}
+	is.True(strings.Contains(view, "Projects:")) // expected view to show 'Projects:' label
+	is.True(strings.Contains(view, "Contexts:")) // expected view to show 'Contexts:' label
 }
 
 func TestStory008_AddSimpleTodoWithoutTags(t *testing.T) {
 	// Scenario: Add a simple todo without tags
+	is := is.New(t)
 
 	input := "(A) Existing task"
 	source := &StubTodoSource{
@@ -71,9 +62,7 @@ func TestStory008_AddSimpleTodoWithoutTags(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -98,32 +87,24 @@ func TestStory008_AddSimpleTodoWithoutTags(t *testing.T) {
 	view := model.View()
 
 	// Should show the new todo
-	if !strings.Contains(view, "Fix critical bug") {
-		t.Error("expected view to show new todo")
-	}
+	is.True(strings.Contains(view, "Fix critical bug")) // expected view to show new todo
 
 	// Should exit input mode
-	if strings.Contains(view, "Add todo:") {
-		t.Error("expected view to exit input mode after saving")
-	}
+	is.True(!strings.Contains(view, "Add todo:")) // expected view to exit input mode after saving
 
 	// Check that the todo was written to the file with priority (A) and creation date
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "(A)") {
-		t.Errorf("expected todo to have priority (A), got: %s", written)
-	}
-	if !strings.Contains(written, "Fix critical bug") {
-		t.Errorf("expected todo to contain description, got: %s", written)
-	}
+	is.True(strings.Contains(written, "(A)")) // expected todo to have priority (A)
+	is.True(strings.Contains(written, "Fix critical bug")) // expected todo to contain description
+
 	// Should have today's creation date
 	today := time.Now().Format("2006-01-02")
-	if !strings.Contains(written, today) {
-		t.Errorf("expected todo to have today's creation date %s, got: %s", today, written)
-	}
+	is.True(strings.Contains(written, today)) // expected todo to have today's creation date
 }
 
 func TestStory008_AddTodoWithProjectTags(t *testing.T) {
 	// Scenario: Add todo with project tags
+	is := is.New(t)
 
 	input := "(B) Existing task +WebApp"
 	source := &StubTodoSource{
@@ -132,9 +113,7 @@ func TestStory008_AddTodoWithProjectTags(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -159,32 +138,22 @@ func TestStory008_AddTodoWithProjectTags(t *testing.T) {
 	view := model.View()
 
 	// Should show the new todo with tags
-	if !strings.Contains(view, "Plan sprint") {
-		t.Error("expected view to show new todo")
-	}
-	if !strings.Contains(view, "+WebApp") {
-		t.Error("expected view to show +WebApp tag")
-	}
-	if !strings.Contains(view, "+Mobile") {
-		t.Error("expected view to show +Mobile tag")
-	}
+	is.True(strings.Contains(view, "Plan sprint")) // expected view to show new todo
+	is.True(strings.Contains(view, "+WebApp")) // expected view to show +WebApp tag
+	is.True(strings.Contains(view, "+Mobile")) // expected view to show +Mobile tag
 
 	// Check that the todo was written with priority (B) and creation date
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "(B)") {
-		t.Errorf("expected todo to have priority (B), got: %s", written)
-	}
-	if !strings.Contains(written, "Plan sprint +WebApp +Mobile") {
-		t.Errorf("expected todo to contain description with tags, got: %s", written)
-	}
+	is.True(strings.Contains(written, "(B)")) // expected todo to have priority (B)
+	is.True(strings.Contains(written, "Plan sprint +WebApp +Mobile")) // expected todo to contain description with tags
+
 	today := time.Now().Format("2006-01-02")
-	if !strings.Contains(written, today) {
-		t.Errorf("expected todo to have today's creation date %s, got: %s", today, written)
-	}
+	is.True(strings.Contains(written, today)) // expected todo to have today's creation date
 }
 
 func TestStory008_AddTodoWithContextTags(t *testing.T) {
 	// Scenario: Add todo with context tags
+	is := is.New(t)
 
 	input := "(C) Existing task @phone"
 	source := &StubTodoSource{
@@ -193,9 +162,7 @@ func TestStory008_AddTodoWithContextTags(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -220,32 +187,22 @@ func TestStory008_AddTodoWithContextTags(t *testing.T) {
 	view := model.View()
 
 	// Should show the new todo with context tags
-	if !strings.Contains(view, "Reply to emails") {
-		t.Error("expected view to show new todo")
-	}
-	if !strings.Contains(view, "@phone") {
-		t.Error("expected view to show @phone tag")
-	}
-	if !strings.Contains(view, "@office") {
-		t.Error("expected view to show @office tag")
-	}
+	is.True(strings.Contains(view, "Reply to emails")) // expected view to show new todo
+	is.True(strings.Contains(view, "@phone")) // expected view to show @phone tag
+	is.True(strings.Contains(view, "@office")) // expected view to show @office tag
 
 	// Check that the todo was written with priority (C) and creation date
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "(C)") {
-		t.Errorf("expected todo to have priority (C), got: %s", written)
-	}
-	if !strings.Contains(written, "Reply to emails @phone @office") {
-		t.Errorf("expected todo to contain description with tags, got: %s", written)
-	}
+	is.True(strings.Contains(written, "(C)")) // expected todo to have priority (C)
+	is.True(strings.Contains(written, "Reply to emails @phone @office")) // expected todo to contain description with tags
+
 	today := time.Now().Format("2006-01-02")
-	if !strings.Contains(written, today) {
-		t.Errorf("expected todo to have today's creation date %s, got: %s", today, written)
-	}
+	is.True(strings.Contains(written, today)) // expected todo to have today's creation date
 }
 
 func TestStory008_AddTodoWithMixedTags(t *testing.T) {
 	// Scenario: Add todo with mixed tags
+	is := is.New(t)
 
 	input := "(A) Existing task"
 	source := &StubTodoSource{
@@ -254,9 +211,7 @@ func TestStory008_AddTodoWithMixedTags(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -281,36 +236,24 @@ func TestStory008_AddTodoWithMixedTags(t *testing.T) {
 	view := model.View()
 
 	// Should show all tags
-	if !strings.Contains(view, "Deploy to production") {
-		t.Error("expected view to show new todo")
-	}
-	if !strings.Contains(view, "+WebApp") {
-		t.Error("expected view to show +WebApp tag")
-	}
-	if !strings.Contains(view, "@computer") {
-		t.Error("expected view to show @computer tag")
-	}
-	if !strings.Contains(view, "@work") {
-		t.Error("expected view to show @work tag")
-	}
+	is.True(strings.Contains(view, "Deploy to production")) // expected view to show new todo
+	is.True(strings.Contains(view, "+WebApp")) // expected view to show +WebApp tag
+	is.True(strings.Contains(view, "@computer")) // expected view to show @computer tag
+	is.True(strings.Contains(view, "@work")) // expected view to show @work tag
 
 	// Check written content
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "(A)") {
-		t.Errorf("expected todo to have priority (A), got: %s", written)
-	}
-	if !strings.Contains(written, "Deploy to production +WebApp @computer @work") {
-		t.Errorf("expected todo to contain description with all tags, got: %s", written)
-	}
+	is.True(strings.Contains(written, "(A)")) // expected todo to have priority (A)
+	is.True(strings.Contains(written, "Deploy to production +WebApp @computer @work")) // expected todo to contain description with all tags
+
 	// Should have today's creation date
 	today := time.Now().Format("2006-01-02")
-	if !strings.Contains(written, today) {
-		t.Errorf("expected todo to have today's creation date %s, got: %s", today, written)
-	}
+	is.True(strings.Contains(written, today)) // expected todo to have today's creation date
 }
 
 func TestStory008_CancelInputWithESC(t *testing.T) {
 	// Scenario: Cancel input with ESC
+	is := is.New(t)
 
 	input := "(A) Existing task"
 	source := &StubTodoSource{
@@ -319,9 +262,7 @@ func TestStory008_CancelInputWithESC(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -346,24 +287,19 @@ func TestStory008_CancelInputWithESC(t *testing.T) {
 	view := model.View()
 
 	// Should exit input mode
-	if strings.Contains(view, "Add todo:") {
-		t.Error("expected view to exit input mode after ESC")
-	}
+	is.True(!strings.Contains(view, "Add todo:")) // expected view to exit input mode after ESC
 
 	// Should not show the typed text
-	if strings.Contains(view, "This should be discarded") {
-		t.Error("expected typed text to be discarded")
-	}
+	is.True(!strings.Contains(view, "This should be discarded")) // expected typed text to be discarded
 
 	// Should not have written anything to file
 	written := source.writer.(*strings.Builder).String()
-	if written != "" {
-		t.Errorf("expected no todo to be written after cancel, got: %s", written)
-	}
+	is.Equal(written, "") // expected no todo to be written after cancel
 }
 
 func TestStory008_TagReferenceShowsExistingTags(t *testing.T) {
 	// Scenario: Tag reference display shows existing tags
+	is := is.New(t)
 
 	input := "(A) Task 1 +WebApp @computer\n(B) Task 2 +Mobile @phone\n(C) Task 3 @office"
 	source := &StubTodoSource{
@@ -371,9 +307,7 @@ func TestStory008_TagReferenceShowsExistingTags(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -388,33 +322,20 @@ func TestStory008_TagReferenceShowsExistingTags(t *testing.T) {
 	view := model.View()
 
 	// Should show project tags
-	if !strings.Contains(view, "Projects:") {
-		t.Error("expected view to show 'Projects:' label")
-	}
-	if !strings.Contains(view, "+WebApp") {
-		t.Error("expected view to show +WebApp in tag reference")
-	}
-	if !strings.Contains(view, "+Mobile") {
-		t.Error("expected view to show +Mobile in tag reference")
-	}
+	is.True(strings.Contains(view, "Projects:")) // expected view to show 'Projects:' label
+	is.True(strings.Contains(view, "+WebApp")) // expected view to show +WebApp in tag reference
+	is.True(strings.Contains(view, "+Mobile")) // expected view to show +Mobile in tag reference
 
 	// Should show context tags
-	if !strings.Contains(view, "Contexts:") {
-		t.Error("expected view to show 'Contexts:' label")
-	}
-	if !strings.Contains(view, "@computer") {
-		t.Error("expected view to show @computer in tag reference")
-	}
-	if !strings.Contains(view, "@phone") {
-		t.Error("expected view to show @phone in tag reference")
-	}
-	if !strings.Contains(view, "@office") {
-		t.Error("expected view to show @office in tag reference")
-	}
+	is.True(strings.Contains(view, "Contexts:")) // expected view to show 'Contexts:' label
+	is.True(strings.Contains(view, "@computer")) // expected view to show @computer in tag reference
+	is.True(strings.Contains(view, "@phone")) // expected view to show @phone in tag reference
+	is.True(strings.Contains(view, "@office")) // expected view to show @office in tag reference
 }
 
 func TestStory008_EmptyTagReferenceWhenNoTags(t *testing.T) {
 	// Scenario: Empty tag reference when no tags exist
+	is := is.New(t)
 
 	input := "(A) Task without tags\n(B) Another task"
 	source := &StubTodoSource{
@@ -422,9 +343,7 @@ func TestStory008_EmptyTagReferenceWhenNoTags(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -439,16 +358,13 @@ func TestStory008_EmptyTagReferenceWhenNoTags(t *testing.T) {
 	view := model.View()
 
 	// Should show "(none)" for projects and contexts
-	if !strings.Contains(view, "Projects: (none)") {
-		t.Error("expected view to show 'Projects: (none)'")
-	}
-	if !strings.Contains(view, "Contexts: (none)") {
-		t.Error("expected view to show 'Contexts: (none)'")
-	}
+	is.True(strings.Contains(view, "Projects: (none)")) // expected view to show 'Projects: (none)'
+	is.True(strings.Contains(view, "Contexts: (none)")) // expected view to show 'Contexts: (none)'
 }
 
 func TestStory008_InputOnlyAvailableInFocusMode(t *testing.T) {
 	// Scenario: Input only available in focus mode
+	is := is.New(t)
 
 	input := "(A) Task"
 	source := &StubTodoSource{
@@ -456,9 +372,7 @@ func TestStory008_InputOnlyAvailableInFocusMode(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -471,14 +385,10 @@ func TestStory008_InputOnlyAvailableInFocusMode(t *testing.T) {
 	view := model.View()
 
 	// Should NOT show input mode
-	if strings.Contains(view, "Add todo:") {
-		t.Error("expected 'a' key to be ignored in overview mode")
-	}
+	is.True(!strings.Contains(view, "Add todo:")) // expected 'a' key to be ignored in overview mode
 
 	// Should still show all quadrants (overview mode)
-	if !strings.Contains(view, "DO FIRST") && !strings.Contains(view, "SCHEDULE") {
-		t.Error("expected view to remain in overview mode")
-	}
+	is.True(strings.Contains(view, "DO FIRST") && strings.Contains(view, "SCHEDULE")) // expected view to remain in overview mode
 }
 
 func TestStory008_AutoAssignPriorityFromQuadrant(t *testing.T) {
@@ -497,6 +407,8 @@ func TestStory008_AutoAssignPriorityFromQuadrant(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			is := is.New(t)
+
 			input := "(A) Existing task"
 			source := &StubTodoSource{
 				reader: strings.NewReader(input),
@@ -504,9 +416,7 @@ func TestStory008_AutoAssignPriorityFromQuadrant(t *testing.T) {
 			}
 
 			m, err := usecases.LoadMatrix(source)
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
+			is.NoErr(err)
 
 			model := ui.NewModel(m, "test.txt").SetWriter(source)
 			updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -532,23 +442,19 @@ func TestStory008_AutoAssignPriorityFromQuadrant(t *testing.T) {
 
 			// Check written content
 			written := source.writer.(*strings.Builder).String()
-			if !strings.Contains(written, tt.expectedPrio) {
-				t.Errorf("expected todo to have priority %s, got: %s", tt.expectedPrio, written)
-			}
-			if !strings.Contains(written, "Test todo") {
-				t.Errorf("expected todo to contain description, got: %s", written)
-			}
+			is.True(strings.Contains(written, tt.expectedPrio)) // expected todo to have correct priority
+			is.True(strings.Contains(written, "Test todo")) // expected todo to contain description
+
 			// Should have today's creation date
 			today := time.Now().Format("2006-01-02")
-			if !strings.Contains(written, today) {
-				t.Errorf("expected todo to have today's creation date %s, got: %s", today, written)
-			}
+			is.True(strings.Contains(written, today)) // expected todo to have today's creation date
 		})
 	}
 }
 
 func TestStory008_NewTagsAreAccepted(t *testing.T) {
 	// Scenario: New tags are accepted
+	is := is.New(t)
 
 	input := "(A) Task +WebApp +Mobile"
 	source := &StubTodoSource{
@@ -557,9 +463,7 @@ func TestStory008_NewTagsAreAccepted(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -584,24 +488,15 @@ func TestStory008_NewTagsAreAccepted(t *testing.T) {
 	view := model.View()
 
 	// Should show the new todo with +Backend tag
-	if !strings.Contains(view, "Build API") {
-		t.Error("expected view to show new todo")
-	}
-	if !strings.Contains(view, "+Backend") {
-		t.Error("expected view to show +Backend tag")
-	}
+	is.True(strings.Contains(view, "Build API")) // expected view to show new todo
+	is.True(strings.Contains(view, "+Backend")) // expected view to show +Backend tag
 
 	// Check written content
 	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "(A)") {
-		t.Errorf("expected todo to have priority (A), got: %s", written)
-	}
-	if !strings.Contains(written, "Build API +Backend") {
-		t.Errorf("expected todo to contain description with +Backend tag, got: %s", written)
-	}
+	is.True(strings.Contains(written, "(A)")) // expected todo to have priority (A)
+	is.True(strings.Contains(written, "Build API +Backend")) // expected todo to contain description with +Backend tag
+
 	// Should have today's creation date
 	today := time.Now().Format("2006-01-02")
-	if !strings.Contains(written, today) {
-		t.Errorf("expected todo to have today's creation date %s, got: %s", today, written)
-	}
+	is.True(strings.Contains(written, today)) // expected todo to have today's creation date
 }

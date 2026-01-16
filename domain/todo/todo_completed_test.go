@@ -3,30 +3,22 @@ package todo_test
 import (
 	"testing"
 
+	"github.com/matryer/is"
 	"github.com/quii/todo-eisenhower/domain/todo"
 )
 
 func TestNewCompleted(t *testing.T) {
 	t.Run("creates completed todo with description and priority", func(t *testing.T) {
+		is := is.New(t)
+
 		description := "Deploy hotfix"
 		priority := todo.PriorityA
 
 		item := todo.NewCompleted(description, priority, nil)
 
-		if item.Description() != description {
-			t.Errorf("got description %q, want %q", item.Description(), description)
-		}
-
-		if item.Priority() != priority {
-			t.Errorf("got priority %v, want %v", item.Priority(), priority)
-		}
-
-		if !item.IsCompleted() {
-			t.Error("expected todo to be completed")
-		}
-
-		if item.CompletionDate() != nil {
-			t.Error("expected no completion date when passing nil")
-		}
+		is.Equal(item.Description(), description)
+		is.Equal(item.Priority(), priority)
+		is.True(item.IsCompleted()) // expected todo to be completed
+		is.True(item.CompletionDate() == nil) // expected no completion date when passing nil
 	})
 }

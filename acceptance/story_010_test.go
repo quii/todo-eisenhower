@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/matryer/is"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/quii/todo-eisenhower/adapters/ui"
 	"github.com/quii/todo-eisenhower/usecases"
@@ -11,6 +12,7 @@ import (
 
 func TestStory010_DisplayProjectTagInventory(t *testing.T) {
 	// Scenario: Display project tag inventory
+	is := is.New(t)
 
 	input := `(A) Task one +strategy
 (A) Task two +strategy
@@ -26,9 +28,7 @@ x (A) Completed task +strategy`
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -37,35 +37,26 @@ x (A) Completed task +strategy`
 	view := model.View()
 
 	// Should show project inventory at bottom
-	if !strings.Contains(view, "Projects:") {
-		t.Error("expected to see 'Projects:' label")
-	}
+	is.True(strings.Contains(view, "Projects:")) // expected to see 'Projects:' label
 
 	// Should show strategy with count 3 (not counting completed)
-	if !strings.Contains(view, "strategy") && !strings.Contains(view, "(3)") {
-		t.Error("expected to see +strategy (3)")
-	}
+	is.True(strings.Contains(view, "strategy") && strings.Contains(view, "(3)")) // expected to see +strategy (3)
 
 	// Should show hiring with count 2
-	if !strings.Contains(view, "hiring") && !strings.Contains(view, "(2)") {
-		t.Error("expected to see +hiring (2)")
-	}
+	is.True(strings.Contains(view, "hiring") && strings.Contains(view, "(2)")) // expected to see +hiring (2)
 
 	// Should show architecture with count 1
-	if !strings.Contains(view, "architecture") && !strings.Contains(view, "(1)") {
-		t.Error("expected to see +architecture (1)")
-	}
+	is.True(strings.Contains(view, "architecture") && strings.Contains(view, "(1)")) // expected to see +architecture (1)
 
 	// Strategy should appear before hiring (higher count)
 	strategyPos := strings.Index(view, "strategy")
 	hiringPos := strings.Index(view, "hiring")
-	if strategyPos == -1 || hiringPos == -1 || strategyPos > hiringPos {
-		t.Error("expected +strategy to appear before +hiring (sorted by count descending)")
-	}
+	is.True(strategyPos != -1 && hiringPos != -1 && strategyPos < hiringPos) // expected +strategy to appear before +hiring (sorted by count descending)
 }
 
 func TestStory010_DisplayContextTagInventory(t *testing.T) {
 	// Scenario: Display context tag inventory
+	is := is.New(t)
 
 	input := `(A) Task one @computer
 (A) Task two @computer
@@ -82,9 +73,7 @@ func TestStory010_DisplayContextTagInventory(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -93,28 +82,21 @@ func TestStory010_DisplayContextTagInventory(t *testing.T) {
 	view := model.View()
 
 	// Should show context inventory
-	if !strings.Contains(view, "Contexts:") {
-		t.Error("expected to see 'Contexts:' label")
-	}
+	is.True(strings.Contains(view, "Contexts:")) // expected to see 'Contexts:' label
 
 	// Should show computer with count 5
-	if !strings.Contains(view, "computer") && !strings.Contains(view, "(5)") {
-		t.Error("expected to see @computer (5)")
-	}
+	is.True(strings.Contains(view, "computer") && strings.Contains(view, "(5)")) // expected to see @computer (5)
 
 	// Should show phone with count 2
-	if !strings.Contains(view, "phone") && !strings.Contains(view, "(2)") {
-		t.Error("expected to see @phone (2)")
-	}
+	is.True(strings.Contains(view, "phone") && strings.Contains(view, "(2)")) // expected to see @phone (2)
 
 	// Should show office with count 1
-	if !strings.Contains(view, "office") && !strings.Contains(view, "(1)") {
-		t.Error("expected to see @office (1)")
-	}
+	is.True(strings.Contains(view, "office") && strings.Contains(view, "(1)")) // expected to see @office (1)
 }
 
 func TestStory010_DisplayBothProjectAndContextInventory(t *testing.T) {
 	// Scenario: Display both project and context inventory
+	is := is.New(t)
 
 	input := `(A) Task one +strategy @computer
 (A) Task two +strategy @computer
@@ -126,9 +108,7 @@ func TestStory010_DisplayBothProjectAndContextInventory(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -137,24 +117,17 @@ func TestStory010_DisplayBothProjectAndContextInventory(t *testing.T) {
 	view := model.View()
 
 	// Should show both project and context lines
-	if !strings.Contains(view, "Projects:") {
-		t.Error("expected to see 'Projects:' label")
-	}
-	if !strings.Contains(view, "Contexts:") {
-		t.Error("expected to see 'Contexts:' label")
-	}
+	is.True(strings.Contains(view, "Projects:")) // expected to see 'Projects:' label
+	is.True(strings.Contains(view, "Contexts:")) // expected to see 'Contexts:' label
 
 	// Should show counts for both
-	if !strings.Contains(view, "strategy") {
-		t.Error("expected to see +strategy")
-	}
-	if !strings.Contains(view, "computer") {
-		t.Error("expected to see @computer")
-	}
+	is.True(strings.Contains(view, "strategy")) // expected to see +strategy
+	is.True(strings.Contains(view, "computer")) // expected to see @computer
 }
 
 func TestStory010_NoTagsInUse(t *testing.T) {
 	// Scenario: No tags in use
+	is := is.New(t)
 
 	input := `(A) Task without tags
 (B) Another task`
@@ -165,9 +138,7 @@ func TestStory010_NoTagsInUse(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -177,18 +148,15 @@ func TestStory010_NoTagsInUse(t *testing.T) {
 
 	// Should show (none) for both
 	projectsLine := extractLine(view, "Projects:")
-	if !strings.Contains(projectsLine, "(none)") {
-		t.Error("expected to see 'Projects: (none)'")
-	}
+	is.True(strings.Contains(projectsLine, "(none)")) // expected to see 'Projects: (none)'
 
 	contextsLine := extractLine(view, "Contexts:")
-	if !strings.Contains(contextsLine, "(none)") {
-		t.Error("expected to see 'Contexts: (none)'")
-	}
+	is.True(strings.Contains(contextsLine, "(none)")) // expected to see 'Contexts: (none)'
 }
 
 func TestStory010_InventoryNotShownInFocusMode(t *testing.T) {
 	// Scenario: Inventory not shown in focus mode
+	is := is.New(t)
 
 	input := `(A) Task +strategy @computer
 (B) Task +hiring @phone`
@@ -199,9 +167,7 @@ func TestStory010_InventoryNotShownInFocusMode(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -214,13 +180,12 @@ func TestStory010_InventoryNotShownInFocusMode(t *testing.T) {
 	view := model.View()
 
 	// Should NOT show inventory in focus mode
-	if strings.Contains(view, "Projects:") && strings.Contains(view, "strategy (1)") {
-		t.Error("expected inventory NOT to be shown in focus mode")
-	}
+	is.True(!(strings.Contains(view, "Projects:") && strings.Contains(view, "strategy (1)"))) // expected inventory NOT to be shown in focus mode
 }
 
 func TestStory010_CountsUpdateWhenAddingTodos(t *testing.T) {
 	// Scenario: Counts update when adding todos
+	is := is.New(t)
 
 	input := `(A) Existing task +strategy`
 
@@ -230,9 +195,7 @@ func TestStory010_CountsUpdateWhenAddingTodos(t *testing.T) {
 	}
 
 	m, err := usecases.LoadMatrix(source)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt").SetWriter(source)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -240,9 +203,7 @@ func TestStory010_CountsUpdateWhenAddingTodos(t *testing.T) {
 
 	// Check initial count
 	view := model.View()
-	if !strings.Contains(view, "strategy") && !strings.Contains(view, "(1)") {
-		t.Error("expected initial count of +strategy (1)")
-	}
+	is.True(strings.Contains(view, "strategy") && strings.Contains(view, "(1)")) // expected initial count of +strategy (1)
 
 	// Focus on DO FIRST and add a new todo with +strategy
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
@@ -267,9 +228,7 @@ func TestStory010_CountsUpdateWhenAddingTodos(t *testing.T) {
 	view2 := model.View()
 
 	// Count should now be 2
-	if !strings.Contains(view2, "strategy") && !strings.Contains(view2, "(2)") {
-		t.Error("expected updated count of +strategy (2)")
-	}
+	is.True(strings.Contains(view2, "strategy") && strings.Contains(view2, "(2)")) // expected updated count of +strategy (2)
 }
 
 // Helper function to extract a line containing a specific substring
