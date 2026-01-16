@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/matryer/is"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -23,6 +24,7 @@ func (s StubTodoSource) GetTodos() (io.ReadCloser, error) {
 
 func TestLoadMatrix(t *testing.T) {
 	t.Run("loads and parses todos from source", func(t *testing.T) {
+		is := is.New(t)
 		source := StubTodoSource{
 			data: `(A) Fix critical bug
 (B) Plan quarterly goals
@@ -33,50 +35,39 @@ func TestLoadMatrix(t *testing.T) {
 
 		m, err := usecases.LoadMatrix(source)
 
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		is.NoErr(err)
 
 		// Verify todos were loaded and categorized
-		if len(m.DoFirst()) != 1 {
-			t.Errorf("expected 1 todo in DoFirst, got %d", len(m.DoFirst()))
-		}
-		if len(m.Schedule()) != 1 {
-			t.Errorf("expected 1 todo in Schedule, got %d", len(m.Schedule()))
-		}
-		if len(m.Delegate()) != 1 {
-			t.Errorf("expected 1 todo in Delegate, got %d", len(m.Delegate()))
-		}
-		if len(m.Eliminate()) != 1 {
-			t.Errorf("expected 1 todo in Eliminate, got %d", len(m.Eliminate()))
-		}
+		is.Equal(len(m.DoFirst()), 1)  // expected 1 todo in DoFirst
+		is.Equal(len(m.Schedule()), 1) // expected 1 todo in Schedule
+		is.Equal(len(m.Delegate()), 1) // expected 1 todo in Delegate
+		is.Equal(len(m.Eliminate()), 1) // expected 1 todo in Eliminate
 	})
 
 	t.Run("returns error when source fails", func(t *testing.T) {
+		is := is.New(t)
 		source := StubTodoSource{
 			err: errors.New("source error"),
 		}
 
 		_, err := usecases.LoadMatrix(source)
 
-		if err == nil {
-			t.Error("expected error when source fails, got nil")
-		}
+		is.True(err != nil) // expected error when source fails
 	})
 
 	t.Run("handles empty source", func(t *testing.T) {
+		is := is.New(t)
 		source := StubTodoSource{
 			data: "",
 		}
 
 		m, err := usecases.LoadMatrix(source)
 
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		is.NoErr(err)
 
-		if len(m.DoFirst()) != 0 || len(m.Schedule()) != 0 || len(m.Delegate()) != 0 || len(m.Eliminate()) != 0 {
-			t.Error("expected all quadrants to be empty")
-		}
+		is.Equal(len(m.DoFirst()), 0)  // expected empty DoFirst
+		is.Equal(len(m.Schedule()), 0) // expected empty Schedule
+		is.Equal(len(m.Delegate()), 0) // expected empty Delegate
+		is.Equal(len(m.Eliminate()), 0) // expected empty Eliminate
 	})
 }

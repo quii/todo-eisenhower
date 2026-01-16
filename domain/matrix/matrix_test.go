@@ -3,12 +3,14 @@ package matrix_test
 import (
 	"testing"
 
+	"github.com/matryer/is"
 	"github.com/quii/todo-eisenhower/domain/matrix"
 	"github.com/quii/todo-eisenhower/domain/todo"
 )
 
 func TestMatrix(t *testing.T) {
 	t.Run("categorizes priority A todos into DoFirst quadrant", func(t *testing.T) {
+		is := is.New(t)
 		todos := []todo.Todo{
 			todo.New("Fix critical bug", todo.PriorityA),
 			todo.New("Review security audit", todo.PriorityA),
@@ -17,15 +19,14 @@ func TestMatrix(t *testing.T) {
 		m := matrix.New(todos)
 
 		doFirst := m.DoFirst()
-		if len(doFirst) != 2 {
-			t.Fatalf("expected 2 todos in DoFirst, got %d", len(doFirst))
-		}
+		is.Equal(len(doFirst), 2) // expected 2 todos in DoFirst
 
-		assertContainsTodo(t, doFirst, "Fix critical bug")
-		assertContainsTodo(t, doFirst, "Review security audit")
+		assertContainsTodo(is, doFirst, "Fix critical bug")
+		assertContainsTodo(is, doFirst, "Review security audit")
 	})
 
 	t.Run("categorizes priority B todos into Schedule quadrant", func(t *testing.T) {
+		is := is.New(t)
 		todos := []todo.Todo{
 			todo.New("Plan Q2 roadmap", todo.PriorityB),
 		}
@@ -33,14 +34,13 @@ func TestMatrix(t *testing.T) {
 		m := matrix.New(todos)
 
 		schedule := m.Schedule()
-		if len(schedule) != 1 {
-			t.Fatalf("expected 1 todo in Schedule, got %d", len(schedule))
-		}
+		is.Equal(len(schedule), 1) // expected 1 todo in Schedule
 
-		assertContainsTodo(t, schedule, "Plan Q2 roadmap")
+		assertContainsTodo(is, schedule, "Plan Q2 roadmap")
 	})
 
 	t.Run("categorizes priority C todos into Delegate quadrant", func(t *testing.T) {
+		is := is.New(t)
 		todos := []todo.Todo{
 			todo.New("Respond to routine emails", todo.PriorityC),
 		}
@@ -48,14 +48,13 @@ func TestMatrix(t *testing.T) {
 		m := matrix.New(todos)
 
 		delegate := m.Delegate()
-		if len(delegate) != 1 {
-			t.Fatalf("expected 1 todo in Delegate, got %d", len(delegate))
-		}
+		is.Equal(len(delegate), 1) // expected 1 todo in Delegate
 
-		assertContainsTodo(t, delegate, "Respond to routine emails")
+		assertContainsTodo(is, delegate, "Respond to routine emails")
 	})
 
 	t.Run("categorizes priority D and no priority todos into Eliminate quadrant", func(t *testing.T) {
+		is := is.New(t)
 		todos := []todo.Todo{
 			todo.New("Organize desk", todo.PriorityD),
 			todo.New("Review old docs", todo.PriorityNone),
@@ -64,15 +63,14 @@ func TestMatrix(t *testing.T) {
 		m := matrix.New(todos)
 
 		eliminate := m.Eliminate()
-		if len(eliminate) != 2 {
-			t.Fatalf("expected 2 todos in Eliminate, got %d", len(eliminate))
-		}
+		is.Equal(len(eliminate), 2) // expected 2 todos in Eliminate
 
-		assertContainsTodo(t, eliminate, "Organize desk")
-		assertContainsTodo(t, eliminate, "Review old docs")
+		assertContainsTodo(is, eliminate, "Organize desk")
+		assertContainsTodo(is, eliminate, "Review old docs")
 	})
 
 	t.Run("distributes todos across all quadrants", func(t *testing.T) {
+		is := is.New(t)
 		todos := []todo.Todo{
 			todo.New("Fix critical bug", todo.PriorityA),
 			todo.New("Plan quarterly goals", todo.PriorityB),
@@ -82,27 +80,19 @@ func TestMatrix(t *testing.T) {
 
 		m := matrix.New(todos)
 
-		if len(m.DoFirst()) != 1 {
-			t.Errorf("expected 1 todo in DoFirst, got %d", len(m.DoFirst()))
-		}
-		if len(m.Schedule()) != 1 {
-			t.Errorf("expected 1 todo in Schedule, got %d", len(m.Schedule()))
-		}
-		if len(m.Delegate()) != 1 {
-			t.Errorf("expected 1 todo in Delegate, got %d", len(m.Delegate()))
-		}
-		if len(m.Eliminate()) != 1 {
-			t.Errorf("expected 1 todo in Eliminate, got %d", len(m.Eliminate()))
-		}
+		is.Equal(len(m.DoFirst()), 1)  // expected 1 todo in DoFirst
+		is.Equal(len(m.Schedule()), 1) // expected 1 todo in Schedule
+		is.Equal(len(m.Delegate()), 1) // expected 1 todo in Delegate
+		is.Equal(len(m.Eliminate()), 1) // expected 1 todo in Eliminate
 	})
 }
 
-func assertContainsTodo(t *testing.T, todos []todo.Todo, description string) {
-	t.Helper()
+func assertContainsTodo(is *is.I, todos []todo.Todo, description string) {
+	is.Helper()
 	for _, td := range todos {
 		if td.Description() == description {
 			return
 		}
 	}
-	t.Errorf("expected to find todo with description %q", description)
+	is.Fail() // expected to find todo with description
 }
