@@ -67,7 +67,8 @@ var (
 func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeight int) string {
 	// Calculate quadrant dimensions based on terminal size
 	quadrantWidth, quadrantHeight := calculateQuadrantDimensions(terminalWidth, terminalHeight)
-	displayLimit := calculateDisplayLimit(quadrantHeight)
+	// For overview mode, always show top 5 todos per quadrant (cleaner, more consistent)
+	displayLimit := 5
 
 	var output strings.Builder
 
@@ -79,10 +80,10 @@ func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeigh
 	}
 
 	// Render quadrant contents
-	doFirst := renderQuadrantContent("DO FIRST", urgentImportantColor, m.DoFirst(), quadrantWidth, quadrantHeight, displayLimit)
-	schedule := renderQuadrantContent("SCHEDULE", importantColor, m.Schedule(), quadrantWidth, quadrantHeight, displayLimit)
-	delegate := renderQuadrantContent("DELEGATE", urgentColor, m.Delegate(), quadrantWidth, quadrantHeight, displayLimit)
-	eliminate := renderQuadrantContent("ELIMINATE", neitherColor, m.Eliminate(), quadrantWidth, quadrantHeight, displayLimit)
+	doFirst := renderQuadrantContent("DO FIRST", urgentImportantColor, m.DoFirst(), quadrantWidth, quadrantHeight, displayLimit, 1)
+	schedule := renderQuadrantContent("SCHEDULE", importantColor, m.Schedule(), quadrantWidth, quadrantHeight, displayLimit, 2)
+	delegate := renderQuadrantContent("DELEGATE", urgentColor, m.Delegate(), quadrantWidth, quadrantHeight, displayLimit, 3)
+	eliminate := renderQuadrantContent("ELIMINATE", neitherColor, m.Eliminate(), quadrantWidth, quadrantHeight, displayLimit, 4)
 
 	// Create vertical divider that spans quadrant height
 	verticalDivider := createVerticalDivider(quadrantHeight)
@@ -336,24 +337,39 @@ func colorizeDescription(description string) string {
 }
 
 // renderQuadrantContent renders just the content of a quadrant (no border)
-func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo, width, height, displayLimit int) string {
+func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo, width, height, displayLimit int, quadrantNumber int) string {
 	var lines []string
 
-	// Title
+	// Calculate stats
+	totalTasks := len(todos)
+	completedTasks := 0
+	for _, t := range todos {
+		if t.IsCompleted() {
+			completedTasks++
+		}
+	}
+
+	// Title with stats
+	taskWord := "tasks"
+	if totalTasks == 1 {
+		taskWord = "task"
+	}
+	titleWithStats := fmt.Sprintf("%s (%d %s, %d completed)", title, totalTasks, taskWord, completedTasks)
 	quadrantTitle := titleStyle.
 		Copy().
 		Foreground(color).
-		Render(title)
+		Render(titleWithStats)
 	lines = append(lines, quadrantTitle)
 	lines = append(lines, "") // spacing
 
 	if len(todos) == 0 {
-		lines = append(lines, emptyStyle.Render("(no tasks)"))
+		lines = append(lines, emptyStyle.Render("  (no tasks)"))
 	} else {
 		for i, t := range todos {
 			if i >= displayLimit {
 				remaining := len(todos) - displayLimit
-				lines = append(lines, emptyStyle.Render(fmt.Sprintf("... and %d more", remaining)))
+				hint := fmt.Sprintf("  ... and %d more (press %d to view)", remaining, quadrantNumber)
+				lines = append(lines, emptyStyle.Render(hint))
 				break
 			}
 
@@ -363,23 +379,8 @@ func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo
 			var todoLine string
 			if t.IsCompleted() {
 				todoLine = completedTodoStyle.Render("✓ ") + description
-				// Add date information (briefer for overview mode)
-				createdStr := formatDate(t.CreationDate())
-				completedStr := formatDate(t.CompletionDate())
-				if createdStr != "" && completedStr != "" {
-					dateInfo := emptyStyle.Render(fmt.Sprintf(" (added %s, completed %s)", createdStr, completedStr))
-					todoLine += dateInfo
-				} else if completedStr != "" {
-					dateInfo := emptyStyle.Render(fmt.Sprintf(" (%s)", completedStr))
-					todoLine += dateInfo
-				}
 			} else {
 				todoLine = activeTodoStyle.Render("• ") + description
-				// Add creation date for active todos
-				if createdStr := formatDate(t.CreationDate()); createdStr != "" {
-					dateInfo := emptyStyle.Render(fmt.Sprintf(" (%s)", createdStr))
-					todoLine += dateInfo
-				}
 			}
 			lines = append(lines, todoLine)
 		}

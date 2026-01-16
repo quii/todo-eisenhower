@@ -37,12 +37,10 @@ func TestStory006_MatrixFillsAvailableSpace(t *testing.T) {
 	// View should use larger dimensions
 	view := updatedModel.View()
 
-	// With a 120x40 terminal, we should be able to display more than the default 7 todos
-	// Calculate expected: 40 - 10 (reserved) = 30, / 2 = 15 lines per quadrant
-	// 15 - 3 (title, spacing, footer) = 12 todos displayable
-	// We have 15 todos, so should see "... and 3 more"
-	if !strings.Contains(view, "... and 3 more") {
-		t.Errorf("expected to see '... and 3 more' with larger terminal")
+	// Overview mode shows top 5 todos per quadrant (Story 017)
+	// We have 15 todos, so should see "... and 10 more"
+	if !strings.Contains(view, "... and 10 more") {
+		t.Errorf("expected to see '... and 10 more' in overview mode")
 	}
 
 	// Verify matrix content is present
@@ -74,11 +72,10 @@ func TestStory006_MatrixAdjustsToDifferentSizes(t *testing.T) {
 
 	view := updatedModel.View()
 
-	// With 200x60: 60 - 10 = 50, / 2 = 25 lines per quadrant
-	// 25 - 3 = 22 todos displayable
-	// We have 30, so should see "... and 8 more"
-	if !strings.Contains(view, "... and 8 more") {
-		t.Errorf("expected to see '... and 8 more' with very large terminal")
+	// Overview mode shows top 5 todos per quadrant (Story 017)
+	// We have 30 todos, so should see "... and 25 more"
+	if !strings.Contains(view, "... and 25 more") {
+		t.Errorf("expected to see '... and 25 more' in overview mode")
 	}
 }
 
@@ -126,20 +123,17 @@ func TestStory006_DisplayLimitScalesWithHeight(t *testing.T) {
 	tests := []struct {
 		name            string
 		terminalHeight  int
-		expectedTodos   int
 		expectedMessage string
 	}{
 		{
-			name:            "small terminal shows fewer todos",
+			name:            "small terminal shows top 5 todos",
 			terminalHeight:  30,
-			expectedTodos:   7, // (30-10)/2 = 10, 10-3 = 7 todos
-			expectedMessage: "... and 13 more",
+			expectedMessage: "... and 15 more", // Overview always shows top 5
 		},
 		{
-			name:            "large terminal shows more todos",
+			name:            "large terminal shows top 5 todos",
 			terminalHeight:  50,
-			expectedTodos:   17, // (50-10)/2 = 20, 20-3 = 17 todos
-			expectedMessage: "... and 3 more",
+			expectedMessage: "... and 15 more", // Overview always shows top 5
 		},
 	}
 
@@ -223,9 +217,9 @@ func TestStory006_DefaultDimensionsWhenNoWindowSize(t *testing.T) {
 	// Call View without setting window size (width and height are 0)
 	view := model.View()
 
-	// Should use default displayLimit of 7, showing "... and 3 more"
-	if !strings.Contains(view, "... and 3 more") {
-		t.Error("expected default display limit when no window size")
+	// Overview mode shows top 5, so with 10 todos should see "... and 5 more"
+	if !strings.Contains(view, "... and 5 more") {
+		t.Error("expected overview to show top 5 todos (... and 5 more)")
 	}
 
 	// Should still contain matrix content
