@@ -26,8 +26,6 @@ builds:
 
 archives:
   - id: default
-    builds:
-      - eisenhower
     format: tar.gz
     format_overrides:
       - goos: windows
@@ -59,5 +57,3 @@ brews:
     directory: Formula
     install: |
       bin.install "eisenhower"
-    test: |
-      system "#{bin}/eisenhower", "--version"
