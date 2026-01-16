@@ -28,7 +28,13 @@ The Eisenhower Matrix helps prioritize tasks by organizing them into four quadra
 
 ## Installation
 
-### Download Pre-built Binary (Recommended)
+### Homebrew (macOS/Linux)
+
+```bash
+brew install quii/tap/todo-eisenhower
+```
+
+### Download Pre-built Binary
 
 Pre-built binaries are automatically built on every push to main. Download the latest build:
 
