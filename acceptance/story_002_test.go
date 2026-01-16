@@ -37,22 +37,22 @@ func TestStory002_LoadFromHardcodedPath(t *testing.T) {
 		m, err := usecases.LoadMatrix(source)
 		is.NoErr(err)
 
-		// The "DO FIRST" quadrant contains "Fix critical bug"
+		// The "Do First" quadrant contains "Fix critical bug"
 		doFirst := m.DoFirst()
 		is.Equal(len(doFirst), 1) // expected 1 todo in DO FIRST
 		is.Equal(doFirst[0].Description(), "Fix critical bug")
 
-		// And the "SCHEDULE" quadrant contains "Plan quarterly goals"
+		// And the "Schedule" quadrant contains "Plan quarterly goals"
 		schedule := m.Schedule()
 		is.Equal(len(schedule), 1) // expected 1 todo in SCHEDULE
 		is.Equal(schedule[0].Description(), "Plan quarterly goals")
 
-		// And the "DELEGATE" quadrant contains "Reply to emails"
+		// And the "Delegate" quadrant contains "Reply to emails"
 		delegate := m.Delegate()
 		is.Equal(len(delegate), 1) // expected 1 todo in DELEGATE
 		is.Equal(delegate[0].Description(), "Reply to emails")
 
-		// And the "ELIMINATE" quadrant contains "Clean workspace"
+		// And the "Eliminate" quadrant contains "Clean workspace"
 		eliminate := m.Eliminate()
 		is.Equal(len(eliminate), 1) // expected 1 todo in ELIMINATE
 		is.Equal(eliminate[0].Description(), "Clean workspace")
@@ -107,7 +107,7 @@ x (A) 2026-01-11 Completed task
 
 		is.NoErr(err)
 
-		// Then the "DO FIRST" quadrant shows both todos
+		// Then the "Do First" quadrant shows both todos
 		doFirst := m.DoFirst()
 		is.Equal(len(doFirst), 2) // expected 2 todos in DO FIRST
 
@@ -142,12 +142,12 @@ No priority task
 
 		is.NoErr(err)
 
-		// Then the "DO FIRST" quadrant contains "High priority task"
+		// Then the "Do First" quadrant contains "High priority task"
 		doFirst := m.DoFirst()
 		is.Equal(len(doFirst), 1) // expected 1 todo in DO FIRST
 		is.Equal(doFirst[0].Description(), "High priority task")
 
-		// And the "ELIMINATE" quadrant contains "No priority task"
+		// And the "Eliminate" quadrant contains "No priority task"
 		eliminate := m.Eliminate()
 		is.Equal(len(eliminate), 1) // expected 1 todo in ELIMINATE
 		is.Equal(eliminate[0].Description(), "No priority task")

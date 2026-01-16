@@ -30,14 +30,14 @@ func TestStory007_NoEmojisInQuadrantTitles(t *testing.T) {
 	// Check that emojis are NOT present
 	emojis := []string{"🔥", "📅", "👥", "🗑️", "📄"}
 	for _, emoji := range emojis {
-		is.True(!strings.Contains(view, emoji)) // view should not contain emoji
+		is.True(!strings.Contains(stripANSI(view), emoji)) // view should not contain emoji
 	}
 
 	// Verify titles are present without emojis
-	is.True(strings.Contains(view, "DO FIRST")) // expected view to contain 'DO FIRST'
-	is.True(strings.Contains(view, "SCHEDULE")) // expected view to contain 'SCHEDULE'
-	is.True(strings.Contains(view, "DELEGATE")) // expected view to contain 'DELEGATE'
-	is.True(strings.Contains(view, "ELIMINATE")) // expected view to contain 'ELIMINATE'
+	is.True(strings.Contains(stripANSI(view), "Do First")) // expected view to contain 'DO FIRST'
+	is.True(strings.Contains(stripANSI(view), "Schedule")) // expected view to contain 'SCHEDULE'
+	is.True(strings.Contains(stripANSI(view), "Delegate")) // expected view to contain 'DELEGATE'
+	is.True(strings.Contains(stripANSI(view), "Eliminate")) // expected view to contain 'ELIMINATE'
 }
 
 func TestStory007_FocusOnDoFirst(t *testing.T) {
@@ -63,19 +63,19 @@ func TestStory007_FocusOnDoFirst(t *testing.T) {
 	view := model.View()
 
 	// Should show DO FIRST title prominently
-	is.True(strings.Contains(view, "DO FIRST")) // expected focused view to contain 'DO FIRST' title
+	is.True(strings.Contains(stripANSI(view), "Do First")) // expected focused view to contain 'DO FIRST' title
 
 	// Should show file path header
-	is.True(strings.Contains(view, "File: test.txt")) // expected focused view to contain file path header
+	is.True(strings.Contains(stripANSI(view), "File: test.txt")) // expected focused view to contain file path header
 
 	// Should show help text
-	is.True(strings.Contains(view, "Press a to add")) // expected focused view to contain help text about adding tasks
-	is.True(strings.Contains(view, "Press 1-4 to jump")) // expected focused view to contain help text about jumping quadrants
-	is.True(strings.Contains(view, "m to move")) // expected focused view to contain help text about moving todos
-	is.True(strings.Contains(view, "Press ESC to return")) // expected focused view to contain help text about ESC
+	is.True(strings.Contains(stripANSI(view), "Press a to add")) // expected focused view to contain help text about adding tasks
+	is.True(strings.Contains(stripANSI(view), "Press 1-4 to jump")) // expected focused view to contain help text about jumping quadrants
+	is.True(strings.Contains(stripANSI(view), "m to move")) // expected focused view to contain help text about moving todos
+	is.True(strings.Contains(stripANSI(view), "Press ESC to return")) // expected focused view to contain help text about ESC
 
 	// Should NOT show other quadrant titles
-	is.True(!strings.Contains(view, "SCHEDULE") && !strings.Contains(view, "DELEGATE") && !strings.Contains(view, "ELIMINATE")) // focused view should not contain other quadrant titles
+	is.True(!strings.Contains(stripANSI(view), "Schedule") && !strings.Contains(stripANSI(view), "Delegate") && !strings.Contains(stripANSI(view), "Eliminate")) // focused view should not contain other quadrant titles
 }
 
 func TestStory007_FocusOnSchedule(t *testing.T) {
@@ -100,8 +100,8 @@ func TestStory007_FocusOnSchedule(t *testing.T) {
 
 	view := model.View()
 
-	is.True(strings.Contains(view, "SCHEDULE")) // expected focused view to contain 'SCHEDULE' title
-	is.True(strings.Contains(view, "Schedule task")) // expected focused view to contain schedule tasks
+	is.True(strings.Contains(stripANSI(view), "Schedule")) // expected focused view to contain 'SCHEDULE' title
+	is.True(strings.Contains(stripANSI(view), "Schedule task")) // expected focused view to contain schedule tasks
 }
 
 func TestStory007_FocusOnDelegate(t *testing.T) {
@@ -126,7 +126,7 @@ func TestStory007_FocusOnDelegate(t *testing.T) {
 
 	view := model.View()
 
-	is.True(strings.Contains(view, "DELEGATE")) // expected focused view to contain 'DELEGATE' title
+	is.True(strings.Contains(stripANSI(view), "Delegate")) // expected focused view to contain 'DELEGATE' title
 }
 
 func TestStory007_FocusOnEliminate(t *testing.T) {
@@ -151,7 +151,7 @@ func TestStory007_FocusOnEliminate(t *testing.T) {
 
 	view := model.View()
 
-	is.True(strings.Contains(view, "ELIMINATE")) // expected focused view to contain 'ELIMINATE' title
+	is.True(strings.Contains(stripANSI(view), "Eliminate")) // expected focused view to contain 'ELIMINATE' title
 }
 
 func TestStory007_ReturnToOverviewWithESC(t *testing.T) {
@@ -176,7 +176,7 @@ func TestStory007_ReturnToOverviewWithESC(t *testing.T) {
 	focusView := model.View()
 
 	// Should be in focus mode (only DO FIRST visible)
-	is.True(!strings.Contains(focusView, "SCHEDULE")) // focus mode should not show other quadrants
+	is.True(!strings.Contains(focusView, "Schedule")) // focus mode should not show other quadrants
 
 	// Press ESC to return to overview
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyEscape})
@@ -184,10 +184,10 @@ func TestStory007_ReturnToOverviewWithESC(t *testing.T) {
 	overviewView := model.View()
 
 	// Should now show all quadrants
-	is.True(strings.Contains(overviewView, "DO FIRST")) // overview should contain DO FIRST
-	is.True(strings.Contains(overviewView, "SCHEDULE")) // overview should contain SCHEDULE
-	is.True(strings.Contains(overviewView, "DELEGATE")) // overview should contain DELEGATE
-	is.True(strings.Contains(overviewView, "ELIMINATE")) // overview should contain ELIMINATE
+	is.True(strings.Contains(overviewView, "Do First")) // overview should contain DO FIRST
+	is.True(strings.Contains(overviewView, "Schedule")) // overview should contain SCHEDULE
+	is.True(strings.Contains(overviewView, "Delegate")) // overview should contain DELEGATE
+	is.True(strings.Contains(overviewView, "Eliminate")) // overview should contain ELIMINATE
 
 	// Should show overview help text (without ESC)
 	is.True(strings.Contains(overviewView, "Press 1/2/3/4 to focus on a quadrant")) // overview should show help text
@@ -216,25 +216,25 @@ func TestStory007_JumpBetweenQuadrantsInFocusMode(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
 	model = updatedModel.(ui.Model)
 	view1 := model.View()
-	is.True(strings.Contains(view1, "DO FIRST")) // should show DO FIRST
+	is.True(strings.Contains(stripANSI(view1), "Do First")) // should show DO FIRST
 
 	// Jump to SCHEDULE (2)
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'2'}})
 	model = updatedModel.(ui.Model)
 	view2 := model.View()
-	is.True(strings.Contains(view2, "SCHEDULE")) // should show SCHEDULE
+	is.True(strings.Contains(view2, "Schedule")) // should show SCHEDULE
 
 	// Jump to ELIMINATE (4)
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'4'}})
 	model = updatedModel.(ui.Model)
 	view4 := model.View()
-	is.True(strings.Contains(view4, "ELIMINATE")) // should show ELIMINATE
+	is.True(strings.Contains(view4, "Eliminate")) // should show ELIMINATE
 
 	// Jump back to DO FIRST (1)
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
 	model = updatedModel.(ui.Model)
 	view1Again := model.View()
-	is.True(strings.Contains(view1Again, "DO FIRST")) // should show DO FIRST again
+	is.True(strings.Contains(view1Again, "Do First")) // should show DO FIRST again
 }
 
 func TestStory007_EmptyQuadrantInFocusMode(t *testing.T) {
@@ -259,9 +259,9 @@ func TestStory007_EmptyQuadrantInFocusMode(t *testing.T) {
 	model = updatedModel.(ui.Model)
 	view := model.View()
 
-	is.True(strings.Contains(view, "ELIMINATE")) // should show ELIMINATE title
-	is.True(strings.Contains(view, "(no tasks)")) // should show '(no tasks)' for empty quadrant
-	is.True(strings.Contains(view, "m to move")) // should show help text even for empty quadrant
+	is.True(strings.Contains(stripANSI(view), "Eliminate")) // should show ELIMINATE title
+	is.True(strings.Contains(stripANSI(view), "(no tasks)")) // should show '(no tasks)' for empty quadrant
+	is.True(strings.Contains(stripANSI(view), "m to move")) // should show help text even for empty quadrant
 }
 
 func TestStory007_DisplayLimitScalesInFocusMode(t *testing.T) {
@@ -288,7 +288,7 @@ func TestStory007_DisplayLimitScalesInFocusMode(t *testing.T) {
 	// Table should be rendered and handle many todos
 	// With table-based rendering, all todos are in the table but scrollable
 	is.True(strings.Contains(largView, "Task")) // large terminal should show task column header
-	is.True(strings.Contains(largView, "DO FIRST")) // large terminal should show quadrant title
+	is.True(strings.Contains(stripANSI(largView), "Do First")) // large terminal should show quadrant title
 
 	// Smaller terminal
 	updatedModel, _ = model.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
@@ -299,5 +299,5 @@ func TestStory007_DisplayLimitScalesInFocusMode(t *testing.T) {
 
 	// Table should still render in smaller terminal
 	is.True(strings.Contains(smallView, "Task")) // small terminal should show task column header
-	is.True(strings.Contains(smallView, "DO FIRST")) // small terminal should show quadrant title
+	is.True(strings.Contains(smallView, "Do First")) // small terminal should show quadrant title
 }

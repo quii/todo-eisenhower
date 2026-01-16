@@ -490,7 +490,7 @@ func (m Model) View() string {
 		if m.inputMode {
 			content = RenderFocusedQuadrantWithInput(
 				m.matrix.DoFirst(),
-				"DO FIRST",
+				"Do First",
 				lipgloss.Color("#FF6B6B"),
 				m.filePath,
 				m.input,
@@ -505,7 +505,7 @@ func (m Model) View() string {
 		} else {
 			content = RenderFocusedQuadrantWithTable(
 				m.matrix.DoFirst(),
-				"DO FIRST",
+				"Do First",
 				lipgloss.Color("#FF6B6B"),
 				m.filePath,
 				m.todoTable,
@@ -517,7 +517,7 @@ func (m Model) View() string {
 		if m.inputMode {
 			content = RenderFocusedQuadrantWithInput(
 				m.matrix.Schedule(),
-				"SCHEDULE",
+				"Schedule",
 				lipgloss.Color("#4ECDC4"),
 				m.filePath,
 				m.input,
@@ -532,7 +532,7 @@ func (m Model) View() string {
 		} else {
 			content = RenderFocusedQuadrantWithTable(
 				m.matrix.Schedule(),
-				"SCHEDULE",
+				"Schedule",
 				lipgloss.Color("#4ECDC4"),
 				m.filePath,
 				m.todoTable,
@@ -544,7 +544,7 @@ func (m Model) View() string {
 		if m.inputMode {
 			content = RenderFocusedQuadrantWithInput(
 				m.matrix.Delegate(),
-				"DELEGATE",
+				"Delegate",
 				lipgloss.Color("#FFE66D"),
 				m.filePath,
 				m.input,
@@ -559,7 +559,7 @@ func (m Model) View() string {
 		} else {
 			content = RenderFocusedQuadrantWithTable(
 				m.matrix.Delegate(),
-				"DELEGATE",
+				"Delegate",
 				lipgloss.Color("#FFE66D"),
 				m.filePath,
 				m.todoTable,
@@ -571,7 +571,7 @@ func (m Model) View() string {
 		if m.inputMode {
 			content = RenderFocusedQuadrantWithInput(
 				m.matrix.Eliminate(),
-				"ELIMINATE",
+				"Eliminate",
 				lipgloss.Color("#95E1D3"),
 				m.filePath,
 				m.input,
@@ -586,7 +586,7 @@ func (m Model) View() string {
 		} else {
 			content = RenderFocusedQuadrantWithTable(
 				m.matrix.Eliminate(),
-				"ELIMINATE",
+				"Eliminate",
 				lipgloss.Color("#95E1D3"),
 				m.filePath,
 				m.todoTable,

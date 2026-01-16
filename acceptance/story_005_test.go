@@ -76,7 +76,7 @@ func TestStory005_ModelHandlesWindowSize(t *testing.T) {
 	view := updatedModel.View()
 
 	is.True(view != "") // expected non-empty view
-	is.True(strings.Contains(view, "DO FIRST")) // expected view to contain matrix content
+	is.True(strings.Contains(stripANSI(view), "Do First")) // expected view to contain matrix content
 }
 
 func TestStory005_ModelInitialViewWithoutWindowSize(t *testing.T) {
@@ -96,5 +96,5 @@ func TestStory005_ModelInitialViewWithoutWindowSize(t *testing.T) {
 	view := model.View()
 
 	is.True(view != "") // expected non-empty view
-	is.True(strings.Contains(view, "DO FIRST")) // expected view to contain matrix content
+	is.True(strings.Contains(stripANSI(view), "Do First")) // expected view to contain matrix content
 }

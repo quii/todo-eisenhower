@@ -40,15 +40,15 @@ func TestStory008_PressAToEnterInputMode(t *testing.T) {
 	view := model.View()
 
 	// Should show input field
-	is.True(strings.Contains(view, "Add todo:")) // expected view to show input prompt
+	is.True(strings.Contains(stripANSI(view), "Add todo:")) // expected view to show input prompt
 
 	// Should show help text for input mode
-	is.True(strings.Contains(view, "Enter to save")) // expected view to show 'Enter to save' help text
-	is.True(strings.Contains(view, "ESC to cancel")) // expected view to show 'ESC to cancel' help text
+	is.True(strings.Contains(stripANSI(view), "Enter to save")) // expected view to show 'Enter to save' help text
+	is.True(strings.Contains(stripANSI(view), "ESC to cancel")) // expected view to show 'ESC to cancel' help text
 
 	// Should show tag reference headers
-	is.True(strings.Contains(view, "Projects:")) // expected view to show 'Projects:' label
-	is.True(strings.Contains(view, "Contexts:")) // expected view to show 'Contexts:' label
+	is.True(strings.Contains(stripANSI(view), "Projects:")) // expected view to show 'Projects:' label
+	is.True(strings.Contains(stripANSI(view), "Contexts:")) // expected view to show 'Contexts:' label
 }
 
 func TestStory008_AddSimpleTodoWithoutTags(t *testing.T) {
@@ -87,10 +87,10 @@ func TestStory008_AddSimpleTodoWithoutTags(t *testing.T) {
 	view := model.View()
 
 	// Should show the new todo
-	is.True(strings.Contains(view, "Fix critical bug")) // expected view to show new todo
+	is.True(strings.Contains(stripANSI(view), "Fix critical bug")) // expected view to show new todo
 
 	// Should exit input mode
-	is.True(!strings.Contains(view, "Add todo:")) // expected view to exit input mode after saving
+	is.True(!strings.Contains(stripANSI(view), "Add todo:")) // expected view to exit input mode after saving
 
 	// Check that the todo was written to the file with priority (A) and creation date
 	written := source.writer.(*strings.Builder).String()
@@ -138,9 +138,9 @@ func TestStory008_AddTodoWithProjectTags(t *testing.T) {
 	view := model.View()
 
 	// Should show the new todo with tags
-	is.True(strings.Contains(view, "Plan sprint")) // expected view to show new todo
-	is.True(strings.Contains(view, "+WebApp")) // expected view to show +WebApp tag
-	is.True(strings.Contains(view, "+Mobile")) // expected view to show +Mobile tag
+	is.True(strings.Contains(stripANSI(view), "Plan sprint")) // expected view to show new todo
+	is.True(strings.Contains(stripANSI(view), "+WebApp")) // expected view to show +WebApp tag
+	is.True(strings.Contains(stripANSI(view), "+Mobile")) // expected view to show +Mobile tag
 
 	// Check that the todo was written with priority (B) and creation date
 	written := source.writer.(*strings.Builder).String()
@@ -187,9 +187,9 @@ func TestStory008_AddTodoWithContextTags(t *testing.T) {
 	view := model.View()
 
 	// Should show the new todo with context tags
-	is.True(strings.Contains(view, "Reply to emails")) // expected view to show new todo
-	is.True(strings.Contains(view, "@phone")) // expected view to show @phone tag
-	is.True(strings.Contains(view, "@office")) // expected view to show @office tag
+	is.True(strings.Contains(stripANSI(view), "Reply to emails")) // expected view to show new todo
+	is.True(strings.Contains(stripANSI(view), "@phone")) // expected view to show @phone tag
+	is.True(strings.Contains(stripANSI(view), "@office")) // expected view to show @office tag
 
 	// Check that the todo was written with priority (C) and creation date
 	written := source.writer.(*strings.Builder).String()
@@ -236,10 +236,10 @@ func TestStory008_AddTodoWithMixedTags(t *testing.T) {
 	view := model.View()
 
 	// Should show all tags
-	is.True(strings.Contains(view, "Deploy to production")) // expected view to show new todo
-	is.True(strings.Contains(view, "+WebApp")) // expected view to show +WebApp tag
-	is.True(strings.Contains(view, "@computer")) // expected view to show @computer tag
-	is.True(strings.Contains(view, "@work")) // expected view to show @work tag
+	is.True(strings.Contains(stripANSI(view), "Deploy to production")) // expected view to show new todo
+	is.True(strings.Contains(stripANSI(view), "+WebApp")) // expected view to show +WebApp tag
+	is.True(strings.Contains(stripANSI(view), "@computer")) // expected view to show @computer tag
+	is.True(strings.Contains(stripANSI(view), "@work")) // expected view to show @work tag
 
 	// Check written content
 	written := source.writer.(*strings.Builder).String()
@@ -287,10 +287,10 @@ func TestStory008_CancelInputWithESC(t *testing.T) {
 	view := model.View()
 
 	// Should exit input mode
-	is.True(!strings.Contains(view, "Add todo:")) // expected view to exit input mode after ESC
+	is.True(!strings.Contains(stripANSI(view), "Add todo:")) // expected view to exit input mode after ESC
 
 	// Should not show the typed text
-	is.True(!strings.Contains(view, "This should be discarded")) // expected typed text to be discarded
+	is.True(!strings.Contains(stripANSI(view), "This should be discarded")) // expected typed text to be discarded
 
 	// Should not have written anything to file
 	written := source.writer.(*strings.Builder).String()
@@ -322,15 +322,15 @@ func TestStory008_TagReferenceShowsExistingTags(t *testing.T) {
 	view := model.View()
 
 	// Should show project tags
-	is.True(strings.Contains(view, "Projects:")) // expected view to show 'Projects:' label
-	is.True(strings.Contains(view, "+WebApp")) // expected view to show +WebApp in tag reference
-	is.True(strings.Contains(view, "+Mobile")) // expected view to show +Mobile in tag reference
+	is.True(strings.Contains(stripANSI(view), "Projects:")) // expected view to show 'Projects:' label
+	is.True(strings.Contains(stripANSI(view), "+WebApp")) // expected view to show +WebApp in tag reference
+	is.True(strings.Contains(stripANSI(view), "+Mobile")) // expected view to show +Mobile in tag reference
 
 	// Should show context tags
-	is.True(strings.Contains(view, "Contexts:")) // expected view to show 'Contexts:' label
-	is.True(strings.Contains(view, "@computer")) // expected view to show @computer in tag reference
-	is.True(strings.Contains(view, "@phone")) // expected view to show @phone in tag reference
-	is.True(strings.Contains(view, "@office")) // expected view to show @office in tag reference
+	is.True(strings.Contains(stripANSI(view), "Contexts:")) // expected view to show 'Contexts:' label
+	is.True(strings.Contains(stripANSI(view), "@computer")) // expected view to show @computer in tag reference
+	is.True(strings.Contains(stripANSI(view), "@phone")) // expected view to show @phone in tag reference
+	is.True(strings.Contains(stripANSI(view), "@office")) // expected view to show @office in tag reference
 }
 
 func TestStory008_EmptyTagReferenceWhenNoTags(t *testing.T) {
@@ -358,8 +358,8 @@ func TestStory008_EmptyTagReferenceWhenNoTags(t *testing.T) {
 	view := model.View()
 
 	// Should show "(none)" for projects and contexts
-	is.True(strings.Contains(view, "Projects: (none)")) // expected view to show 'Projects: (none)'
-	is.True(strings.Contains(view, "Contexts: (none)")) // expected view to show 'Contexts: (none)'
+	is.True(strings.Contains(stripANSI(view), "Projects: (none)")) // expected view to show 'Projects: (none)'
+	is.True(strings.Contains(stripANSI(view), "Contexts: (none)")) // expected view to show 'Contexts: (none)'
 }
 
 func TestStory008_InputOnlyAvailableInFocusMode(t *testing.T) {
@@ -385,10 +385,10 @@ func TestStory008_InputOnlyAvailableInFocusMode(t *testing.T) {
 	view := model.View()
 
 	// Should NOT show input mode
-	is.True(!strings.Contains(view, "Add todo:")) // expected 'a' key to be ignored in overview mode
+	is.True(!strings.Contains(stripANSI(view), "Add todo:")) // expected 'a' key to be ignored in overview mode
 
 	// Should still show all quadrants (overview mode)
-	is.True(strings.Contains(view, "DO FIRST") && strings.Contains(view, "SCHEDULE")) // expected view to remain in overview mode
+	is.True(strings.Contains(stripANSI(view), "Do First") && strings.Contains(stripANSI(view), "Schedule")) // expected view to remain in overview mode
 }
 
 func TestStory008_AutoAssignPriorityFromQuadrant(t *testing.T) {
@@ -488,8 +488,8 @@ func TestStory008_NewTagsAreAccepted(t *testing.T) {
 	view := model.View()
 
 	// Should show the new todo with +Backend tag
-	is.True(strings.Contains(view, "Build API")) // expected view to show new todo
-	is.True(strings.Contains(view, "+Backend")) // expected view to show +Backend tag
+	is.True(strings.Contains(stripANSI(view), "Build API")) // expected view to show new todo
+	is.True(strings.Contains(stripANSI(view), "+Backend")) // expected view to show +Backend tag
 
 	// Check written content
 	written := source.writer.(*strings.Builder).String()

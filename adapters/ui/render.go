@@ -33,22 +33,22 @@ var (
 
 	headerStyle = lipgloss.NewStyle().
 			Bold(true).
-			Foreground(lipgloss.Color("#FFFFFF")).
-			Background(lipgloss.Color("#5F5F87")).
+			Foreground(lipgloss.Color("#FAFAFA")).
+			Background(lipgloss.Color("#7B68EE")).
 			Padding(0, 2).
 			MarginBottom(1)
 
 	matrixBorder = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("#666666")).
+			BorderForeground(lipgloss.Color("#7B68EE")).
 			Padding(0)
 
-	titleStyle = lipgloss.NewStyle().
-			Bold(true).
-			Underline(true)
+	quadrantTitleStyle = lipgloss.NewStyle().
+				Bold(true).
+				Padding(0, 1)
 
 	activeTodoStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFFFFF"))
+			Foreground(lipgloss.Color("#FAFAFA"))
 
 	completedTodoStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.Color("#808080")).
@@ -59,7 +59,7 @@ var (
 			Italic(true)
 
 	dividerStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#666666"))
+			Foreground(lipgloss.Color("#555555"))
 )
 
 // RenderMatrix renders the Eisenhower matrix as a string with optional file path header
@@ -80,10 +80,10 @@ func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeigh
 	}
 
 	// Render quadrant contents
-	doFirst := renderQuadrantContent("DO FIRST", urgentImportantColor, m.DoFirst(), quadrantWidth, quadrantHeight, displayLimit, 1)
-	schedule := renderQuadrantContent("SCHEDULE", importantColor, m.Schedule(), quadrantWidth, quadrantHeight, displayLimit, 2)
-	delegate := renderQuadrantContent("DELEGATE", urgentColor, m.Delegate(), quadrantWidth, quadrantHeight, displayLimit, 3)
-	eliminate := renderQuadrantContent("ELIMINATE", neitherColor, m.Eliminate(), quadrantWidth, quadrantHeight, displayLimit, 4)
+	doFirst := renderQuadrantContent("Do First", urgentImportantColor, m.DoFirst(), quadrantWidth, quadrantHeight, displayLimit, 1)
+	schedule := renderQuadrantContent("Schedule", importantColor, m.Schedule(), quadrantWidth, quadrantHeight, displayLimit, 2)
+	delegate := renderQuadrantContent("Delegate", urgentColor, m.Delegate(), quadrantWidth, quadrantHeight, displayLimit, 3)
+	eliminate := renderQuadrantContent("Eliminate", neitherColor, m.Eliminate(), quadrantWidth, quadrantHeight, displayLimit, 4)
 
 	// Create vertical divider that spans quadrant height
 	verticalDivider := createVerticalDivider(quadrantHeight)
@@ -151,14 +151,18 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 		displayLimit = 5
 	}
 
-	// Render prominent quadrant title
-	focusTitle := lipgloss.NewStyle().
+	// Render prominent quadrant title with gradient-style block
+	titleBlock := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(color).
-		Underline(true).
+		Background(color).
+		Foreground(lipgloss.Color("#000000")).
+		Padding(0, 2).
+		Render(title)
+	
+	focusTitle := lipgloss.NewStyle().
 		Align(lipgloss.Center).
 		Width(terminalWidth).
-		Render(title)
+		Render(titleBlock)
 	output.WriteString(focusTitle)
 	output.WriteString("\n\n")
 
@@ -349,16 +353,27 @@ func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo
 		}
 	}
 
-	// Title with stats
+	// Title with gradient-style background block
 	taskWord := "tasks"
 	if totalTasks == 1 {
 		taskWord = "task"
 	}
-	titleWithStats := fmt.Sprintf("%s (%d %s, %d completed)", title, totalTasks, taskWord, completedTasks)
-	quadrantTitle := titleStyle.
+	
+	// Create title with colored background block
+	titleText := fmt.Sprintf(" %s ", title)
+	statsText := fmt.Sprintf(" %d %s · %d completed ", totalTasks, taskWord, completedTasks)
+	
+	titleBlock := quadrantTitleStyle.
 		Copy().
+		Background(color).
+		Foreground(lipgloss.Color("#000000")).
+		Render(titleText)
+	
+	statsBlock := lipgloss.NewStyle().
 		Foreground(color).
-		Render(titleWithStats)
+		Render(statsText)
+	
+	quadrantTitle := lipgloss.JoinHorizontal(lipgloss.Top, titleBlock, statsBlock)
 	lines = append(lines, quadrantTitle)
 	lines = append(lines, "") // spacing
 
@@ -419,14 +434,18 @@ func RenderFocusedQuadrantWithTable(
 		output.WriteString("\n\n")
 	}
 
-	// Render prominent quadrant title
-	focusTitle := lipgloss.NewStyle().
+	// Render prominent quadrant title with gradient-style block
+	titleBlock := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(color).
-		Underline(true).
+		Background(color).
+		Foreground(lipgloss.Color("#000000")).
+		Padding(0, 2).
+		Render(title)
+	
+	focusTitle := lipgloss.NewStyle().
 		Align(lipgloss.Center).
 		Width(terminalWidth).
-		Render(title)
+		Render(titleBlock)
 	output.WriteString(focusTitle)
 	output.WriteString("\n\n")
 
@@ -576,10 +595,10 @@ func RenderMoveOverlay(terminalWidth, terminalHeight int) string {
 		Bold(true).
 		Render("Move to quadrant:") + "\n\n"
 
-	content += "  1. DO FIRST\n"
-	content += "  2. SCHEDULE\n"
-	content += "  3. DELEGATE\n"
-	content += "  4. ELIMINATE\n\n"
+	content += "  1. Do First\n"
+	content += "  2. Schedule\n"
+	content += "  3. Delegate\n"
+	content += "  4. Eliminate\n\n"
 
 	content += lipgloss.NewStyle().
 		Foreground(lipgloss.Color("240")).
@@ -589,7 +608,7 @@ func RenderMoveOverlay(terminalWidth, terminalHeight int) string {
 	// Create bordered box
 	boxStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("57")).
+		BorderForeground(lipgloss.Color("#7B68EE")).
 		Padding(1, 2).
 		Width(30)
 

@@ -114,10 +114,10 @@ func TestStory014_DisplayCreationDatesInUI(t *testing.T) {
 	view := model.View()
 
 	// Should display "5 days ago" in the Created column
-	is.True(strings.Contains(view, "5 days ago")) // expected view to show '5 days ago' in Created column
+	is.True(strings.Contains(stripANSI(view), "5 days ago")) // expected view to show '5 days ago' in Created column
 
 	// Should have Created column header
-	is.True(strings.Contains(view, "Created")) // expected view to show Created column header
+	is.True(strings.Contains(stripANSI(view), "Created")) // expected view to show Created column header
 }
 
 func TestStory014_PreserveCreationDateOnToggle(t *testing.T) {
@@ -232,21 +232,21 @@ func TestStory014_FriendlyDateFormatting(t *testing.T) {
 	view := model.View()
 
 	// Should show "today" in Created column
-	is.True(strings.Contains(view, "today")) // expected view to show 'today' in Created column
+	is.True(strings.Contains(stripANSI(view), "today")) // expected view to show 'today' in Created column
 
 	// Switch to SCHEDULE quadrant to see "yesterday"
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'2'}})
 	model = updatedModel.(ui.Model)
 	view = model.View()
 
-	is.True(strings.Contains(view, "yesterday")) // expected view to show 'yesterday' in Created column
+	is.True(strings.Contains(stripANSI(view), "yesterday")) // expected view to show 'yesterday' in Created column
 
 	// Switch to DELEGATE quadrant to see "7 days ago"
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'3'}})
 	model = updatedModel.(ui.Model)
 	view = model.View()
 
-	is.True(strings.Contains(view, "7 days ago")) // expected view to show '7 days ago' in Created column
+	is.True(strings.Contains(stripANSI(view), "7 days ago")) // expected view to show '7 days ago' in Created column
 }
 
 func TestStory014_HandleTodosWithoutCreationDate(t *testing.T) {
@@ -277,7 +277,7 @@ func TestStory014_HandleTodosWithoutCreationDate(t *testing.T) {
 	view := model.View()
 
 	// Should display the task with date
-	is.True(strings.Contains(view, "Task with date")) // expected view to show task with date
+	is.True(strings.Contains(stripANSI(view), "Task with date")) // expected view to show task with date
 
 	// Switch to SCHEDULE to see task without date
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'2'}})
@@ -285,7 +285,7 @@ func TestStory014_HandleTodosWithoutCreationDate(t *testing.T) {
 	view = model.View()
 
 	// Should display the task without date (no date info shown)
-	is.True(strings.Contains(view, "Task without date")) // expected view to show task without date
+	is.True(strings.Contains(stripANSI(view), "Task without date")) // expected view to show task without date
 }
 
 func TestStory014_ParseCompletedTodoWithCreationDate(t *testing.T) {

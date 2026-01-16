@@ -37,7 +37,7 @@ func TestStory011_NavigateTodosWithArrowKeys(t *testing.T) {
 
 	// First todo should be selected by default
 	view := model.View()
-	is.True(strings.Contains(view, "Task one"))  // expected first todo to be visible
+	is.True(strings.Contains(stripANSI(view), "Task one"))  // expected first todo to be visible
 
 	// Press Down arrow - should select second todo
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyDown})
@@ -119,9 +119,9 @@ func TestStory011_MarkTodoAsComplete(t *testing.T) {
 	// Check that todo is marked as complete in view
 	view := model.View()
 	// With table rendering, completed todos show date in Completed column
-	is.True(strings.Contains(view, "Completed"))  // expected table to have Completed column header
+	is.True(strings.Contains(stripANSI(view), "Completed"))  // expected table to have Completed column header
 	// Should show "today" in the Completed column
-	is.True(strings.Contains(view, "today"))  // expected completed todo to show 'today' in Completed column
+	is.True(strings.Contains(stripANSI(view), "today"))  // expected completed todo to show 'today' in Completed column
 
 	// Check that file was updated with completion marker
 	written := source.writer.(*strings.Builder).String()
@@ -205,7 +205,7 @@ func TestStory011_EmptyQuadrantNoSelection(t *testing.T) {
 	model = updatedModel.(ui.Model)
 
 	view := model.View()
-	is.True(strings.Contains(view, "(no tasks)"))  // expected to see '(no tasks)' in empty quadrant
+	is.True(strings.Contains(stripANSI(view), "(no tasks)"))  // expected to see '(no tasks)' in empty quadrant
 
 	// Pressing Space should do nothing (no panic)
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}})
@@ -253,9 +253,9 @@ func TestStory011_SelectionNotShownInOverviewMode(t *testing.T) {
 	view := model.View()
 
 	// Should show all tasks but no selection highlight
-	is.True(strings.Contains(view, "Task one"))    // expected to see Task one in overview
-	is.True(strings.Contains(view, "Task two"))    // expected to see Task two in overview
-	is.True(strings.Contains(view, "Task three"))  // expected to see Task three in overview
+	is.True(strings.Contains(stripANSI(view), "Task one"))    // expected to see Task one in overview
+	is.True(strings.Contains(stripANSI(view), "Task two"))    // expected to see Task two in overview
+	is.True(strings.Contains(stripANSI(view), "Task three"))  // expected to see Task three in overview
 
 	// No selection indicator should be present (we'll check this by ensuring
 	// focus-mode specific rendering isn't present in overview)

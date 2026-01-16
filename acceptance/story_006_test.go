@@ -39,10 +39,10 @@ func TestStory006_MatrixFillsAvailableSpace(t *testing.T) {
 
 	// Overview mode shows top 5 todos per quadrant (Story 017)
 	// We have 15 todos, so should see "... and 10 more"
-	is.True(strings.Contains(view, "... and 10 more")) // expected to see '... and 10 more' in overview mode
+	is.True(strings.Contains(stripANSI(view), "... and 10 more")) // expected to see '... and 10 more' in overview mode
 
 	// Verify matrix content is present
-	is.True(strings.Contains(view, "DO FIRST")) // expected view to contain matrix content
+	is.True(strings.Contains(stripANSI(view), "Do First")) // expected view to contain matrix content
 }
 
 func TestStory006_MatrixAdjustsToDifferentSizes(t *testing.T) {
@@ -69,7 +69,7 @@ func TestStory006_MatrixAdjustsToDifferentSizes(t *testing.T) {
 
 	// Overview mode shows top 5 todos per quadrant (Story 017)
 	// We have 30 todos, so should see "... and 25 more"
-	is.True(strings.Contains(view, "... and 25 more")) // expected to see '... and 25 more' in overview mode
+	is.True(strings.Contains(stripANSI(view), "... and 25 more")) // expected to see '... and 25 more' in overview mode
 }
 
 func TestStory006_MatrixRespectsMinimumDimensions(t *testing.T) {
@@ -96,10 +96,10 @@ func TestStory006_MatrixRespectsMinimumDimensions(t *testing.T) {
 	view := updatedModel.View()
 
 	// Matrix should still render without errors
-	is.True(strings.Contains(view, "DO FIRST")) // expected view to contain matrix content even in small terminal
+	is.True(strings.Contains(stripANSI(view), "Do First")) // expected view to contain matrix content even in small terminal
 
 	// Should show the test todo
-	is.True(strings.Contains(view, "Test todo")) // expected view to contain test todo
+	is.True(strings.Contains(stripANSI(view), "Test todo")) // expected view to contain test todo
 }
 
 func TestStory006_DisplayLimitScalesWithHeight(t *testing.T) {
@@ -142,7 +142,7 @@ func TestStory006_DisplayLimitScalesWithHeight(t *testing.T) {
 
 			view := updatedModel.View()
 
-			is.True(strings.Contains(view, tt.expectedMessage)) // expected to see message
+			is.True(strings.Contains(stripANSI(view), tt.expectedMessage)) // expected to see message
 		})
 	}
 }
@@ -176,7 +176,7 @@ func TestStory006_WindowResizeHandledGracefully(t *testing.T) {
 	is.True(view1 != view2) // expected views to be different after resize
 
 	// Both should contain matrix content
-	is.True(strings.Contains(view1, "DO FIRST") && strings.Contains(view2, "DO FIRST")) // expected both views to contain matrix content
+	is.True(strings.Contains(view1, "Do First") && strings.Contains(view2, "Do First")) // expected both views to contain matrix content
 }
 
 func TestStory006_DefaultDimensionsWhenNoWindowSize(t *testing.T) {
@@ -198,10 +198,10 @@ func TestStory006_DefaultDimensionsWhenNoWindowSize(t *testing.T) {
 	view := model.View()
 
 	// Overview mode shows top 5, so with 10 todos should see "... and 5 more"
-	is.True(strings.Contains(view, "... and 5 more")) // expected overview to show top 5 todos (... and 5 more)
+	is.True(strings.Contains(stripANSI(view), "... and 5 more")) // expected overview to show top 5 todos (... and 5 more)
 
 	// Should still contain matrix content
-	is.True(strings.Contains(view, "DO FIRST")) // expected view to contain matrix content
+	is.True(strings.Contains(stripANSI(view), "Do First")) // expected view to contain matrix content
 }
 
 // Helper function to generate many Priority A todos for testing

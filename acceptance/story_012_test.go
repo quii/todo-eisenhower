@@ -189,7 +189,7 @@ func TestStory012_MovingLastTodoReturnsToOverview(t *testing.T) {
 
 	// Should return to overview mode
 	view := model.View()
-	is.True(strings.Contains(view, "DO FIRST") || strings.Contains(view, "SCHEDULE") || strings.Contains(view, "DELEGATE") || strings.Contains(view, "ELIMINATE"))  // expected to return to overview mode showing all quadrants
+	is.True(strings.Contains(stripANSI(view), "Do First") || strings.Contains(stripANSI(view), "Schedule") || strings.Contains(stripANSI(view), "Delegate") || strings.Contains(stripANSI(view), "Eliminate"))  // expected to return to overview mode showing all quadrants
 
 	// Verify the moved todo is in the file with priority A
 	written := source.writer.(*strings.Builder).String()
@@ -261,8 +261,8 @@ func TestStory012_PressingCurrentQuadrantDoesNothing(t *testing.T) {
 
 	// Verify we're still viewing SCHEDULE (not moved to overview or other quadrant)
 	view := model.View()
-	is.True(strings.Contains(view, "SCHEDULE"))  // should still be viewing SCHEDULE quadrant
-	is.True(strings.Contains(view, "Plan sprint"))  // should still show the todo
+	is.True(strings.Contains(stripANSI(view), "Schedule"))  // should still be viewing SCHEDULE quadrant
+	is.True(strings.Contains(stripANSI(view), "Plan sprint"))  // should still show the todo
 
 	// Press 'm' then '2' again - should be a no-op since todo is already priority B
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
@@ -272,8 +272,8 @@ func TestStory012_PressingCurrentQuadrantDoesNothing(t *testing.T) {
 
 	// Verify todo is still in SCHEDULE with priority B
 	view = model.View()
-	is.True(strings.Contains(view, "SCHEDULE"))  // should still be viewing SCHEDULE quadrant after pressing 'm' then '2'
-	is.True(strings.Contains(view, "Plan sprint"))  // should still show the todo after pressing 'm' then '2'
+	is.True(strings.Contains(stripANSI(view), "Schedule"))  // should still be viewing SCHEDULE quadrant after pressing 'm' then '2'
+	is.True(strings.Contains(stripANSI(view), "Plan sprint"))  // should still show the todo after pressing 'm' then '2'
 
 	// Now actually move it to verify moving works (press 'm' then '1')
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
@@ -311,8 +311,8 @@ func TestStory012_NumberKeysStillFocusInOverview(t *testing.T) {
 
 	// Should be in focus mode on DO FIRST
 	view := model.View()
-	is.True(strings.Contains(view, "DO FIRST"))  // expected to focus on DO FIRST quadrant
+	is.True(strings.Contains(stripANSI(view), "Do First"))  // expected to focus on DO FIRST quadrant
 
 	// Should show focus mode help text
-	is.True(strings.Contains(view, "Press a to add"))  // expected focus mode help text
+	is.True(strings.Contains(stripANSI(view), "Press a to add"))  // expected focus mode help text
 }

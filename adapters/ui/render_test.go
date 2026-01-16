@@ -24,10 +24,10 @@ func TestRenderMatrix(t *testing.T) {
 		output := ui.RenderMatrix(m, "", 0, 0)
 
 		// Check that quadrant labels are present
-		is.True(strings.Contains(output, "DO FIRST"))  // expected view to contain 'DO FIRST'
-		is.True(strings.Contains(output, "SCHEDULE"))  // expected view to contain 'SCHEDULE'
-		is.True(strings.Contains(output, "DELEGATE"))  // expected view to contain 'DELEGATE'
-		is.True(strings.Contains(output, "ELIMINATE")) // expected view to contain 'ELIMINATE'
+		is.True(strings.Contains(output, "Do First"))  // expected view to contain 'Do First'
+		is.True(strings.Contains(output, "Schedule"))  // expected view to contain 'Schedule'
+		is.True(strings.Contains(output, "Delegate"))  // expected view to contain 'Delegate'
+		is.True(strings.Contains(output, "Eliminate")) // expected view to contain 'Eliminate'
 
 		// Check that todos appear in the output
 		is.True(strings.Contains(output, "Fix critical bug"))     // expected view to contain todo
@@ -43,10 +43,10 @@ func TestRenderMatrix(t *testing.T) {
 		output := ui.RenderMatrix(m, "", 0, 0)
 
 		// Labels should still be present
-		is.True(strings.Contains(output, "DO FIRST"))  // expected view to contain 'DO FIRST'
-		is.True(strings.Contains(output, "SCHEDULE"))  // expected view to contain 'SCHEDULE'
-		is.True(strings.Contains(output, "DELEGATE"))  // expected view to contain 'DELEGATE'
-		is.True(strings.Contains(output, "ELIMINATE")) // expected view to contain 'ELIMINATE'
+		is.True(strings.Contains(output, "Do First"))  // expected view to contain 'Do First'
+		is.True(strings.Contains(output, "Schedule"))  // expected view to contain 'Schedule'
+		is.True(strings.Contains(output, "Delegate"))  // expected view to contain 'Delegate'
+		is.True(strings.Contains(output, "Eliminate")) // expected view to contain 'Eliminate'
 	})
 
 	t.Run("renders multiple todos in same quadrant", func(t *testing.T) {

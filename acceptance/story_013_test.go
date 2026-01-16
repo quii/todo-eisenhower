@@ -207,18 +207,18 @@ func TestStory013_DisplayCompletionDateInUI(t *testing.T) {
 	view := model.View()
 
 	// Should show the completed todo with its description
-	if !strings.Contains(view, "Completed task") {
+	if !strings.Contains(stripANSI(view), "Completed task") {
 		t.Error("expected view to contain todo description")
 	}
 
 	// Should have Completed column header in table
-	if !strings.Contains(view, "Completed") {
+	if !strings.Contains(stripANSI(view), "Completed") {
 		t.Error("expected view to contain 'Completed' column header")
 	}
 
 	// Should show completion date in the Completed column
 	// For 10 days ago, should show "10 days ago"
-	if !strings.Contains(view, "10 days ago") {
+	if !strings.Contains(stripANSI(view), "10 days ago") {
 		t.Error("expected view to contain completion date '10 days ago'")
 	}
 }
@@ -253,7 +253,7 @@ func TestStory013_DisplayCompletionDateRelativeFormatting(t *testing.T) {
 	view := model.View()
 
 	// Should show relative formatting for recent dates
-	if !strings.Contains(view, "today") {
+	if !strings.Contains(stripANSI(view), "today") {
 		t.Error("expected view to show 'today' for task completed today")
 	}
 
@@ -262,7 +262,7 @@ func TestStory013_DisplayCompletionDateRelativeFormatting(t *testing.T) {
 	model = updatedModel.(ui.Model)
 
 	view = model.View()
-	if !strings.Contains(view, "yesterday") {
+	if !strings.Contains(stripANSI(view), "yesterday") {
 		t.Error("expected view to show 'yesterday' for task completed yesterday")
 	}
 
@@ -271,7 +271,7 @@ func TestStory013_DisplayCompletionDateRelativeFormatting(t *testing.T) {
 	model = updatedModel.(ui.Model)
 
 	view = model.View()
-	if !strings.Contains(view, "2 days ago") {
+	if !strings.Contains(stripANSI(view), "2 days ago") {
 		t.Error("expected view to show '2 days ago' for task completed 2 days ago")
 	}
 }
@@ -299,12 +299,12 @@ func TestStory013_NoDateShownForIncompleteTodos(t *testing.T) {
 	view := model.View()
 
 	// Should show active todo in table
-	if !strings.Contains(view, "Active task") {
+	if !strings.Contains(stripANSI(view), "Active task") {
 		t.Error("expected view to contain active todo")
 	}
 
 	// Should have table with Completed column showing "-" for active todos
-	if !strings.Contains(view, "Completed") {
+	if !strings.Contains(stripANSI(view), "Completed") {
 		t.Error("expected view to have Completed column header")
 	}
 	// The completed column should show "-" for active todos (not a specific date)

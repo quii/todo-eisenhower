@@ -38,10 +38,10 @@ x 2026-01-15 (A) Completed task
 	t.Logf("View output:\n%s", view)
 
 	// Check for summary stats in each quadrant
-	is.True(strings.Contains(view, "DO FIRST (3 tasks, 1 completed)")) // expected DO FIRST to show task count and completion stats
-	is.True(strings.Contains(view, "SCHEDULE (1 task") && strings.Contains(view, "0 completed")) // expected SCHEDULE to show task count and completion stats
-	is.True(strings.Contains(view, "DELEGATE (1 task, 0 completed)")) // expected DELEGATE to show task count and completion stats
-	is.True(strings.Contains(view, "ELIMINATE (1 task, 0 completed)")) // expected ELIMINATE to show task count and completion stats
+	is.True(strings.Contains(stripANSI(view), "Do First   3 tasks · 1 completed")) // expected DO FIRST to show task count and completion stats
+	is.True(strings.Contains(stripANSI(view), "Schedule   1 task · 0 completed")) // expected SCHEDULE to show task count and completion stats
+	is.True(strings.Contains(stripANSI(view), "Delegate   1 task · 0 completed")) // expected DELEGATE to show task count and completion stats
+	is.True(strings.Contains(stripANSI(view), "Eliminate   1 task · 0 completed")) // expected ELIMINATE to show task count and completion stats
 }
 
 func TestStory017_ShowTopNTodosAsSimpleList(t *testing.T) {
@@ -68,13 +68,13 @@ func TestStory017_ShowTopNTodosAsSimpleList(t *testing.T) {
 	t.Logf("View:\n%s", view)
 
 	// Should show todos as simple bullet list
-	is.True(strings.Contains(view, "• First task")) // expected first task to be shown with bullet point
-	is.True(strings.Contains(view, "• Second task")) // expected second task to be shown with bullet point
-	is.True(strings.Contains(view, "• Third task")) // expected third task to be shown with bullet point
+	is.True(strings.Contains(stripANSI(view), "• First task")) // expected first task to be shown with bullet point
+	is.True(strings.Contains(stripANSI(view), "• Second task")) // expected second task to be shown with bullet point
+	is.True(strings.Contains(stripANSI(view), "• Third task")) // expected third task to be shown with bullet point
 
 	// Should NOT show table headers (this is overview, not focus mode)
 	// Check for "Description" column header which would indicate table mode
-	is.True(!strings.Contains(view, "Description")) // expected overview to use simple list, not table format
+	is.True(!strings.Contains(stripANSI(view), "Description")) // expected overview to use simple list, not table format
 }
 
 func TestStory017_IndicateWhenThereAreMoreTodos(t *testing.T) {
@@ -107,10 +107,10 @@ func TestStory017_IndicateWhenThereAreMoreTodos(t *testing.T) {
 	t.Logf("View:\n%s", view)
 
 	// Should show a message indicating more todos
-	is.True(strings.Contains(view, "and") && strings.Contains(view, "more")) // expected message indicating there are more todos not shown
+	is.True(strings.Contains(stripANSI(view), "and") && strings.Contains(stripANSI(view), "more")) // expected message indicating there are more todos not shown
 
 	// Should mention pressing the quadrant number to view all
-	is.True(strings.Contains(view, "press 1 to view")) // expected hint to press 1 to view all todos in DO FIRST
+	is.True(strings.Contains(stripANSI(view), "press 1 to view")) // expected hint to press 1 to view all todos in DO FIRST
 }
 
 func TestStory017_EmptyQuadrantShowsHelpfulMessage(t *testing.T) {
@@ -134,13 +134,13 @@ func TestStory017_EmptyQuadrantShowsHelpfulMessage(t *testing.T) {
 	view := model.View()
 
 	// Empty quadrants should show stats
-	is.True(strings.Contains(view, "SCHEDULE (0 tasks")) // expected SCHEDULE to show 0 tasks in stats
-	is.True(strings.Contains(view, "DELEGATE (0 tasks")) // expected DELEGATE to show 0 tasks in stats
-	is.True(strings.Contains(view, "ELIMINATE (0 tasks")) // expected ELIMINATE to show 0 tasks in stats
+	is.True(strings.Contains(stripANSI(view), "Schedule   0 tasks")) // expected SCHEDULE to show 0 tasks in stats
+	is.True(strings.Contains(stripANSI(view), "Delegate   0 tasks")) // expected DELEGATE to show 0 tasks in stats
+	is.True(strings.Contains(stripANSI(view), "Eliminate   0 tasks")) // expected ELIMINATE to show 0 tasks in stats
 
 	// Empty quadrants should show "(no tasks)"
 	// Note: There will be multiple instances since we have multiple empty quadrants
-	is.True(strings.Contains(view, "(no tasks)")) // expected empty quadrants to show '(no tasks)' message
+	is.True(strings.Contains(stripANSI(view), "(no tasks)")) // expected empty quadrants to show '(no tasks)' message
 }
 
 func TestStory017_AllCompletedTodosShowsInStats(t *testing.T) {
@@ -166,7 +166,7 @@ x 2026-01-15 (A) Completed three`
 	view := model.View()
 
 	// Should show all tasks completed
-	is.True(strings.Contains(view, "DO FIRST (3 tasks, 3 completed)")) // expected DO FIRST to show 3 tasks, 3 completed
+	is.True(strings.Contains(stripANSI(view), "Do First   3 tasks · 3 completed")) // expected DO FIRST to show 3 tasks, 3 completed
 }
 
 func TestStory017_CompletedTodosShownWithVisualIndicator(t *testing.T) {
@@ -191,10 +191,10 @@ func TestStory017_CompletedTodosShownWithVisualIndicator(t *testing.T) {
 	view := model.View()
 
 	// Completed todos should have checkmark indicator
-	is.True(strings.Contains(view, "✓")) // expected completed todos to show ✓ indicator
+	is.True(strings.Contains(stripANSI(view), "✓")) // expected completed todos to show ✓ indicator
 
 	// Active todos should have bullet point
-	is.True(strings.Contains(view, "• Active task")) // expected active todos to show • bullet point
+	is.True(strings.Contains(stripANSI(view), "• Active task")) // expected active todos to show • bullet point
 }
 
 func TestStory017_QuadrantLayoutPreserved(t *testing.T) {
@@ -221,13 +221,13 @@ func TestStory017_QuadrantLayoutPreserved(t *testing.T) {
 	view := model.View()
 
 	// All four quadrant titles should be present
-	is.True(strings.Contains(view, "DO FIRST")) // expected DO FIRST quadrant to be shown
-	is.True(strings.Contains(view, "SCHEDULE")) // expected SCHEDULE quadrant to be shown
-	is.True(strings.Contains(view, "DELEGATE")) // expected DELEGATE quadrant to be shown
-	is.True(strings.Contains(view, "ELIMINATE")) // expected ELIMINATE quadrant to be shown
+	is.True(strings.Contains(stripANSI(view), "Do First")) // expected DO FIRST quadrant to be shown
+	is.True(strings.Contains(stripANSI(view), "Schedule")) // expected SCHEDULE quadrant to be shown
+	is.True(strings.Contains(stripANSI(view), "Delegate")) // expected DELEGATE quadrant to be shown
+	is.True(strings.Contains(stripANSI(view), "Eliminate")) // expected ELIMINATE quadrant to be shown
 
 	// Should have visual separation (borders)
-	is.True(strings.Contains(view, "─") && strings.Contains(view, "│")) // expected quadrants to have visual separation with borders
+	is.True(strings.Contains(stripANSI(view), "─") && strings.Contains(stripANSI(view), "│")) // expected quadrants to have visual separation with borders
 }
 
 func TestStory017_NoTagsOrDatesInOverview(t *testing.T) {
@@ -252,14 +252,14 @@ x 2026-01-15 (A) 2026-01-12 Deploy feature +WebApp @terminal`
 	view := model.View()
 
 	// Should show the task descriptions
-	is.True(strings.Contains(view, "Review code")) // expected to see task description
-	is.True(strings.Contains(view, "Deploy feature")) // expected to see completed task description
+	is.True(strings.Contains(stripANSI(view), "Review code")) // expected to see task description
+	is.True(strings.Contains(stripANSI(view), "Deploy feature")) // expected to see completed task description
 
 	// Tags should still be visible in the description (colorized)
 	// but not in separate columns like in focus mode
-	is.True(strings.Contains(view, "+WebApp")) // expected tags to still appear in description
+	is.True(strings.Contains(stripANSI(view), "+WebApp")) // expected tags to still appear in description
 
 	// Should NOT have "Description" column header which indicates table mode
 	// Note: "Projects:" and "Contexts:" tag inventory is OK at the bottom
-	is.True(!strings.Contains(view, "Description")) // expected overview to not show table column headers like 'Description'
+	is.True(!strings.Contains(stripANSI(view), "Description")) // expected overview to not show table column headers like 'Description'
 }

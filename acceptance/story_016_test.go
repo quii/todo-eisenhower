@@ -38,12 +38,12 @@ func TestStory016_EnterMoveModeWithMKey(t *testing.T) {
 
 	// Should see move mode overlay
 	view := model.View()
-	is.True(strings.Contains(view, "Move to quadrant:"))   // expected to see move mode overlay title
-	is.True(strings.Contains(view, "1. DO FIRST"))         // expected to see DO FIRST option
-	is.True(strings.Contains(view, "2. SCHEDULE"))         // expected to see SCHEDULE option
-	is.True(strings.Contains(view, "3. DELEGATE"))         // expected to see DELEGATE option
-	is.True(strings.Contains(view, "4. ELIMINATE"))        // expected to see ELIMINATE option
-	is.True(strings.Contains(view, "Press ESC to cancel")) // expected to see cancel instruction
+	is.True(strings.Contains(stripANSI(view), "Move to quadrant:"))   // expected to see move mode overlay title
+	is.True(strings.Contains(stripANSI(view), "1. Do First"))         // expected to see DO FIRST option
+	is.True(strings.Contains(stripANSI(view), "2. Schedule"))         // expected to see SCHEDULE option
+	is.True(strings.Contains(stripANSI(view), "3. Delegate"))         // expected to see DELEGATE option
+	is.True(strings.Contains(stripANSI(view), "4. Eliminate"))        // expected to see ELIMINATE option
+	is.True(strings.Contains(stripANSI(view), "Press ESC to cancel")) // expected to see cancel instruction
 }
 
 func TestStory016_SelectDestinationQuadrant(t *testing.T) {
@@ -78,7 +78,7 @@ func TestStory016_SelectDestinationQuadrant(t *testing.T) {
 
 	// Should exit move mode
 	view := model.View()
-	is.True(!strings.Contains(view, "Move to quadrant:")) // expected to exit move mode after selection
+	is.True(!strings.Contains(stripANSI(view), "Move to quadrant:")) // expected to exit move mode after selection
 
 	// Should have moved todo to priority B
 	written := source.writer.(*strings.Builder).String()
@@ -113,7 +113,7 @@ func TestStory016_CancelMoveModeWithESC(t *testing.T) {
 
 	// Should be in move mode
 	view := model.View()
-	is.True(strings.Contains(view, "Move to quadrant:")) // expected to be in move mode
+	is.True(strings.Contains(stripANSI(view), "Move to quadrant:")) // expected to be in move mode
 
 	// Press ESC to cancel
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyEsc})
@@ -121,7 +121,7 @@ func TestStory016_CancelMoveModeWithESC(t *testing.T) {
 
 	// Should exit move mode
 	view = model.View()
-	is.True(!strings.Contains(view, "Move to quadrant:")) // expected to exit move mode after ESC
+	is.True(!strings.Contains(stripANSI(view), "Move to quadrant:")) // expected to exit move mode after ESC
 
 	// Todo should remain in DO FIRST (priority A)
 	written := source.writer.(*strings.Builder).String()
@@ -229,7 +229,7 @@ func TestStory016_MovingToCurrentQuadrantIsNoOp(t *testing.T) {
 
 	// Should exit move mode
 	view := model.View()
-	if strings.Contains(view, "Move to quadrant:") {
+	if strings.Contains(stripANSI(view), "Move to quadrant:") {
 		t.Error("expected to exit move mode after selection")
 	}
 
@@ -241,7 +241,7 @@ func TestStory016_MovingToCurrentQuadrantIsNoOp(t *testing.T) {
 
 	// Verify still viewing DO FIRST with the todo
 	view = model.View()
-	if !strings.Contains(view, "Review quarterly goals") {
+	if !strings.Contains(stripANSI(view), "Review quarterly goals") {
 		t.Error("expected todo to still be visible in DO FIRST")
 	}
 }
@@ -271,12 +271,12 @@ func TestStory016_MoveModeOnlyAvailableInFocusMode(t *testing.T) {
 
 	// Should NOT show move mode overlay
 	view := model.View()
-	if strings.Contains(view, "Move to quadrant:") {
+	if strings.Contains(stripANSI(view), "Move to quadrant:") {
 		t.Error("expected 'm' to do nothing in overview mode")
 	}
 
 	// Should still be in overview mode
-	if !strings.Contains(view, "DO FIRST") && !strings.Contains(view, "SCHEDULE") {
+	if !strings.Contains(stripANSI(view), "Do First") && !strings.Contains(stripANSI(view), "Schedule") {
 		t.Error("expected to remain in overview mode")
 	}
 }
@@ -310,12 +310,12 @@ func TestStory016_MoveModeOnlyAvailableWhenTodoSelected(t *testing.T) {
 
 	// Should NOT show move mode overlay
 	view := model.View()
-	if strings.Contains(view, "Move to quadrant:") {
+	if strings.Contains(stripANSI(view), "Move to quadrant:") {
 		t.Error("expected 'm' to do nothing in empty quadrant")
 	}
 
 	// Should show "(no tasks)"
-	if !strings.Contains(view, "(no tasks)") {
+	if !strings.Contains(stripANSI(view), "(no tasks)") {
 		t.Error("expected to see '(no tasks)' in empty quadrant")
 	}
 }
@@ -348,23 +348,23 @@ func TestStory016_OtherKeysIgnoredInMoveMode(t *testing.T) {
 
 	// Should be in move mode
 	view := model.View()
-	is.True(strings.Contains(view, "Move to quadrant:")) // expected to be in move mode
+	is.True(strings.Contains(stripANSI(view), "Move to quadrant:")) // expected to be in move mode
 
 	// Press various other keys (should be ignored)
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}})
 	model = updatedModel.(ui.Model)
 	view = model.View()
-	is.True(strings.Contains(view, "Move to quadrant:")) // expected to remain in move mode after pressing 'a'
+	is.True(strings.Contains(stripANSI(view), "Move to quadrant:")) // expected to remain in move mode after pressing 'a'
 
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}})
 	model = updatedModel.(ui.Model)
 	view = model.View()
-	is.True(strings.Contains(view, "Move to quadrant:")) // expected to remain in move mode after pressing space
+	is.True(strings.Contains(stripANSI(view), "Move to quadrant:")) // expected to remain in move mode after pressing space
 
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyDown})
 	model = updatedModel.(ui.Model)
 	view = model.View()
-	is.True(strings.Contains(view, "Move to quadrant:")) // expected to remain in move mode after pressing down arrow
+	is.True(strings.Contains(stripANSI(view), "Move to quadrant:")) // expected to remain in move mode after pressing down arrow
 
 	// Should still have no changes to the file
 	written := source.writer.(*strings.Builder).String()
@@ -376,5 +376,5 @@ func TestStory016_OtherKeysIgnoredInMoveMode(t *testing.T) {
 
 	// Should exit move mode
 	view = model.View()
-	is.True(!strings.Contains(view, "Move to quadrant:")) // expected to exit move mode after ESC
+	is.True(!strings.Contains(stripANSI(view), "Move to quadrant:")) // expected to exit move mode after ESC
 }

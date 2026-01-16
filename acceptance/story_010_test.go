@@ -37,16 +37,16 @@ x (A) Completed task +strategy`
 	view := model.View()
 
 	// Should show project inventory at bottom
-	is.True(strings.Contains(view, "Projects:")) // expected to see 'Projects:' label
+	is.True(strings.Contains(stripANSI(view), "Projects:")) // expected to see 'Projects:' label
 
 	// Should show strategy with count 3 (not counting completed)
-	is.True(strings.Contains(view, "strategy") && strings.Contains(view, "(3)")) // expected to see +strategy (3)
+	is.True(strings.Contains(stripANSI(view), "strategy") && strings.Contains(stripANSI(view), "(3)")) // expected to see +strategy (3)
 
 	// Should show hiring with count 2
-	is.True(strings.Contains(view, "hiring") && strings.Contains(view, "(2)")) // expected to see +hiring (2)
+	is.True(strings.Contains(stripANSI(view), "hiring") && strings.Contains(stripANSI(view), "(2)")) // expected to see +hiring (2)
 
 	// Should show architecture with count 1
-	is.True(strings.Contains(view, "architecture") && strings.Contains(view, "(1)")) // expected to see +architecture (1)
+	is.True(strings.Contains(stripANSI(view), "architecture") && strings.Contains(stripANSI(view), "(1)")) // expected to see +architecture (1)
 
 	// Strategy should appear before hiring (higher count)
 	strategyPos := strings.Index(view, "strategy")
@@ -82,16 +82,16 @@ func TestStory010_DisplayContextTagInventory(t *testing.T) {
 	view := model.View()
 
 	// Should show context inventory
-	is.True(strings.Contains(view, "Contexts:")) // expected to see 'Contexts:' label
+	is.True(strings.Contains(stripANSI(view), "Contexts:")) // expected to see 'Contexts:' label
 
 	// Should show computer with count 5
-	is.True(strings.Contains(view, "computer") && strings.Contains(view, "(5)")) // expected to see @computer (5)
+	is.True(strings.Contains(stripANSI(view), "computer") && strings.Contains(stripANSI(view), "(5)")) // expected to see @computer (5)
 
 	// Should show phone with count 2
-	is.True(strings.Contains(view, "phone") && strings.Contains(view, "(2)")) // expected to see @phone (2)
+	is.True(strings.Contains(stripANSI(view), "phone") && strings.Contains(stripANSI(view), "(2)")) // expected to see @phone (2)
 
 	// Should show office with count 1
-	is.True(strings.Contains(view, "office") && strings.Contains(view, "(1)")) // expected to see @office (1)
+	is.True(strings.Contains(stripANSI(view), "office") && strings.Contains(stripANSI(view), "(1)")) // expected to see @office (1)
 }
 
 func TestStory010_DisplayBothProjectAndContextInventory(t *testing.T) {
@@ -117,12 +117,12 @@ func TestStory010_DisplayBothProjectAndContextInventory(t *testing.T) {
 	view := model.View()
 
 	// Should show both project and context lines
-	is.True(strings.Contains(view, "Projects:")) // expected to see 'Projects:' label
-	is.True(strings.Contains(view, "Contexts:")) // expected to see 'Contexts:' label
+	is.True(strings.Contains(stripANSI(view), "Projects:")) // expected to see 'Projects:' label
+	is.True(strings.Contains(stripANSI(view), "Contexts:")) // expected to see 'Contexts:' label
 
 	// Should show counts for both
-	is.True(strings.Contains(view, "strategy")) // expected to see +strategy
-	is.True(strings.Contains(view, "computer")) // expected to see @computer
+	is.True(strings.Contains(stripANSI(view), "strategy")) // expected to see +strategy
+	is.True(strings.Contains(stripANSI(view), "computer")) // expected to see @computer
 }
 
 func TestStory010_NoTagsInUse(t *testing.T) {
@@ -180,7 +180,7 @@ func TestStory010_InventoryNotShownInFocusMode(t *testing.T) {
 	view := model.View()
 
 	// Should NOT show inventory in focus mode
-	is.True(!(strings.Contains(view, "Projects:") && strings.Contains(view, "strategy (1)"))) // expected inventory NOT to be shown in focus mode
+	is.True(!(strings.Contains(stripANSI(view), "Projects:") && strings.Contains(stripANSI(view), "strategy (1)"))) // expected inventory NOT to be shown in focus mode
 }
 
 func TestStory010_CountsUpdateWhenAddingTodos(t *testing.T) {
@@ -203,7 +203,7 @@ func TestStory010_CountsUpdateWhenAddingTodos(t *testing.T) {
 
 	// Check initial count
 	view := model.View()
-	is.True(strings.Contains(view, "strategy") && strings.Contains(view, "(1)")) // expected initial count of +strategy (1)
+	is.True(strings.Contains(stripANSI(view), "strategy") && strings.Contains(stripANSI(view), "(1)")) // expected initial count of +strategy (1)
 
 	// Focus on DO FIRST and add a new todo with +strategy
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})

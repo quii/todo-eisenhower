@@ -44,9 +44,9 @@ func TestStory009_TriggerAutocompleteWithPlus(t *testing.T) {
 	view := model.View()
 
 	// Should show suggestions
-	is.True(strings.Contains(view, "WebApp"))   // expected autocomplete to show WebApp
-	is.True(strings.Contains(view, "Mobile"))   // expected autocomplete to show Mobile
-	is.True(strings.Contains(view, "Backend"))  // expected autocomplete to show Backend
+	is.True(strings.Contains(stripANSI(view), "WebApp"))   // expected autocomplete to show WebApp
+	is.True(strings.Contains(stripANSI(view), "Mobile"))   // expected autocomplete to show Mobile
+	is.True(strings.Contains(stripANSI(view), "Backend"))  // expected autocomplete to show Backend
 }
 
 func TestStory009_FilterSuggestionsAsIType(t *testing.T) {
@@ -81,9 +81,9 @@ func TestStory009_FilterSuggestionsAsIType(t *testing.T) {
 	view := model.View()
 
 	// Should only show WebApp
-	is.True(strings.Contains(view, "WebApp"))    // expected autocomplete to show WebApp
-	is.True(!strings.Contains(view, "Mobile"))   // expected autocomplete to NOT show Mobile
-	is.True(!strings.Contains(view, "Backend"))  // expected autocomplete to NOT show Backend
+	is.True(strings.Contains(stripANSI(view), "WebApp"))    // expected autocomplete to show WebApp
+	is.True(!strings.Contains(stripANSI(view), "Mobile"))   // expected autocomplete to NOT show Mobile
+	is.True(!strings.Contains(stripANSI(view), "Backend"))  // expected autocomplete to NOT show Backend
 }
 
 func TestStory009_NavigateSuggestionsWithArrows(t *testing.T) {
@@ -133,7 +133,7 @@ func TestStory009_NavigateSuggestionsWithArrows(t *testing.T) {
 
 	// Just verify we can navigate without errors
 	view := model.View()
-	is.True(strings.Contains(view, "WebApp"))  // expected suggestions to still be visible after navigation
+	is.True(strings.Contains(stripANSI(view), "WebApp"))  // expected suggestions to still be visible after navigation
 }
 
 func TestStory009_CompleteTagWithTab(t *testing.T) {
@@ -227,7 +227,7 @@ func TestStory009_CompleteTagWithEnter(t *testing.T) {
 
 	// Verify we're still in input mode
 	view := model.View()
-	is.True(strings.Contains(view, "Enter to save"))  // expected to still be in input mode after completing with Enter
+	is.True(strings.Contains(stripANSI(view), "Enter to save"))  // expected to still be in input mode after completing with Enter
 
 	// Verify no todo was saved yet
 	written := source.writer.(*strings.Builder).String()
@@ -312,9 +312,9 @@ func TestStory009_AutocompleteContextTags(t *testing.T) {
 	view := model.View()
 
 	// Should show all context tags
-	is.True(strings.Contains(view, "computer"))  // expected autocomplete to show computer
-	is.True(strings.Contains(view, "phone"))     // expected autocomplete to show phone
-	is.True(strings.Contains(view, "office"))    // expected autocomplete to show office
+	is.True(strings.Contains(stripANSI(view), "computer"))  // expected autocomplete to show computer
+	is.True(strings.Contains(stripANSI(view), "phone"))     // expected autocomplete to show phone
+	is.True(strings.Contains(stripANSI(view), "office"))    // expected autocomplete to show office
 
 	// Type "p" to filter
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'p'}})
@@ -370,7 +370,7 @@ func TestStory009_MultipleTagsInOneInput(t *testing.T) {
 	view := model.View()
 
 	// Should show context tags
-	is.True(strings.Contains(view, "computer"))  // expected autocomplete to show context tags after @
+	is.True(strings.Contains(stripANSI(view), "computer"))  // expected autocomplete to show context tags after @
 	// Note: We can't check that "WebApp" doesn't appear because it will appear
 	// in the input field text itself (from the completed tag), which is expected.
 	// What matters is that the autocomplete suggestions show context tags.
@@ -408,7 +408,7 @@ func TestStory009_NoMatchesMessage(t *testing.T) {
 	view := model.View()
 
 	// Should show no matches message
-	is.True(strings.Contains(view, "no matches") && strings.Contains(view, "Space"))  // expected autocomplete to show 'no matches' message
+	is.True(strings.Contains(stripANSI(view), "no matches") && strings.Contains(stripANSI(view), "Space"))  // expected autocomplete to show 'no matches' message
 }
 
 func TestStory009_CaseInsensitiveMatching(t *testing.T) {
@@ -443,7 +443,7 @@ func TestStory009_CaseInsensitiveMatching(t *testing.T) {
 	view := model.View()
 
 	// Should show WebApp (original case)
-	is.True(strings.Contains(view, "WebApp"))  // expected case-insensitive match to find WebApp
+	is.True(strings.Contains(stripANSI(view), "WebApp"))  // expected case-insensitive match to find WebApp
 }
 
 func TestStory009_NewTagsAvailableInAutocomplete(t *testing.T) {
@@ -493,8 +493,8 @@ func TestStory009_NewTagsAvailableInAutocomplete(t *testing.T) {
 
 	// Should show both OldTag and NewTag in autocomplete
 	// Note: OldTag is from SCHEDULE quadrant (priority B), so won't appear in DO FIRST's todo list
-	is.True(strings.Contains(view, "OldTag"))  // expected autocomplete to show +OldTag tag
-	is.True(strings.Contains(view, "NewTag"))  // expected autocomplete to show newly created +NewTag tag
+	is.True(strings.Contains(stripANSI(view), "OldTag"))  // expected autocomplete to show +OldTag tag
+	is.True(strings.Contains(stripANSI(view), "NewTag"))  // expected autocomplete to show newly created +NewTag tag
 
 	// Type "N" to filter
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'N'}})
