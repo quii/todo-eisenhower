@@ -1,28 +1,14 @@
-version: 2
+version: "2"
 
 run:
   timeout: 5m
   tests: true
 
 linters:
+  default: none
   enable:
     - govet
     - unused
-  disable:
-    - errcheck  # TODO: Re-enable and fix Close() error handling
-    - staticcheck  # TODO: Re-enable and disable QF checks properly
-
-linters-settings:
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - style
-      - performance
-  staticcheck:
-    checks: ["all", "-QF1001", "-QF1002", "-QF1003", "-QF1004", "-QF1005", "-QF1006", "-QF1007", "-QF1008", "-QF1009", "-QF1010", "-QF1011", "-QF1012"]
-
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - errcheck
+  # TODO: Re-enable after fixing issues
+  # - errcheck  # Fix Close() error handling
+  # - staticcheck  # Configure to disable QF checks
