@@ -246,13 +246,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "i":
 			// Toggle inventory mode (only in overview)
-			if m.viewMode == Overview {
+			switch m.viewMode {
+			case Overview:
 				m.viewMode = Inventory
 				// Initialize viewport for inventory dashboard
 				m.inventoryViewport = viewport.New(m.width, m.height-2) // Reserve space for help text
 				content := RenderInventoryDashboard(m.matrix, m.width, 0) // Pass width for centering
 				m.inventoryViewport.SetContent(content)
-			} else if m.viewMode == Inventory {
+			case Inventory:
 				m.viewMode = Overview
 			}
 		case "esc":
@@ -380,9 +381,10 @@ func (m Model) updateSuggestions() Model {
 
 	// Get the appropriate tag list
 	var tagList []string
-	if trigger == "+" {
+	switch trigger {
+	case "+":
 		tagList = m.allProjects
-	} else if trigger == "@" {
+	case "@":
 		tagList = m.allContexts
 	}
 
