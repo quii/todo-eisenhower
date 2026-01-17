@@ -129,17 +129,31 @@ eisenhower /path/to/your/todo.txt
 x (A) 2026-01-11 Completed task +Project
 ```
 
-## Running Tests
+## Development
+
+### Running Tests and Linter
 
 ```bash
-# Run all tests
-go test ./...
+# Run both tests and linter (recommended)
+./check.sh
 
-# Run tests with coverage
-go test -cover ./...
+# Or run individually:
+go test ./...              # Run tests
+golangci-lint run          # Run linter
+```
 
-# Run linter (requires golangci-lint)
-golangci-lint run
+### Git Hooks
+
+Install the pre-commit hook to automatically run tests and linter before every commit:
+
+```bash
+./scripts/install-hooks.sh
+```
+
+This ensures code quality by running `./check.sh` before each commit. To bypass the hook temporarily:
+
+```bash
+git commit --no-verify
 ```
 
 See [CLAUDE.md](./CLAUDE.md) for detailed development conventions and architecture guidelines.
