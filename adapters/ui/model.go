@@ -4,6 +4,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/quii/todo-eisenhower/domain/matrix"
 	"github.com/quii/todo-eisenhower/domain/todo"
@@ -19,6 +20,7 @@ const (
 	FocusSchedule
 	FocusDelegate
 	FocusEliminate
+	Inventory
 )
 
 // Model represents the Bubble Tea model for the Eisenhower matrix UI
@@ -41,6 +43,7 @@ type Model struct {
 	selectedSuggestion int
 	selectedTodoIndex  int // index of selected todo in current quadrant
 	todoTable          table.Model // table for displaying todos
+	inventoryViewport  viewport.Model // viewport for scrollable inventory dashboard
 }
 
 // NewModel creates a new UI model with the given matrix and file path
@@ -241,15 +244,37 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.viewMode != Overview && len(m.currentQuadrantTodos()) > 0 {
 				m.deleteMode = true
 			}
+		case "i":
+			// Toggle inventory mode (only in overview)
+			if m.viewMode == Overview {
+				m.viewMode = Inventory
+				// Initialize viewport for inventory dashboard
+				m.inventoryViewport = viewport.New(m.width, m.height-2) // Reserve space for help text
+				content := RenderInventoryDashboard(m.matrix, m.width, 0) // Pass width for centering
+				m.inventoryViewport.SetContent(content)
+			} else if m.viewMode == Inventory {
+				m.viewMode = Overview
+			}
 		case "esc":
-			m.viewMode = Overview
+			// Return to overview from any other mode
+			if m.viewMode == Inventory {
+				m.viewMode = Overview
+			} else if m.viewMode != Overview {
+				m.viewMode = Overview
+			}
 		case "a":
 			// Enter input mode only if in focus mode
 			if m.viewMode != Overview {
 				m.inputMode = true
 				m.input.Focus()
 			}
-		case "down", "s":
+		case "down", "s", "j":
+			// Scroll down in inventory mode
+			if m.viewMode == Inventory {
+				var cmd tea.Cmd
+				m.inventoryViewport, cmd = m.inventoryViewport.Update(msg)
+				return m, cmd
+			}
 			// Navigate down in focus mode using table
 			if m.viewMode != Overview {
 				var cmd tea.Cmd
@@ -257,7 +282,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selectedTodoIndex = m.todoTable.Cursor()
 				return m, cmd
 			}
-		case "up", "w":
+		case "up", "w", "k":
+			// Scroll up in inventory mode
+			if m.viewMode == Inventory {
+				var cmd tea.Cmd
+				m.inventoryViewport, cmd = m.inventoryViewport.Update(msg)
+				return m, cmd
+			}
 			// Navigate up in focus mode using table
 			if m.viewMode != Overview {
 				var cmd tea.Cmd
@@ -271,9 +302,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m = m.toggleCompletion()
 			}
 		}
+
+		// Handle pgup/pgdown in inventory mode
+		if m.viewMode == Inventory {
+			switch msg.String() {
+			case "pgup", "pgdown", "home", "end":
+				var cmd tea.Cmd
+				m.inventoryViewport, cmd = m.inventoryViewport.Update(msg)
+				return m, cmd
+			}
+		}
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		// Update viewport size if in inventory mode
+		if m.viewMode == Inventory {
+			m.inventoryViewport.Width = msg.Width
+			m.inventoryViewport.Height = msg.Height - 2
+		}
 	}
 	return m, nil
 }
@@ -658,6 +704,8 @@ func (m Model) View() string {
 				m.height,
 			)
 		}
+	case Inventory:
+		content = m.inventoryViewport.View()
 	default: // Overview
 		// Pass terminal dimensions to RenderMatrix for responsive sizing
 		content = RenderMatrix(m.matrix, m.filePath, m.width, m.height)

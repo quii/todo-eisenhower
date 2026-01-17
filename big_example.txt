@@ -1,0 +1,72 @@
+(A) 2025-11-20 Fix critical security vulnerability in auth module +WebApp @urgent @security
+(A) 2025-12-01 Investigate production database performance issues +Infrastructure @performance @people
+(A) 2025-12-15 Complete Q1 roadmap planning with stakeholders +Planning @people @meetings
+(A) 2026-01-05 Review and merge critical hotfix PR -review +WebApp @code
+x 2026-01-16 2026-01-12 (A) Resolve customer escalation - data sync issue +Support @urgent @people
+(A) 2026-01-14 Prepare architecture presentation for leadership +Architecture @presentation @people
+(A) 2026-01-15 Debug memory leak in production worker +Infrastructure @debugging
+(A) Task without date - needs immediate attention +WebApp @urgent
+(A) Another undated urgent task +Support
+x 2026-01-15 2025-12-20 (A) Ship v2.0 API to production +WebApp @release
+x 2026-01-14 2025-12-18 (A) Fix authentication bug reported by security team +WebApp @security
+x 2026-01-13 2026-01-05 (A) Resolve critical production incident +Support @incident
+x 2026-01-11 2026-01-06 (A) Deploy hotfix for payment processing +WebApp @deployment
+x 2025-12-20 2025-11-15 (A) Old completed task from November +Archive @old
+(A) 2025-11-15 VERY STALE: Implement two-factor authentication +Security @architecture @people
+(A) 2025-11-28 VERY STALE: Migrate legacy monolith to microservices +Infrastructure @architecture @planning
+(A) 2025-12-02 STALE: Upgrade database to latest version +Infrastructure @maintenance
+(A) 2025-12-25 STALE: Fix flaky integration tests +Testing @maintenance @quality
+(A) 2026-01-16 Fix broken CI/CD pipeline +Infrastructure @devops @urgent
+(A) 2026-01-15 Address high-priority customer feedback +Product @people @feedback
+(A) 2025-12-30 Implement rate limiting for API endpoints +WebApp @security @architecture
+(A) 2026-01-02 Optimize slow database queries identified in monitoring +Infrastructure @performance @database
+(A) 2026-01-06 Fix login issues reported by enterprise customers +WebApp @urgent @people @security
+(A) 2026-01-08 Implement monitoring alerts for error rates +Infrastructure @observability
+(A) 2025-12-22 Implement feature flags system +Infrastructure @architecture
+(A) 2025-12-27 Set up automated security scanning +Security @automation @devops
+(B) 2026-01-10 Update API documentation for v2.0 release +WebApp @documentation
+(B) 2025-11-25 Design new feature: user activity dashboard +WebApp @architecture @planning
+(B) 2025-12-10 Plan infrastructure migration to Kubernetes +Infrastructure @architecture @planning
+(B) 2025-12-20 Research AI/ML integration options +Research @exploration
+(B) 2026-01-03 Schedule quarterly team retrospective +Team @meetings @people
+(B) 2026-01-08 Create training materials for new API +Documentation @training
+(B) 2026-01-11 Review technical debt backlog +Maintenance @planning
+(B) 2026-01-13 Plan database schema migration +Infrastructure @architecture
+(B) Schedule code review session for next sprint +Team @planning
+x 2026-01-14 2026-01-02 (B) Complete performance optimization sprint +Infrastructure @performance
+x 2026-01-12 2026-01-08 (B) Finish user research interviews +Research @people
+x 2026-01-10 2026-01-04 (B) Conduct team 1:1 meetings +Team @people @meetings
+x 2025-11-30 2025-10-01 (B) Ancient completed task from October +Archive @old
+(B) 2025-11-18 VERY STALE: Create disaster recovery runbook +Infrastructure @documentation @planning
+(B) 2025-12-08 STALE: Implement automated backup verification +Infrastructure @automation
+(B) 2026-01-16 Plan next sprint backlog refinement +Planning @meetings @team
+(B) 2026-01-15 Research competitor features for roadmap -analysis +Research @competitive
+(B) 2025-12-28 Design mobile app architecture +Mobile @architecture @planning
+(B) 2026-01-04 Create API integration examples for partners +Documentation @external
+(B) 2026-01-07 Plan technical blog post series +Marketing @content @planning
+(B) 2026-01-09 Design caching strategy for API +WebApp @architecture @performance
+(B) 2025-12-23 Create onboarding documentation for developers +Documentation @team
+(B) 2026-01-01 Plan API versioning strategy +WebApp @architecture @planning
+(C) 2025-12-05 Delegate customer demo to sales engineering +Sales @people @delegation
+(C) 2025-12-28 Follow up on vendor proposal for monitoring tools +Infrastructure @vendor @people
+(C) 2026-01-06 Assign onboarding buddy for new hire +Team @people @delegation
+(C) 2026-01-09 Forward recruitment candidates to hiring manager +Hiring @people @delegation
+(C) 2026-01-12 Delegate blog post review to marketing +Marketing @delegation
+(C) 2026-01-14 Have junior dev handle routine maintenance tasks +Maintenance @delegation @people
+x 2026-01-11 2026-01-09 (C) Review and approve expense reports +Admin @people
+(C) 2025-11-22 VERY STALE: Follow up with partner on integration +Partnerships @people @external
+(C) 2025-12-18 STALE: Delegate social media posting to marketing intern +Marketing @delegation
+(C) 2026-01-16 Forward design mockups to product team +Design @delegation
+(C) 2026-01-15 Assign code review to senior developer -review +Team @delegation @code
+(C) 2026-01-07 Delegate newsletter creation to content team +Marketing @delegation
+(C) 2026-01-08 Have DevOps handle server provisioning +Infrastructure @delegation
+(C) 2026-01-10 Forward analytics requirements to data team +Analytics @delegation @people
+(C) 2025-12-29 Assign bug triage rotation to team +Team @delegation
+(C) 2026-01-03 Delegate user testing sessions to UX researcher +Research @delegation @people
+(D) 2025-12-15 Consider rewriting entire codebase in Rust +WebApp @bikeshedding
+(D) 2026-01-05 Evaluate 15 different logging frameworks -paralysis +Infrastructure @analysis
+(D) 2026-01-10 Attend optional webinar on obscure tech -priority +Learning @low
+(D) 2026-01-13 Organize old project documentation files +Documentation @cleanup
+(D) Review that feature request from 2 years ago -priority +Backlog @low
+(D) 2026-01-11 Consider adopting newest JavaScript framework +WebApp @bikeshedding
+(D) 2026-01-14 Read whitepaper on distributed systems -priority +Learning @low
