@@ -181,7 +181,7 @@ func TestStory009_CompleteTagWithTab(t *testing.T) {
 
 	// Press Enter to save
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyEnter})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 
 	written := source.writer.(*strings.Builder).String()
 	is.True(strings.Contains(written, "+API"))       // expected todo to contain +API tag

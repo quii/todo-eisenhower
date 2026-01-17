@@ -77,7 +77,7 @@ func TestStory014_NewTodosGetCreationDateSet(t *testing.T) {
 
 	// Save
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyEnter})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 
 	// Check that creation date was set to today
 	written := source.writer.(*strings.Builder).String()
@@ -146,7 +146,7 @@ func TestStory014_PreserveCreationDateOnToggle(t *testing.T) {
 
 	// Toggle completion with spacebar
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 
 	// Verify creation date is preserved in written output
 	written := source.writer.(*strings.Builder).String()
@@ -187,7 +187,7 @@ func TestStory014_PreserveCreationDateOnMove(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
 	model = updatedModel.(ui.Model)
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'2'}})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 
 	// Verify creation date is preserved in written output
 	written := source.writer.(*strings.Builder).String()

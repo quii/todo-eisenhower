@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"regexp"
 	"sort"
 
 	"github.com/quii/todo-eisenhower/domain/matrix"
@@ -47,15 +46,3 @@ func extractAllTags(m matrix.Matrix) (projects []string, contexts []string) {
 	return projects, contexts
 }
 
-// extractTagsFromDescription extracts tags from a description string using a regex pattern
-func extractTagsFromDescription(description string, pattern string) []string {
-	re := regexp.MustCompile(pattern)
-	matches := re.FindAllStringSubmatch(description, -1)
-	tags := make([]string, 0, len(matches))
-	for _, match := range matches {
-		if len(match) > 1 {
-			tags = append(tags, match[1])
-		}
-	}
-	return tags
-}

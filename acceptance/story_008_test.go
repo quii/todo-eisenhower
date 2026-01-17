@@ -438,7 +438,7 @@ func TestStory008_AutoAssignPriorityFromQuadrant(t *testing.T) {
 
 			// Save
 			updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyEnter})
-			model = updatedModel.(ui.Model)
+			_ = updatedModel.(ui.Model)
 
 			// Check written content
 			written := source.writer.(*strings.Builder).String()

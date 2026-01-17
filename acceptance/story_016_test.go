@@ -184,7 +184,7 @@ func TestStory016_MoveToEachQuadrant(t *testing.T) {
 
 			// Press destination key
 			updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune(tt.destinationKey)})
-			model = updatedModel.(ui.Model)
+			_ = updatedModel.(ui.Model)
 
 			// Check file was updated with expected priority
 			written := source.writer.(*strings.Builder).String()

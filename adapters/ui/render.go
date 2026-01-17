@@ -60,10 +60,6 @@ var (
 			BorderForeground(lipgloss.Color("#7B68EE")).
 			Padding(0)
 
-	quadrantTitleStyle = lipgloss.NewStyle().
-				Bold(true).
-				Padding(0, 1)
-
 	activeTodoStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FAFAFA"))
 
@@ -153,7 +149,6 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 	// Render file path header with full width and center alignment
 	if filePath != "" {
 		header := headerStyle.
-			Copy().
 			Width(terminalWidth).
 			Align(lipgloss.Center).
 			Render("File: " + filePath)
@@ -282,21 +277,6 @@ func calculateQuadrantDimensions(terminalWidth, terminalHeight int) (width, heig
 	}
 
 	return width, height
-}
-
-// calculateDisplayLimit determines how many todos to show based on quadrant height
-func calculateDisplayLimit(quadrantHeight int) int {
-	// Reserve 2 lines for title + spacing
-	// Reserve 1 line for potential "... and X more" message
-	availableLines := quadrantHeight - 3
-
-	// Each todo takes 1 line
-	// Ensure at least 3 todos are shown
-	if availableLines < 3 {
-		return 3
-	}
-
-	return availableLines
 }
 
 // createVerticalDivider creates a vertical divider that spans the given height
@@ -442,7 +422,6 @@ func RenderFocusedQuadrantWithTable(
 	// Render file path header with full width and center alignment
 	if filePath != "" {
 		header := headerStyle.
-			Copy().
 			Width(terminalWidth).
 			Align(lipgloss.Center).
 			Render("File: " + filePath)

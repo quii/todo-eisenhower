@@ -53,7 +53,7 @@ func TestStory011_NavigateTodosWithArrowKeys(t *testing.T) {
 
 	// Press Up - should wrap to third todo
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyUp})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 }
 
 func TestStory011_NavigateTodosWithWASD(t *testing.T) {
@@ -85,7 +85,7 @@ func TestStory011_NavigateTodosWithWASD(t *testing.T) {
 
 	// Press 'w' - should move up
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'w'}})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 }
 
 func TestStory011_MarkTodoAsComplete(t *testing.T) {
@@ -172,7 +172,7 @@ func TestStory011_UnmarkCompletedTodo(t *testing.T) {
 	// First todo (completed) is selected by default
 	// Press Space to unmark
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 
 	// Check that file was updated without completion marker
 	written := source.writer.(*strings.Builder).String()
@@ -213,9 +213,9 @@ func TestStory011_EmptyQuadrantNoSelection(t *testing.T) {
 
 	// Pressing navigation keys should do nothing (no panic)
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyDown})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyUp})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 }
 
 func TestStory011_SelectionNotShownInOverviewMode(t *testing.T) {
@@ -303,7 +303,7 @@ func TestStory011_InputModePreservesSelection(t *testing.T) {
 	// without exposing internal state, but pressing Space should toggle
 	// the third todo)
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 
 	// Verify third todo was toggled by checking written output
 	written := source.writer.(*strings.Builder).String()

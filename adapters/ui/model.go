@@ -462,26 +462,6 @@ func (m Model) currentQuadrantType() matrix.QuadrantType {
 	}
 }
 
-// moveSelectionDown moves the selection to the next todo (with wrap-around)
-func (m Model) moveSelectionDown() Model {
-	todos := m.currentQuadrantTodos()
-	if len(todos) == 0 {
-		return m
-	}
-	m.selectedTodoIndex = (m.selectedTodoIndex + 1) % len(todos)
-	return m
-}
-
-// moveSelectionUp moves the selection to the previous todo (with wrap-around)
-func (m Model) moveSelectionUp() Model {
-	todos := m.currentQuadrantTodos()
-	if len(todos) == 0 {
-		return m
-	}
-	m.selectedTodoIndex = (m.selectedTodoIndex - 1 + len(todos)) % len(todos)
-	return m
-}
-
 // toggleCompletion toggles the completion status of the selected todo
 func (m Model) toggleCompletion() Model {
 	if m.writer == nil {

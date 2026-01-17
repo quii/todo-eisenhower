@@ -36,7 +36,7 @@ func TestStory012_MoveFromDoFirstToSchedule(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
 	model = updatedModel.(ui.Model)
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'2'}})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 
 	// Check file was updated with priority B
 	written := source.writer.(*strings.Builder).String()
@@ -70,7 +70,7 @@ func TestStory012_MoveFromDelegateToDoFirst(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
 	model = updatedModel.(ui.Model)
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 
 	// Check file was updated with priority A
 	written := source.writer.(*strings.Builder).String()
@@ -103,7 +103,7 @@ func TestStory012_MoveToEliminate(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
 	model = updatedModel.(ui.Model)
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'4'}})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 
 	// Check file was updated with priority D
 	written := source.writer.(*strings.Builder).String()
@@ -142,7 +142,7 @@ func TestStory012_MovingTodoAdjustsSelection(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
 	model = updatedModel.(ui.Model)
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'2'}})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 
 	// Check file shows second task moved to priority B
 	written := source.writer.(*strings.Builder).String()
@@ -222,7 +222,7 @@ func TestStory012_PreservesTagsAndCompletion(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
 	model = updatedModel.(ui.Model)
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'3'}})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 
 	// Check file preserves everything
 	written := source.writer.(*strings.Builder).String()
@@ -279,7 +279,7 @@ func TestStory012_PressingCurrentQuadrantDoesNothing(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
 	model = updatedModel.(ui.Model)
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 
 	// Check that it was moved to priority A
 	written := source.writer.(*strings.Builder).String()

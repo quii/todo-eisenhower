@@ -73,7 +73,7 @@ func TestStory013_SetCompletionDateWhenMarkingComplete(t *testing.T) {
 
 	// Toggle completion with spacebar
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 
 	// Check file contains completion marker with today's date
 	written := source.writer.(*strings.Builder).String()
@@ -115,7 +115,7 @@ func TestStory013_ClearCompletionDateWhenTogglingIncomplete(t *testing.T) {
 
 	// Toggle to incomplete
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 
 	// Check file no longer has completion marker or date
 	written := source.writer.(*strings.Builder).String()
@@ -162,7 +162,7 @@ func TestStory013_NewCompletionDateWhenRecompleting(t *testing.T) {
 
 	// Toggle back to complete
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 
 	// Check file has completion marker with NEW date (today)
 	written := source.writer.(*strings.Builder).String()
@@ -336,7 +336,7 @@ func TestStory013_PreserveCompletionDateWhenMovingQuadrants(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'m'}})
 	model = updatedModel.(ui.Model)
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'2'}})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 
 	// Check file preserves the completion date
 	written := source.writer.(*strings.Builder).String()

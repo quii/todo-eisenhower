@@ -27,7 +27,6 @@ func RenderFocusedQuadrantWithInput(
 	// Render file path header with full width and center alignment
 	if filePath != "" {
 		header := headerStyle.
-			Copy().
 			Width(terminalWidth).
 			Align(lipgloss.Center).
 			Render("File: " + filePath)
