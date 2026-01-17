@@ -159,13 +159,14 @@ func RenderInventoryDashboard(m matrix.Matrix, width, height int) string {
 		// Health indicator
 		var health string
 		var healthColor lipgloss.Color
-		if active <= highThreshold {
+		switch {
+		case active <= highThreshold:
 			health = "OK"
 			healthColor = okColor
-		} else if active <= overloadThreshold {
+		case active <= overloadThreshold:
 			health = "HIGH"
 			healthColor = highColor
-		} else {
+		default:
 			health = "OVERLOADED"
 			healthColor = overloadedColor
 		}
@@ -176,11 +177,12 @@ func RenderInventoryDashboard(m matrix.Matrix, width, height int) string {
 		var ageText string
 		if oldest > 0 {
 			ageStr := fmt.Sprintf("%dd", oldest)
-			if oldest > 21 {
+			switch {
+			case oldest > 21:
 				ageText = lipgloss.NewStyle().Foreground(veryStaleColor).Bold(true).Render(ageStr + " (VERY STALE)")
-			} else if oldest > 14 {
+			case oldest > 14:
 				ageText = lipgloss.NewStyle().Foreground(staleColor).Render(ageStr + " (STALE)")
-			} else {
+			default:
 				ageText = ageStr
 			}
 		} else {
@@ -190,10 +192,12 @@ func RenderInventoryDashboard(m matrix.Matrix, width, height int) string {
 		return []string{name, fmt.Sprintf("%d", active), healthText, ageText}
 	}
 
-	quadrantRows = append(quadrantRows, formatQuadrantRow("Do First", metrics.DoFirstActive, metrics.DoFirstOldestDays, 5, 8))
-	quadrantRows = append(quadrantRows, formatQuadrantRow("Schedule", metrics.ScheduleActive, metrics.ScheduleOldestDays, 3, 6))
-	quadrantRows = append(quadrantRows, formatQuadrantRow("Delegate", metrics.DelegateActive, metrics.DelegateOldestDays, 3, 6))
-	quadrantRows = append(quadrantRows, formatQuadrantRow("Eliminate", metrics.EliminateActive, metrics.EliminateOldestDays, 3, 6))
+	quadrantRows = append(quadrantRows,
+		formatQuadrantRow("Do First", metrics.DoFirstActive, metrics.DoFirstOldestDays, 5, 8),
+		formatQuadrantRow("Schedule", metrics.ScheduleActive, metrics.ScheduleOldestDays, 3, 6),
+		formatQuadrantRow("Delegate", metrics.DelegateActive, metrics.DelegateOldestDays, 3, 6),
+		formatQuadrantRow("Eliminate", metrics.EliminateActive, metrics.EliminateOldestDays, 3, 6),
+	)
 
 	quadrantTable := table.New().
 		Border(lipgloss.RoundedBorder()).

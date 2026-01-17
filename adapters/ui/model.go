@@ -187,53 +187,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "1":
-			if m.viewMode == Overview {
-				// Overview mode: focus on quadrant
-				m.viewMode = FocusDoFirst
-				m.selectedTodoIndex = 0
-				m = m.rebuildTable()
-			} else {
-				// Focus mode: jump to DO FIRST quadrant
-				m.viewMode = FocusDoFirst
-				m.selectedTodoIndex = 0
-				m = m.rebuildTable()
-			}
+			// Focus on DO FIRST quadrant (from Overview or another quadrant)
+			m.viewMode = FocusDoFirst
+			m.selectedTodoIndex = 0
+			m = m.rebuildTable()
 		case "2":
-			if m.viewMode == Overview {
-				// Overview mode: focus on quadrant
-				m.viewMode = FocusSchedule
-				m.selectedTodoIndex = 0
-				m = m.rebuildTable()
-			} else {
-				// Focus mode: jump to SCHEDULE quadrant
-				m.viewMode = FocusSchedule
-				m.selectedTodoIndex = 0
-				m = m.rebuildTable()
-			}
+			// Focus on SCHEDULE quadrant (from Overview or another quadrant)
+			m.viewMode = FocusSchedule
+			m.selectedTodoIndex = 0
+			m = m.rebuildTable()
 		case "3":
-			if m.viewMode == Overview {
-				// Overview mode: focus on quadrant
-				m.viewMode = FocusDelegate
-				m.selectedTodoIndex = 0
-				m = m.rebuildTable()
-			} else {
-				// Focus mode: jump to DELEGATE quadrant
-				m.viewMode = FocusDelegate
-				m.selectedTodoIndex = 0
-				m = m.rebuildTable()
-			}
+			// Focus on DELEGATE quadrant (from Overview or another quadrant)
+			m.viewMode = FocusDelegate
+			m.selectedTodoIndex = 0
+			m = m.rebuildTable()
 		case "4":
-			if m.viewMode == Overview {
-				// Overview mode: focus on quadrant
-				m.viewMode = FocusEliminate
-				m.selectedTodoIndex = 0
-				m = m.rebuildTable()
-			} else {
-				// Focus mode: jump to ELIMINATE quadrant
-				m.viewMode = FocusEliminate
-				m.selectedTodoIndex = 0
-				m = m.rebuildTable()
-			}
+			// Focus on ELIMINATE quadrant (from Overview or another quadrant)
+			m.viewMode = FocusEliminate
+			m.selectedTodoIndex = 0
+			m = m.rebuildTable()
 		case "m":
 			// Enter move mode (only in focus mode with todos)
 			if m.viewMode != Overview && len(m.currentQuadrantTodos()) > 0 {
@@ -330,7 +302,7 @@ func (m Model) saveTodo() Model {
 	description := m.input.Value()
 
 	// Don't create empty todos
-	if description == "" || len(description) == 0 {
+	if description == "" {
 		m.inputMode = false
 		m.input.SetValue("")
 		return m

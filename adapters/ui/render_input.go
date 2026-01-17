@@ -36,10 +36,7 @@ func RenderFocusedQuadrantWithInput(
 
 	// Calculate display limit for focus mode with input
 	// Reserve: header (3), title (2), input section (6), help text (2), margins (2) = 15 lines
-	displayLimit := terminalHeight - 15
-	if displayLimit < 3 {
-		displayLimit = 3
-	}
+	displayLimit := max(terminalHeight-15, 3)
 
 	// Render prominent quadrant title
 	focusTitle := lipgloss.NewStyle().
@@ -168,7 +165,7 @@ func renderTagReference(label string, tags []string, width int) string {
 }
 
 // renderAutocomplete renders the autocomplete suggestion box
-func renderAutocomplete(suggestions []string, selectedIndex int, trigger string, partialTag string, width int) string {
+func renderAutocomplete(suggestions []string, selectedIndex int, trigger, partialTag string, width int) string {
 	if len(suggestions) == 0 {
 		// Show "no matches" message
 		noMatchStyle := lipgloss.NewStyle().

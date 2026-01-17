@@ -32,7 +32,7 @@ var tagColors = []string{
 // HashColor generates a consistent color for a given tag name
 func HashColor(tag string) lipgloss.Color {
 	h := fnv.New32a()
-	h.Write([]byte(tag))
+	_, _ = h.Write([]byte(tag)) // hash.Hash.Write never errors
 	hash := h.Sum32()
 	colorIndex := int(hash) % len(tagColors)
 	return lipgloss.Color(tagColors[colorIndex])
@@ -51,7 +51,7 @@ func lightenColor(c lipgloss.Color, factor float64) lipgloss.Color {
 
 // GradientBackground applies a horizontal gradient to text as a background
 func GradientBackground(text string, startColor, endColor lipgloss.Color) string {
-	if len(text) == 0 {
+	if text == "" {
 		return text
 	}
 	

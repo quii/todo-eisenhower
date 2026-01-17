@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -25,13 +26,14 @@ func renderHelp(parts ...string) string {
 		expectKey := false
 		for j, word := range words {
 			lower := strings.ToLower(word)
-			if lower == "press" {
+			switch {
+			case lower == "press":
 				result.WriteString(textStyle.Render(word))
 				expectKey = true
-			} else if expectKey && isKeyBinding(word) {
+			case expectKey && isKeyBinding(word):
 				result.WriteString(keyStyle.Render(word))
 				expectKey = false
-			} else {
+			default:
 				result.WriteString(textStyle.Render(word))
 				expectKey = false
 			}
@@ -61,10 +63,5 @@ func isKeyBinding(word string) bool {
 	}
 
 	lower := strings.ToLower(word)
-	for _, key := range keyBindings {
-		if lower == key {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(keyBindings, lower)
 }

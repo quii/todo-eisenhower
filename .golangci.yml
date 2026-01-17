@@ -7,12 +7,48 @@ run:
 linters:
   default: none
   enable:
-    - govet
-    - unused
-    - errcheck
-    - staticcheck
+    # Critical - Already enabled
+    - govet        # Official Go static analyzer
+    - unused       # Detect unused code
+    - errcheck     # Check for unchecked errors
+    - staticcheck  # Comprehensive static analysis
+
+    # Security & Correctness
+    - gosec        # Security vulnerabilities
+    - errorlint    # Error wrapping best practices (Go 1.13+)
+    - nilerr       # Nil error handling bugs
+
+    # Code Quality
+    - ineffassign  # Ineffectual assignments
+    - unconvert    # Unnecessary type conversions
+    - gocritic     # Comprehensive checks (bugs, perf, style)
+    - revive       # Modern golint replacement
+    - misspell     # Spelling errors
+
+    # Modern Go
+    - modernize    # Suggest modern Go features (NEW 2025!)
+
+    # Testing
+    - thelper      # Test helper best practices
+
   settings:
     staticcheck:
       checks:
         - all
         - -QF1001  # De Morgan's law - disabled: original is clearer in test assertions
+
+    gocritic:
+      enabled-tags:
+        - diagnostic  # Detect bugs
+        - performance # Performance issues
+        - style       # Code style
+      disabled-checks:
+        - hugeParam     # Often too strict for TUI rendering
+        - importShadow  # False positive for is := is.New(t) pattern with matryer/is
+
+    revive:
+      rules:
+        - name: exported
+          disabled: true  # We have package comments, don't need export comments on everything
+        - name: package-comments
+          disabled: true  # Already enforced by staticcheck ST1000

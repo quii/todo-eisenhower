@@ -7,7 +7,7 @@ import (
 
 // detectTrigger detects if the cursor is after a tag trigger (+ or @)
 // Returns the trigger type, partial tag text, and whether a trigger was found
-func detectTrigger(inputValue string) (triggerChar string, partialTag string, found bool) {
+func detectTrigger(inputValue string) (triggerChar, partialTag string, found bool) {
 	// Find the last occurrence of + or @
 	lastPlus := strings.LastIndex(inputValue, "+")
 	lastAt := strings.LastIndex(inputValue, "@")
@@ -55,15 +55,12 @@ func filterTags(tags []string, prefix string) []string {
 }
 
 // completeTag replaces the partial tag with the completed tag in the input
-func completeTag(inputValue string, completedTag string) string {
+func completeTag(inputValue, completedTag string) string {
 	// Find the last trigger position
 	lastPlus := strings.LastIndex(inputValue, "+")
 	lastAt := strings.LastIndex(inputValue, "@")
 
-	triggerPos := lastPlus
-	if lastAt > lastPlus {
-		triggerPos = lastAt
-	}
+	triggerPos := max(lastPlus, lastAt)
 
 	if triggerPos == -1 {
 		return inputValue

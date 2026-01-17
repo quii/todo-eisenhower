@@ -8,7 +8,7 @@ import (
 )
 
 // extractAllTags extracts all unique project and context tags from the matrix
-func extractAllTags(m matrix.Matrix) (projects []string, contexts []string) {
+func extractAllTags(m matrix.Matrix) (projects, contexts []string) {
 	projectSet := make(map[string]bool)
 	contextSet := make(map[string]bool)
 

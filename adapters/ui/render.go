@@ -26,19 +26,22 @@ var (
 
 // buildDescriptionWithTags reconstructs the full description with tags for display
 func buildDescriptionWithTags(t todo.Todo) string {
-	description := t.Description()
-	
+	var b strings.Builder
+	b.WriteString(t.Description())
+
 	// Add project tags
 	for _, project := range t.Projects() {
-		description += " +" + project
+		b.WriteString(" +")
+		b.WriteString(project)
 	}
-	
+
 	// Add context tags
 	for _, context := range t.Contexts() {
-		description += " @" + context
+		b.WriteString(" @")
+		b.WriteString(context)
 	}
-	
-	return description
+
+	return b.String()
 }
 
 var (
@@ -126,8 +129,8 @@ func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeigh
 	)
 
 	// Wrap entire matrix in border
-	matrix := matrixBorder.Render(matrixContent)
-	output.WriteString(matrix)
+	matrixView := matrixBorder.Render(matrixContent)
+	output.WriteString(matrixView)
 	output.WriteString("\n\n")
 
 	// Add tag inventory
@@ -143,7 +146,7 @@ func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeigh
 }
 
 // RenderFocusedQuadrant renders a single quadrant in fullscreen focus mode
-func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color, filePath string, selectedIndex int, terminalWidth, terminalHeight int) string {
+func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color, filePath string, selectedIndex, terminalWidth, terminalHeight int) string {
 	var output strings.Builder
 
 	// Render file path header with full width and center alignment
@@ -158,10 +161,7 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 
 	// Calculate display limit for focus mode
 	// Reserve: header (3), title (2), help text (2), margins (2) = 9 lines
-	displayLimit := terminalHeight - 9
-	if displayLimit < 5 {
-		displayLimit = 5
-	}
+	displayLimit := max(terminalHeight-9, 5)
 
 	// Render prominent quadrant title with gradient background
 	titleText := fmt.Sprintf(" %s ", title)
@@ -282,7 +282,7 @@ func calculateQuadrantDimensions(terminalWidth, terminalHeight int) (width, heig
 // createVerticalDivider creates a vertical divider that spans the given height
 func createVerticalDivider(height int) string {
 	var divider strings.Builder
-	for i := 0; i < height; i++ {
+	for range height {
 		divider.WriteString("│\n")
 	}
 	return dividerStyle.Render(strings.TrimSuffix(divider.String(), "\n"))
@@ -338,7 +338,7 @@ func colorizeDescription(description string) string {
 }
 
 // renderQuadrantContent renders just the content of a quadrant (no border)
-func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo, width, height, displayLimit int, quadrantNumber int) string {
+func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo, width, height, displayLimit, quadrantNumber int) string {
 	var lines []string
 
 	// Calculate stats
@@ -367,8 +367,7 @@ func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo
 		Render(statsText)
 	
 	quadrantTitle := lipgloss.JoinHorizontal(lipgloss.Top, gradientTitle, statsBlock)
-	lines = append(lines, quadrantTitle)
-	lines = append(lines, "") // spacing
+	lines = append(lines, quadrantTitle, "") // spacing
 
 	if len(todos) == 0 {
 		lines = append(lines, emptyStyle.Render("  (no tasks)"))
@@ -468,13 +467,10 @@ func RenderFocusedQuadrantWithTable(
 }
 
 // buildTodoTable creates a table.Model from a list of todos
-func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight int, selectedIndex int) table.Model {
+func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight, selectedIndex int) table.Model {
 	// Calculate column widths based on terminal width
 	// Reserve some width for borders, padding, etc.
-	availableWidth := terminalWidth - 10
-	if availableWidth < 80 {
-		availableWidth = 80
-	}
+	availableWidth := max(terminalWidth-10, 80)
 
 	// Define column widths (these are approximate ratios)
 	// Task gets most of the space, other columns get fixed widths
@@ -482,11 +478,7 @@ func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight int, select
 	contextsWidth := 15
 	createdWidth := 12
 	completedWidth := 12
-	taskWidth := availableWidth - projectsWidth - contextsWidth - createdWidth - completedWidth
-
-	if taskWidth < 30 {
-		taskWidth = 30
-	}
+	taskWidth := max(availableWidth-projectsWidth-contextsWidth-createdWidth-completedWidth, 30)
 
 	columns := []table.Column{
 		{Title: "Task", Width: taskWidth},
@@ -539,10 +531,7 @@ func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight int, select
 
 	// Calculate table height - should fit within terminal
 	// Reserve space for header, title, help text, etc.
-	tableHeight := terminalHeight - 15
-	if tableHeight < 5 {
-		tableHeight = 5
-	}
+	tableHeight := max(terminalHeight-15, 5)
 
 	t := table.New(
 		table.WithColumns(columns),

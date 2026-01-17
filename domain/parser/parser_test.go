@@ -11,6 +11,7 @@ import (
 
 func TestParse(t *testing.T) {
 	t.Run("parses single todo with priority A", func(t *testing.T) {
+		//nolint:gocritic // importShadow: is := is.New(t) is idiomatic for github.com/matryer/is
 		is := is.New(t)
 		input := strings.NewReader("(A) Fix critical bug")
 
@@ -22,6 +23,7 @@ func TestParse(t *testing.T) {
 	})
 
 	t.Run("parses todo without priority", func(t *testing.T) {
+		//nolint:gocritic // importShadow: is := is.New(t) is idiomatic for github.com/matryer/is
 		is := is.New(t)
 		input := strings.NewReader("No priority task")
 
@@ -33,6 +35,7 @@ func TestParse(t *testing.T) {
 	})
 
 	t.Run("parses completed todo", func(t *testing.T) {
+		//nolint:gocritic // importShadow: is := is.New(t) is idiomatic for github.com/matryer/is
 		is := is.New(t)
 		input := strings.NewReader("x (A) 2026-01-11 Completed task")
 

@@ -10,6 +10,7 @@ import (
 
 func TestMatrix(t *testing.T) {
 	t.Run("categorizes priority A todos into DoFirst quadrant", func(t *testing.T) {
+		//nolint:gocritic // importShadow: is := is.New(t) is idiomatic for github.com/matryer/is
 		is := is.New(t)
 		todos := []todo.Todo{
 			todo.New("Fix critical bug", todo.PriorityA),
@@ -26,6 +27,7 @@ func TestMatrix(t *testing.T) {
 	})
 
 	t.Run("categorizes priority B todos into Schedule quadrant", func(t *testing.T) {
+		//nolint:gocritic // importShadow: is := is.New(t) is idiomatic for github.com/matryer/is
 		is := is.New(t)
 		todos := []todo.Todo{
 			todo.New("Plan Q2 roadmap", todo.PriorityB),
@@ -40,6 +42,7 @@ func TestMatrix(t *testing.T) {
 	})
 
 	t.Run("categorizes priority C todos into Delegate quadrant", func(t *testing.T) {
+		//nolint:gocritic // importShadow: is := is.New(t) is idiomatic for github.com/matryer/is
 		is := is.New(t)
 		todos := []todo.Todo{
 			todo.New("Respond to routine emails", todo.PriorityC),

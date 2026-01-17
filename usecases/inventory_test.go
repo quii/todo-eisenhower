@@ -11,6 +11,7 @@ import (
 )
 
 func TestAnalyzeInventory_ActiveCounts(t *testing.T) {
+	//nolint:gocritic // importShadow: is := is.New(t) is idiomatic for github.com/matryer/is
 	is := is.New(t)
 
 	// Create todos in different quadrants
@@ -29,6 +30,7 @@ func TestAnalyzeInventory_ActiveCounts(t *testing.T) {
 }
 
 func TestAnalyzeInventory_OldestAge(t *testing.T) {
+	//nolint:gocritic // importShadow: is := is.New(t) is idiomatic for github.com/matryer/is
 	is := is.New(t)
 
 	// Create todo with creation date 21 days ago
@@ -49,6 +51,7 @@ func TestAnalyzeInventory_OldestAge(t *testing.T) {
 }
 
 func TestAnalyzeInventory_ContextBreakdown(t *testing.T) {
+	//nolint:gocritic // importShadow: is := is.New(t) is idiomatic for github.com/matryer/is
 	is := is.New(t)
 
 	// Create todos with contexts

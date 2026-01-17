@@ -43,7 +43,7 @@ func AddTodo(writer TodoWriter, m matrix.Matrix, description string, priority to
 }
 
 // extractTagsFromDescription extracts tags matching the given regex pattern
-func extractTagsFromDescription(description string, pattern string) []string {
+func extractTagsFromDescription(description, pattern string) []string {
 	re := regexp.MustCompile(pattern)
 	matches := re.FindAllStringSubmatch(description, -1)
 	tags := make([]string, 0, len(matches))

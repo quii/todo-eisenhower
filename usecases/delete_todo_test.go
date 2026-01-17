@@ -10,6 +10,7 @@ import (
 )
 
 func TestDeleteTodo(t *testing.T) {
+	//nolint:gocritic // importShadow: is := is.New(t) is idiomatic for github.com/matryer/is
 	is := is.New(t)
 
 	todo1 := todo.New("Task to keep", todo.PriorityA)

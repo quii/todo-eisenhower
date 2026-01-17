@@ -12,12 +12,14 @@ import (
 
 func TestSource(t *testing.T) {
 	t.Run("reads todos from file", func(t *testing.T) {
+		//nolint:gocritic // importShadow: is := is.New(t) is idiomatic for github.com/matryer/is
 		is := is.New(t)
 		tmpDir := t.TempDir()
 		tmpFile := filepath.Join(tmpDir, "todo.txt")
 		content := "(A) Test todo"
 
-		err := os.WriteFile(tmpFile, []byte(content), 0644)
+		//nolint:gosec // G306: test file permissions intentionally match production (0o644)
+		err := os.WriteFile(tmpFile, []byte(content), 0o644)
 		is.NoErr(err) // failed to create test file
 
 		source := file.NewSource(tmpFile)
@@ -33,6 +35,7 @@ func TestSource(t *testing.T) {
 	})
 
 	t.Run("creates empty file if it doesn't exist", func(t *testing.T) {
+		//nolint:gocritic // importShadow: is := is.New(t) is idiomatic for github.com/matryer/is
 		is := is.New(t)
 		tmpDir := t.TempDir()
 		tmpFile := filepath.Join(tmpDir, "new-todo.txt")

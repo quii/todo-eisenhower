@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/quii/todo-eisenhower/domain/matrix"
 	"github.com/quii/todo-eisenhower/domain/todo"
@@ -69,14 +70,14 @@ func FormatTodo(t todo.Todo) string {
 
 // saveAllTodos writes all todos from the matrix back to the file (private helper)
 func saveAllTodos(writer TodoWriter, m matrix.Matrix) error {
-	var content string
+	var b strings.Builder
 
 	// Format all todos from all quadrants
 	for _, t := range m.AllTodos() {
-		content += FormatTodo(t)
+		b.WriteString(FormatTodo(t))
 	}
 
-	return writer.ReplaceAll(content)
+	return writer.ReplaceAll(b.String())
 }
 
 // priorityToString converts a Priority to its string representation

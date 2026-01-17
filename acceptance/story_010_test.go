@@ -232,9 +232,8 @@ func TestStory010_CountsUpdateWhenAddingTodos(t *testing.T) {
 }
 
 // Helper function to extract a line containing a specific substring
-func extractLine(text string, substring string) string {
-	lines := strings.Split(text, "\n")
-	for _, line := range lines {
+func extractLine(text, substring string) string {
+	for line := range strings.SplitSeq(text, "\n") {
 		if strings.Contains(line, substring) {
 			return line
 		}
