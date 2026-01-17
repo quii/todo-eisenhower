@@ -9,6 +9,21 @@ linters:
   enable:
     - govet
     - unused
-  # TODO: Re-enable after fixing issues
-  # - errcheck  # Fix Close() error handling
-  # - staticcheck  # Configure to disable QF checks
+    - errcheck
+    - staticcheck
+  settings:
+    staticcheck:
+      checks:
+        - all
+        - -QF1001  # De Morgan's law
+        - -QF1002  # if-else to switch
+        - -QF1003  # if to tagged switch
+        - -QF1004  # if-else to switch
+        - -QF1005  # expanding call
+        - -QF1006  # redundant struct tag
+        - -QF1007  # redundant if-return
+        - -QF1008  # omit embedded fields
+        - -QF1009  # redundant type in composite literal
+        - -QF1010  # type assertion to type switch
+        - -QF1011  # redundant type in variable declaration
+        - -QF1012  # omit embedded fields

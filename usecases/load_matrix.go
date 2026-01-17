@@ -18,7 +18,11 @@ func LoadMatrix(source TodoSource) (matrix.Matrix, error) {
 	if err != nil {
 		return matrix.Matrix{}, err
 	}
-	defer reader.Close()
+	defer func() {
+		if closeErr := reader.Close(); closeErr != nil && err == nil {
+			err = closeErr
+		}
+	}()
 
 	todos, err := parser.Parse(reader)
 	if err != nil {

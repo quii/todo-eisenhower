@@ -1,3 +1,4 @@
+// Package todo provides the Todo domain model following the todo.txt specification.
 package todo
 
 import "time"

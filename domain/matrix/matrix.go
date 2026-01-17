@@ -1,3 +1,4 @@
+// Package matrix provides the Eisenhower Matrix domain model for organizing todos into quadrants.
 package matrix
 
 import "github.com/quii/todo-eisenhower/domain/todo"

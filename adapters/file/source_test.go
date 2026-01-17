@@ -24,7 +24,7 @@ func TestSource(t *testing.T) {
 		reader, err := source.GetTodos()
 
 		is.NoErr(err)
-		defer reader.Close()
+		defer func() { _ = reader.Close() }()
 
 		got, err := io.ReadAll(reader)
 		is.NoErr(err) // failed to read
@@ -41,7 +41,7 @@ func TestSource(t *testing.T) {
 		reader, err := source.GetTodos()
 
 		is.NoErr(err)
-		defer reader.Close()
+		defer func() { _ = reader.Close() }()
 
 		got, err := io.ReadAll(reader)
 		is.NoErr(err)

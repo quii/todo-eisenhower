@@ -1,3 +1,4 @@
+// Package ui provides the terminal user interface using Bubble Tea.
 package ui
 
 import (

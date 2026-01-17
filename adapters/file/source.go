@@ -1,3 +1,4 @@
+// Package file provides file-based adapters for reading and writing todo.txt files.
 package file
 
 import (
@@ -32,7 +33,11 @@ func (s Source) SaveTodo(line string) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		if closeErr := f.Close(); closeErr != nil && err == nil {
+			err = closeErr
+		}
+	}()
 
 	_, err = f.WriteString(line)
 	return err

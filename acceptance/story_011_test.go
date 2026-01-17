@@ -143,7 +143,7 @@ func TestStory011_UnmarkCompletedTodo(t *testing.T) {
 	// First, let's parse the todos to see what we get
 	reader, _ := source.GetTodos()
 	todos, err := parser.Parse(reader)
-	reader.Close()
+	_ = reader.Close()
 	is.NoErr(err)
 	t.Logf("Parsed %d todos", len(todos))
 	for i, td := range todos {

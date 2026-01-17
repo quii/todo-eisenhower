@@ -1,3 +1,4 @@
+// Package parser provides parsing functionality for todo.txt format files.
 package parser
 
 import (
