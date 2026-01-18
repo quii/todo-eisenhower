@@ -1,11 +1,11 @@
-package parser_test
+package todotxt_test
 
 import (
 	"strings"
 	"testing"
 
 	"github.com/matryer/is"
-	"github.com/quii/todo-eisenhower/domain/parser"
+	"github.com/quii/todo-eisenhower/domain/todotxt"
 	"github.com/quii/todo-eisenhower/domain/todo"
 )
 
@@ -15,7 +15,7 @@ func TestParse(t *testing.T) {
 		is := is.New(t)
 		input := strings.NewReader("(A) Fix critical bug")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 1) // expected 1 todo
@@ -27,7 +27,7 @@ func TestParse(t *testing.T) {
 		is := is.New(t)
 		input := strings.NewReader("No priority task")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 1) // expected 1 todo
@@ -39,7 +39,7 @@ func TestParse(t *testing.T) {
 		is := is.New(t)
 		input := strings.NewReader("x (A) 2026-01-11 Completed task")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 1) // expected 1 todo
@@ -53,7 +53,7 @@ func TestParse(t *testing.T) {
 (C) Reply to emails
 (D) Clean workspace`)
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 4) // expected 4 todos
@@ -68,7 +68,7 @@ func TestParse(t *testing.T) {
 		is := is.New(t)
 		input := strings.NewReader("")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 0) // expected 0 todos
@@ -80,7 +80,7 @@ func TestParse(t *testing.T) {
 
 (B) Second task`)
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 2) // expected 2 todos
@@ -92,7 +92,7 @@ func TestParse(t *testing.T) {
 x (A) 2026-01-11 Completed task
 (B) Another active task`)
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 3) // expected 3 todos
@@ -106,7 +106,7 @@ x (A) 2026-01-11 Completed task
 		is := is.New(t)
 		input := strings.NewReader("(A) Deploy new feature +WebApp")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 1) // expected 1 todo
@@ -120,7 +120,7 @@ x (A) 2026-01-11 Completed task
 		is := is.New(t)
 		input := strings.NewReader("(B) Call client @phone")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 1) // expected 1 todo
@@ -134,7 +134,7 @@ x (A) 2026-01-11 Completed task
 		is := is.New(t)
 		input := strings.NewReader("(A) Write report +Work +Q1Goals @office @computer")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 1) // expected 1 todo
@@ -154,7 +154,7 @@ x (A) 2026-01-11 Completed task
 		is := is.New(t)
 		input := strings.NewReader("(A) Review +OpenSource code for @github issues")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 
@@ -171,7 +171,7 @@ x (A) 2026-01-11 Completed task
 		is := is.New(t)
 		input := strings.NewReader("(A) Simple task without tags")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos[0].Projects()), 0) // expected no projects
@@ -183,7 +183,7 @@ x (A) 2026-01-11 Completed task
 		is := is.New(t)
 		input := strings.NewReader("(A) Task with +Project1 +Project2 but no contexts")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 1)
@@ -197,7 +197,7 @@ x (A) 2026-01-11 Completed task
 		is := is.New(t)
 		input := strings.NewReader("(A) Task @home @computer but no projects")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 1)
@@ -211,7 +211,7 @@ x (A) 2026-01-11 Completed task
 		is := is.New(t)
 		input := strings.NewReader("x 2026-01-18 (A) Completed +Project")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 1)
@@ -224,7 +224,7 @@ x (A) 2026-01-11 Completed task
 		is := is.New(t)
 		input := strings.NewReader("x 2026-01-18 (A) Completed @office")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 1)
@@ -238,7 +238,7 @@ x (A) 2026-01-11 Completed task
 		is := is.New(t)
 		input := strings.NewReader("(A) 2026-01-15 Task with creation date")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 1)
@@ -251,7 +251,7 @@ x (A) 2026-01-11 Completed task
 		is := is.New(t)
 		input := strings.NewReader("x 2026-01-18 2026-01-15 (A) Task with both dates")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 1)
@@ -264,7 +264,7 @@ x (A) 2026-01-11 Completed task
 		is := is.New(t)
 		input := strings.NewReader("(B) Task without creation date")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 1)
@@ -278,7 +278,7 @@ x (A) 2026-01-11 Completed task
 		// Dates matching pattern are removed even if invalid
 		input := strings.NewReader("x 2026-99-99 (A) Task with invalid date")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 1)
@@ -291,7 +291,7 @@ x (A) 2026-01-11 Completed task
 		is := is.New(t)
 		input := strings.NewReader("(A) 2026-99-99 Task with invalid creation date")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 1)
@@ -303,7 +303,7 @@ x (A) 2026-01-11 Completed task
 		is := is.New(t)
 		input := strings.NewReader("x 2026-01-18 2026-99-99 (A) Task with invalid creation date")
 
-		todos, err := parser.Parse(input)
+		todos, err := todotxt.Unmarshal(input)
 
 		is.NoErr(err)
 		is.Equal(len(todos), 1)

@@ -1,5 +1,6 @@
-// Package parser provides parsing functionality for todo.txt format files.
-package parser
+// Package todotxt provides encoding and decoding for the todo.txt format.
+// It follows the convention of encoding packages like encoding/json.
+package todotxt
 
 import (
 	"bufio"
@@ -19,8 +20,9 @@ var (
 	contextPattern  = regexp.MustCompile(`@(\w+)`)
 )
 
-// Parse reads todo.txt format from an io.Reader and returns a slice of Todos
-func Parse(r io.Reader) ([]todo.Todo, error) {
+// Unmarshal reads todo.txt format from an io.Reader and returns a slice of Todos.
+// This is the inverse operation of Marshal.
+func Unmarshal(r io.Reader) ([]todo.Todo, error) {
 	var todos []todo.Todo
 
 	scanner := bufio.NewScanner(r)
@@ -39,6 +41,17 @@ func Parse(r io.Reader) ([]todo.Todo, error) {
 	}
 
 	return todos, nil
+}
+
+// Marshal writes todos in todo.txt format to an io.Writer.
+// This is the inverse operation of Unmarshal.
+func Marshal(w io.Writer, todos []todo.Todo) error {
+	for _, t := range todos {
+		if _, err := w.Write([]byte(t.String())); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func parseLine(line string) todo.Todo {
@@ -153,4 +166,23 @@ func parsePriority(p string) todo.Priority {
 	default:
 		return todo.PriorityNone
 	}
+}
+
+// ParseDescription extracts the description text and tags from a todo description string.
+// It returns the clean description (with tags removed), projects, and contexts.
+// This is useful when creating new todos from user input.
+func ParseDescription(description string) (cleanDesc string, projects, contexts []string) {
+	// Extract projects and contexts
+	projects = extractTags(description, projectPattern)
+	contexts = extractTags(description, contextPattern)
+
+	// Remove tags from description
+	cleanDesc = projectPattern.ReplaceAllString(description, "")
+	cleanDesc = contextPattern.ReplaceAllString(cleanDesc, "")
+
+	// Clean up extra whitespace
+	cleanDesc = strings.Join(strings.Fields(cleanDesc), " ")
+	cleanDesc = strings.TrimSpace(cleanDesc)
+
+	return cleanDesc, projects, contexts
 }

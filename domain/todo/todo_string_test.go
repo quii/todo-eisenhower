@@ -1,4 +1,4 @@
-package usecases_test
+package todo_test
 
 import (
 	"strings"
@@ -6,17 +6,16 @@ import (
 	"time"
 
 	"github.com/matryer/is"
-	"github.com/quii/todo-eisenhower/domain/parser"
+	"github.com/quii/todo-eisenhower/domain/todotxt"
 	"github.com/quii/todo-eisenhower/domain/todo"
-	"github.com/quii/todo-eisenhower/usecases"
 )
 
-func TestFormatTodo(t *testing.T) {
+func TestTodoString(t *testing.T) {
 	t.Run("formats simple todo with priority", func(t *testing.T) {
 		is := is.New(t)
 		td := todo.New("Fix critical bug", todo.PriorityA)
 
-		result := usecases.FormatTodo(td)
+		result := td.String()
 
 		is.Equal(result, "(A) Fix critical bug\n")
 	})
@@ -25,7 +24,7 @@ func TestFormatTodo(t *testing.T) {
 		is := is.New(t)
 		td := todo.New("No priority task", todo.PriorityNone)
 
-		result := usecases.FormatTodo(td)
+		result := td.String()
 
 		is.Equal(result, "No priority task\n")
 	})
@@ -35,7 +34,7 @@ func TestFormatTodo(t *testing.T) {
 		completionDate := time.Date(2026, 1, 18, 0, 0, 0, 0, time.UTC)
 		td := todo.NewCompleted("Completed task", todo.PriorityA, &completionDate)
 
-		result := usecases.FormatTodo(td)
+		result := td.String()
 
 		is.Equal(result, "x 2026-01-18 (A) Completed task\n")
 	})
@@ -44,7 +43,7 @@ func TestFormatTodo(t *testing.T) {
 		is := is.New(t)
 		td := todo.NewWithTags("Deploy feature", todo.PriorityA, []string{"WebApp"}, nil)
 
-		result := usecases.FormatTodo(td)
+		result := td.String()
 
 		is.Equal(result, "(A) Deploy feature +WebApp\n")
 	})
@@ -53,7 +52,7 @@ func TestFormatTodo(t *testing.T) {
 		is := is.New(t)
 		td := todo.NewWithTags("Call client", todo.PriorityB, nil, []string{"phone"})
 
-		result := usecases.FormatTodo(td)
+		result := td.String()
 
 		is.Equal(result, "(B) Call client @phone\n")
 	})
@@ -67,7 +66,7 @@ func TestFormatTodo(t *testing.T) {
 			[]string{"office", "computer"},
 		)
 
-		result := usecases.FormatTodo(td)
+		result := td.String()
 
 		is.Equal(result, "(A) Write report +Work +Q1Goals @office @computer\n")
 	})
@@ -77,7 +76,7 @@ func TestFormatTodo(t *testing.T) {
 		completionDate := time.Date(2026, 1, 18, 0, 0, 0, 0, time.UTC)
 		td := todo.NewCompletedWithTags("Finished task", todo.PriorityA, &completionDate, []string{"Project"}, []string{"office"})
 
-		result := usecases.FormatTodo(td)
+		result := td.String()
 
 		is.Equal(result, "x 2026-01-18 (A) Finished task +Project @office\n")
 	})
@@ -87,7 +86,7 @@ func TestFormatTodo(t *testing.T) {
 		creationDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
 		td := todo.NewWithCreationDate("Task with date", todo.PriorityA, &creationDate)
 
-		result := usecases.FormatTodo(td)
+		result := td.String()
 
 		is.Equal(result, "(A) 2026-01-15 Task with date\n")
 	})
@@ -98,23 +97,45 @@ func TestFormatTodo(t *testing.T) {
 		completionDate := time.Date(2026, 1, 18, 0, 0, 0, 0, time.UTC)
 		td := todo.NewCompletedWithDates("Task with both dates", todo.PriorityA, &completionDate, &creationDate)
 
-		result := usecases.FormatTodo(td)
+		result := td.String()
 
 		is.Equal(result, "x 2026-01-18 2026-01-15 (A) Task with both dates\n")
 	})
 
-	// Round-trip tests: format -> parse -> format should be identical
+	// Edge cases for CONDITIONALS mutations
+	t.Run("formats todo with empty projects slice", func(t *testing.T) {
+		is := is.New(t)
+		td := todo.NewWithTags("Task", todo.PriorityA, []string{}, nil)
+
+		result := td.String()
+
+		is.Equal(result, "(A) Task\n") // no trailing space for empty tags
+	})
+
+	t.Run("formats todo with empty contexts slice", func(t *testing.T) {
+		is := is.New(t)
+		td := todo.NewWithTags("Task", todo.PriorityA, nil, []string{})
+
+		result := td.String()
+
+		is.Equal(result, "(A) Task\n") // no trailing space for empty tags
+	})
+}
+
+// Round-trip tests: String() -> Parse() -> String() should be identical
+// This demonstrates the symmetry between formatting and parsing
+func TestTodoStringRoundTrip(t *testing.T) {
 	t.Run("round-trip: simple todo", func(t *testing.T) {
 		is := is.New(t)
 		original := todo.New("Test task", todo.PriorityA)
 
-		formatted := usecases.FormatTodo(original)
-		parsed, err := parser.Parse(strings.NewReader(formatted))
+		formatted := original.String()
+		parsed, err := todotxt.Unmarshal(strings.NewReader(formatted))
 
 		is.NoErr(err)
 		is.Equal(len(parsed), 1)
 
-		reformatted := usecases.FormatTodo(parsed[0])
+		reformatted := parsed[0].String()
 		is.Equal(reformatted, formatted) // should be identical
 	})
 
@@ -127,13 +148,13 @@ func TestFormatTodo(t *testing.T) {
 			[]string{"office", "computer"},
 		)
 
-		formatted := usecases.FormatTodo(original)
-		parsed, err := parser.Parse(strings.NewReader(formatted))
+		formatted := original.String()
+		parsed, err := todotxt.Unmarshal(strings.NewReader(formatted))
 
 		is.NoErr(err)
 		is.Equal(len(parsed), 1)
 
-		reformatted := usecases.FormatTodo(parsed[0])
+		reformatted := parsed[0].String()
 		is.Equal(reformatted, formatted) // should be identical
 	})
 
@@ -150,32 +171,13 @@ func TestFormatTodo(t *testing.T) {
 			[]string{"done"},
 		)
 
-		formatted := usecases.FormatTodo(original)
-		parsed, err := parser.Parse(strings.NewReader(formatted))
+		formatted := original.String()
+		parsed, err := todotxt.Unmarshal(strings.NewReader(formatted))
 
 		is.NoErr(err)
 		is.Equal(len(parsed), 1)
 
-		reformatted := usecases.FormatTodo(parsed[0])
+		reformatted := parsed[0].String()
 		is.Equal(reformatted, formatted) // should be identical
-	})
-
-	// Edge cases for CONDITIONALS mutations
-	t.Run("formats todo with empty projects slice", func(t *testing.T) {
-		is := is.New(t)
-		td := todo.NewWithTags("Task", todo.PriorityA, []string{}, nil)
-
-		result := usecases.FormatTodo(td)
-
-		is.Equal(result, "(A) Task\n") // no trailing space for empty tags
-	})
-
-	t.Run("formats todo with empty contexts slice", func(t *testing.T) {
-		is := is.New(t)
-		td := todo.NewWithTags("Task", todo.PriorityA, nil, []string{})
-
-		result := usecases.FormatTodo(td)
-
-		is.Equal(result, "(A) Task\n") // no trailing space for empty tags
 	})
 }

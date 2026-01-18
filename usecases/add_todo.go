@@ -2,21 +2,17 @@
 package usecases
 
 import (
-	"regexp"
 	"time"
 
 	"github.com/quii/todo-eisenhower/domain/matrix"
+	"github.com/quii/todo-eisenhower/domain/todotxt"
 	"github.com/quii/todo-eisenhower/domain/todo"
 )
 
 // AddTodo creates a new todo and adds it to the matrix
 func AddTodo(writer TodoWriter, m matrix.Matrix, description string, priority todo.Priority) (matrix.Matrix, error) {
-	// Extract tags from description
-	projects := extractTagsFromDescription(description, `\+(\w+)`)
-	contexts := extractTagsFromDescription(description, `@(\w+)`)
-
-	// Strip tags from description (they're stored separately)
-	cleanDescription := stripTagsFromDescription(description)
+	// Parse description to extract clean text and tags
+	cleanDescription, projects, contexts := todotxt.ParseDescription(description)
 
 	// Set creation date to now
 	now := time.Now()
@@ -40,34 +36,4 @@ func AddTodo(writer TodoWriter, m matrix.Matrix, description string, priority to
 	}
 
 	return updatedMatrix, nil
-}
-
-// extractTagsFromDescription extracts tags matching the given regex pattern
-func extractTagsFromDescription(description, pattern string) []string {
-	re := regexp.MustCompile(pattern)
-	matches := re.FindAllStringSubmatch(description, -1)
-	tags := make([]string, 0, len(matches))
-	for _, match := range matches {
-		if len(match) > 1 {
-			tags = append(tags, match[1])
-		}
-	}
-	return tags
-}
-
-// stripTagsFromDescription removes project and context tags from description
-func stripTagsFromDescription(description string) string {
-	// Remove project tags (+tag)
-	projectPattern := regexp.MustCompile(`\+\w+`)
-	description = projectPattern.ReplaceAllString(description, "")
-
-	// Remove context tags (@tag)
-	contextPattern := regexp.MustCompile(`@\w+`)
-	description = contextPattern.ReplaceAllString(description, "")
-
-	// Clean up extra whitespace
-	re := regexp.MustCompile(`\s+`)
-	description = re.ReplaceAllString(description, " ")
-
-	return regexp.MustCompile(`^\s+|\s+$`).ReplaceAllString(description, "")
 }

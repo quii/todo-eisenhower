@@ -227,3 +227,67 @@ func (t Todo) ChangePriority(newPriority Priority) Todo {
 		contexts:       t.contexts,
 	}
 }
+
+// String converts the Priority to its string representation
+func (p Priority) String() string {
+	switch p {
+	case PriorityA:
+		return "A"
+	case PriorityB:
+		return "B"
+	case PriorityC:
+		return "C"
+	case PriorityD:
+		return "D"
+	default:
+		return ""
+	}
+}
+
+// String converts a Todo to todo.txt format
+// This is the inverse operation of parser.Parse()
+// Format: x COMP_DATE CREATION_DATE (PRIORITY) Description +project @context
+// Or: (PRIORITY) CREATION_DATE Description +project @context
+func (t Todo) String() string {
+	var result string
+
+	// Add completion marker and date if completed
+	if t.completed {
+		result = "x "
+		if t.completionDate != nil {
+			result += t.completionDate.Format("2006-01-02") + " "
+		}
+		// Add creation date after completion date for completed todos
+		if t.creationDate != nil {
+			result += t.creationDate.Format("2006-01-02") + " "
+		}
+	}
+
+	// Add priority if present
+	if t.priority != PriorityNone {
+		result += "(" + t.priority.String() + ") "
+	}
+
+	// Add creation date after priority for active todos (if not already added)
+	if !t.completed {
+		if t.creationDate != nil {
+			result += t.creationDate.Format("2006-01-02") + " "
+		}
+	}
+
+	// Add description
+	result += t.description
+
+	// Add project tags
+	for _, project := range t.projects {
+		result += " +" + project
+	}
+
+	// Add context tags
+	for _, context := range t.contexts {
+		result += " @" + context
+	}
+
+	result += "\n"
+	return result
+}

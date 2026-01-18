@@ -7,7 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/matryer/is"
 	"github.com/quii/todo-eisenhower/adapters/ui"
-	"github.com/quii/todo-eisenhower/domain/parser"
+	"github.com/quii/todo-eisenhower/domain/todotxt"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -142,7 +142,7 @@ func TestStory011_UnmarkCompletedTodo(t *testing.T) {
 
 	// First, let's parse the todos to see what we get
 	reader, _ := source.GetTodos()
-	todos, err := parser.Parse(reader)
+	todos, err := todotxt.Unmarshal(reader)
 	_ = reader.Close()
 	is.NoErr(err)
 	t.Logf("Parsed %d todos", len(todos))

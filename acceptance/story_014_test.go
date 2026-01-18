@@ -8,7 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/matryer/is"
 	"github.com/quii/todo-eisenhower/adapters/ui"
-	"github.com/quii/todo-eisenhower/domain/parser"
+	"github.com/quii/todo-eisenhower/domain/todotxt"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -20,7 +20,7 @@ func TestStory014_ParseAndPreserveCreationDates(t *testing.T) {
 (B) 2026-01-12 Task created on Jan 12
 (C) Task without creation date`
 
-	todos, err := parser.Parse(strings.NewReader(input))
+	todos, err := todotxt.Unmarshal(strings.NewReader(input))
 	is.NoErr(err)
 
 	is.Equal(len(todos), 3) // expected 3 todos
@@ -294,7 +294,7 @@ func TestStory014_ParseCompletedTodoWithCreationDate(t *testing.T) {
 
 	input := "x 2026-01-15 2026-01-10 (A) Completed task"
 
-	todos, err := parser.Parse(strings.NewReader(input))
+	todos, err := todotxt.Unmarshal(strings.NewReader(input))
 	is.NoErr(err)
 
 	is.Equal(len(todos), 1) // expected 1 todo

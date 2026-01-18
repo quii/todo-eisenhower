@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/quii/todo-eisenhower/domain/matrix"
-	"github.com/quii/todo-eisenhower/domain/parser"
+	"github.com/quii/todo-eisenhower/domain/todotxt"
 )
 
 // TodoSource is a port for retrieving todo data
@@ -24,7 +24,7 @@ func LoadMatrix(source TodoSource) (matrix.Matrix, error) {
 		}
 	}()
 
-	todos, err := parser.Parse(reader)
+	todos, err := todotxt.Unmarshal(reader)
 	if err != nil {
 		return matrix.Matrix{}, err
 	}
