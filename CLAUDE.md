@@ -248,6 +248,44 @@ func TestStory002_LoadFromHardcodedPath(t *testing.T) {
 - Handle errors explicitly, no `_` discards without reason
 - Prefer small, focused functions
 
+### Architecture Enforcement
+
+**Automated enforcement via `architecture_test.go`:**
+
+The project uses architecture tests to enforce hexagonal architecture boundaries. These tests run automatically with `go test ./...` and will fail CI if violated.
+
+**Enforced rules:**
+
+1. **Domain Layer Purity** (`TestDomainLayerPurity`)
+   - ❌ No imports of `adapters` packages
+   - ❌ No imports of `usecases` packages
+   - ❌ No infrastructure imports: `os`, `net/http`, `database/sql`
+   - ✅ Can import: stdlib (except infrastructure), other domain packages
+
+2. **Use Case Layer Purity** (`TestUseCaseLayerPurity`)
+   - ❌ No imports of `adapters` packages
+   - ✅ Can import: stdlib, domain packages
+   - ✅ Must define ports (interfaces) for external needs
+
+**What happens when violated:**
+
+```bash
+$ go test
+--- FAIL: TestDomainLayerPurity (0.00s)
+    architecture_test.go:29: Domain layer architecture violations found:
+
+          ❌ domain/todo/bad_code.go imports forbidden package 'os'
+
+        Domain packages must not import infrastructure or outer layers.
+        Define a port (interface) instead and let adapters implement it.
+```
+
+**Why this matters:**
+- Prevents accidental coupling to infrastructure
+- Enforces testability (domain is pure, easy to test)
+- Makes code portable (swap adapters without changing domain)
+- Self-documenting architecture (tests explain the rules)
+
 ## Bubble Tea / Lipgloss Guidelines
 
 ### Learning Approach

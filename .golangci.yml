@@ -31,6 +31,11 @@ linters:
     # Testing
     - thelper      # Test helper best practices
 
+    # Architecture
+    # Note: depguard v2 doesn't support directory-specific rules
+    # Architecture enforcement is done via architecture_test.go
+    # - depguard
+
   settings:
     staticcheck:
       checks:
@@ -52,3 +57,6 @@ linters:
           disabled: true  # We have package comments, don't need export comments on everything
         - name: package-comments
           disabled: true  # Already enforced by staticcheck ST1000
+
+    # depguard disabled: v2 doesn't support directory-specific rules
+    # Architecture is enforced via architecture_test.go instead
