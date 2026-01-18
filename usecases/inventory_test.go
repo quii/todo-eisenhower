@@ -156,7 +156,94 @@ func TestAnalyzeInventory_Throughput(t *testing.T) {
 
 	// Should show 2 completed in last 7 days
 	is.Equal(metrics.CompletedLast7Days, 2)
-	
+
 	// Should show 1 added in last 7 days
 	is.Equal(metrics.AddedLast7Days, 1)
+}
+
+// Boundary tests for 7-day threshold (catches CONDITIONALS_BOUNDARY/NEGATION mutations)
+func TestAnalyzeInventory_ThroughputBoundaries(t *testing.T) {
+	t.Run("exactly 7 days ago should not be counted", func(t *testing.T) {
+		is := is.New(t)
+
+		// Exactly 7 days ago
+		exactly7Days := time.Now().AddDate(0, 0, -7)
+		completed := todo.NewCompletedWithDates("Done exactly 7", todo.PriorityA, &exactly7Days, nil)
+		created := todo.NewWithCreationDate("Created exactly 7", todo.PriorityA, &exactly7Days)
+
+		m := matrix.New([]todo.Todo{completed, created})
+		metrics := usecases.AnalyzeInventory(m)
+
+		// After(sevenDaysAgo) should exclude exactly 7 days ago
+		is.Equal(metrics.CompletedLast7Days, 0) // not counted (too old)
+		is.Equal(metrics.AddedLast7Days, 0)     // not counted (too old)
+	})
+
+	t.Run("6 days ago should be counted", func(t *testing.T) {
+		is := is.New(t)
+
+		// 6 days ago (within threshold)
+		within7Days := time.Now().AddDate(0, 0, -6)
+		completed := todo.NewCompletedWithDates("Done 6 days", todo.PriorityA, &within7Days, nil)
+		created := todo.NewWithCreationDate("Created 6 days", todo.PriorityA, &within7Days)
+
+		m := matrix.New([]todo.Todo{completed, created})
+		metrics := usecases.AnalyzeInventory(m)
+
+		// Should be counted (recent enough)
+		is.Equal(metrics.CompletedLast7Days, 1)
+		is.Equal(metrics.AddedLast7Days, 1)
+	})
+
+	t.Run("8 days ago should not be counted", func(t *testing.T) {
+		is := is.New(t)
+
+		// 8 days ago (too old)
+		moreThan7Days := time.Now().AddDate(0, 0, -8)
+		completed := todo.NewCompletedWithDates("Done 8 days", todo.PriorityA, &moreThan7Days, nil)
+		created := todo.NewWithCreationDate("Created 8 days", todo.PriorityA, &moreThan7Days)
+
+		m := matrix.New([]todo.Todo{completed, created})
+		metrics := usecases.AnalyzeInventory(m)
+
+		// Should not be counted (too old)
+		is.Equal(metrics.CompletedLast7Days, 0)
+		is.Equal(metrics.AddedLast7Days, 0)
+	})
+}
+
+// Boundary tests for oldest age comparisons (catches CONDITIONALS_BOUNDARY mutations)
+func TestAnalyzeInventory_OldestAgeBoundaries(t *testing.T) {
+	t.Run("when two todos have same age, tracks the age correctly", func(t *testing.T) {
+		is := is.New(t)
+
+		// Two todos with identical ages
+		sameAge := time.Now().AddDate(0, 0, -15)
+		todo1 := todo.NewWithCreationDate("First", todo.PriorityA, &sameAge)
+		todo2 := todo.NewWithCreationDate("Second", todo.PriorityA, &sameAge)
+
+		m := matrix.New([]todo.Todo{todo1, todo2})
+		metrics := usecases.AnalyzeInventory(m)
+
+		// Should track the age (both are equally old)
+		is.True(metrics.DoFirstOldestDays >= 14)
+		is.True(metrics.DoFirstOldestDays <= 15)
+	})
+
+	t.Run("tracks oldest when one is older", func(t *testing.T) {
+		is := is.New(t)
+
+		// Different ages
+		older := time.Now().AddDate(0, 0, -20)
+		newer := time.Now().AddDate(0, 0, -10)
+		todo1 := todo.NewWithCreationDate("Older", todo.PriorityA, &older)
+		todo2 := todo.NewWithCreationDate("Newer", todo.PriorityA, &newer)
+
+		m := matrix.New([]todo.Todo{todo1, todo2})
+		metrics := usecases.AnalyzeInventory(m)
+
+		// Should track the older one (20 days, not 10)
+		is.True(metrics.DoFirstOldestDays >= 19)
+		is.True(metrics.DoFirstOldestDays <= 20)
+	})
 }
