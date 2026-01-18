@@ -135,3 +135,61 @@ func (m Matrix) AllTodos() []todo.Todo {
 	all = append(all, m.eliminate...)
 	return all
 }
+
+// ToggleCompletionAt toggles the completion status of a todo at the specified position.
+// Returns the updated matrix and true if successful, or the original matrix and false if invalid.
+func (m Matrix) ToggleCompletionAt(quadrant QuadrantType, index int) (Matrix, bool) {
+	todos := m.getTodosForQuadrant(quadrant)
+
+	// Validate index
+	if index < 0 || index >= len(todos) {
+		return m, false // No-op if invalid
+	}
+
+	// Toggle completion on the todo
+	selectedTodo := todos[index]
+	updatedTodo := selectedTodo.ToggleCompletion()
+
+	// Update in place (completion doesn't change priority/quadrant)
+	return m.UpdateTodoAtIndex(quadrant, index, updatedTodo), true
+}
+
+// ChangePriorityAt changes the priority of a todo at the specified position.
+// Returns the updated matrix and true if successful, or the original matrix and false if invalid/unchanged.
+// Note: Changing priority may move the todo to a different quadrant.
+func (m Matrix) ChangePriorityAt(quadrant QuadrantType, index int, newPriority todo.Priority) (Matrix, bool) {
+	todos := m.getTodosForQuadrant(quadrant)
+
+	// Validate index
+	if index < 0 || index >= len(todos) {
+		return m, false // No-op if invalid
+	}
+
+	// Get current todo and check if priority is already the same
+	selectedTodo := todos[index]
+	if selectedTodo.Priority() == newPriority {
+		return m, false // No-op if priority unchanged
+	}
+
+	// Change priority on the todo
+	updatedTodo := selectedTodo.ChangePriority(newPriority)
+
+	// Priority change moves todo between quadrants, so remove old and add new
+	return m.RemoveTodo(selectedTodo).AddTodo(updatedTodo), true
+}
+
+// getTodosForQuadrant is a helper that returns the todos for a given quadrant
+func (m Matrix) getTodosForQuadrant(quadrant QuadrantType) []todo.Todo {
+	switch quadrant {
+	case DoFirstQuadrant:
+		return m.doFirst
+	case ScheduleQuadrant:
+		return m.schedule
+	case DelegateQuadrant:
+		return m.delegate
+	case EliminateQuadrant:
+		return m.eliminate
+	default:
+		return []todo.Todo{}
+	}
+}

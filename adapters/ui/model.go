@@ -466,7 +466,7 @@ func (m Model) changeTodoPriority(newPriority todo.Priority) Model {
 
 	// Use the ChangePriority usecase
 	quadrant := m.currentQuadrantType()
-	updatedMatrix, err := usecases.ChangePriority(m.source, m.writer, m.matrix, quadrant, m.selectedTodoIndex, newPriority)
+	updatedMatrix, err := usecases.ChangePriority(m.writer, m.matrix, quadrant, m.selectedTodoIndex, newPriority)
 	if err != nil {
 		// TODO: Show error to user in future story
 		return m
