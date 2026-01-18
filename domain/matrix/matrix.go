@@ -1,7 +1,11 @@
 // Package matrix provides the Eisenhower Matrix domain model for organizing todos into quadrants.
 package matrix
 
-import "github.com/quii/todo-eisenhower/domain/todo"
+import (
+	"time"
+
+	"github.com/quii/todo-eisenhower/domain/todo"
+)
 
 // Matrix represents an Eisenhower matrix organizing todos by quadrant
 type Matrix struct {
@@ -138,7 +142,8 @@ func (m Matrix) AllTodos() []todo.Todo {
 
 // ToggleCompletionAt toggles the completion status of a todo at the specified position.
 // Returns the updated matrix and true if successful, or the original matrix and false if invalid.
-func (m Matrix) ToggleCompletionAt(quadrant QuadrantType, index int) (Matrix, bool) {
+// The now parameter allows deterministic testing and follows dependency inversion.
+func (m Matrix) ToggleCompletionAt(quadrant QuadrantType, index int, now time.Time) (Matrix, bool) {
 	todos := m.getTodosForQuadrant(quadrant)
 
 	// Validate index
@@ -148,7 +153,7 @@ func (m Matrix) ToggleCompletionAt(quadrant QuadrantType, index int) (Matrix, bo
 
 	// Toggle completion on the todo
 	selectedTodo := todos[index]
-	updatedTodo := selectedTodo.ToggleCompletion()
+	updatedTodo := selectedTodo.ToggleCompletion(now)
 
 	// Update in place (completion doesn't change priority/quadrant)
 	return m.UpdateTodoAtIndex(quadrant, index, updatedTodo), true

@@ -189,15 +189,15 @@ func (t Todo) Contexts() []string {
 }
 
 // ToggleCompletion returns a new Todo with the completion status toggled
-// When marking complete: sets completion date to now
+// When marking complete: sets completion date to the provided time
 // When marking incomplete: clears completion date
-func (t Todo) ToggleCompletion() Todo {
+// The now parameter allows deterministic testing and follows dependency inversion
+func (t Todo) ToggleCompletion(now time.Time) Todo {
 	newCompleted := !t.completed
 	var newCompletionDate *time.Time
 
 	if newCompleted {
-		// Marking as complete: set date to now
-		now := time.Now()
+		// Marking as complete: set date to provided time
 		newCompletionDate = &now
 	} else {
 		// Marking as incomplete: clear date
