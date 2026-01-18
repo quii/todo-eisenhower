@@ -7,7 +7,6 @@ import (
 	"github.com/matryer/is"
 	"github.com/quii/todo-eisenhower/domain/matrix"
 	"github.com/quii/todo-eisenhower/domain/todo"
-	"github.com/quii/todo-eisenhower/usecases"
 )
 
 func TestAnalyzeInventory_ActiveCounts(t *testing.T) {
@@ -18,10 +17,12 @@ func TestAnalyzeInventory_ActiveCounts(t *testing.T) {
 	todoA1 := todo.New("Urgent task", todo.PriorityA)
 	todoA2 := todo.New("Another urgent", todo.PriorityA)
 	todoB := todo.New("Important task", todo.PriorityB)
-	
+
 	m := matrix.New([]todo.Todo{todoA1, todoA2, todoB})
 
-	metrics := usecases.AnalyzeInventory(m)
+	// Use fixed "now" for deterministic testing
+	now := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
+	metrics := m.CalculateInventory(now)
 
 	// Check active counts
 	is.Equal(metrics.DoFirstActive, 2)
@@ -33,30 +34,35 @@ func TestAnalyzeInventory_OldestAge(t *testing.T) {
 	//nolint:gocritic // importShadow: is := is.New(t) is idiomatic for github.com/matryer/is
 	is := is.New(t)
 
-	// Create todo with creation date 21 days ago
-	oldDate := time.Now().AddDate(0, 0, -21)
+	// Use fixed "now" for deterministic testing
+	now := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
+
+	// Create todo with creation date 21 days before "now"
+	oldDate := now.AddDate(0, 0, -21)
 	oldTodo := todo.NewWithCreationDate("Old task", todo.PriorityA, &oldDate)
-	
-	// Recent todo
-	recentDate := time.Now().AddDate(0, 0, -3)
+
+	// Recent todo 3 days before "now"
+	recentDate := now.AddDate(0, 0, -3)
 	recentTodo := todo.NewWithCreationDate("Recent task", todo.PriorityA, &recentDate)
 
 	m := matrix.New([]todo.Todo{oldTodo, recentTodo})
 
-	metrics := usecases.AnalyzeInventory(m)
+	metrics := m.CalculateInventory(now)
 
-	// Oldest should be ~21 days
-	is.True(metrics.DoFirstOldestDays >= 20)
-	is.True(metrics.DoFirstOldestDays <= 22)
+	// Oldest should be exactly 21 days (deterministic now)
+	is.Equal(metrics.DoFirstOldestDays, 21)
 }
 
 func TestAnalyzeInventory_ContextBreakdown(t *testing.T) {
 	//nolint:gocritic // importShadow: is := is.New(t) is idiomatic for github.com/matryer/is
 	is := is.New(t)
 
-	// Create todos with contexts
-	old := time.Now().AddDate(0, 0, -18)
-	recent := time.Now().AddDate(0, 0, -2)
+	// Use fixed "now" for deterministic testing
+	now := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
+
+	// Create todos with contexts 18 and 2 days before "now"
+	old := now.AddDate(0, 0, -18)
+	recent := now.AddDate(0, 0, -2)
 
 	todo1 := todo.NewWithTagsAndDates("Task 1", todo.PriorityA, &old, nil, []string{"people"})
 	todo2 := todo.NewWithTagsAndDates("Task 2", todo.PriorityA, &old, nil, []string{"people"})
@@ -64,7 +70,7 @@ func TestAnalyzeInventory_ContextBreakdown(t *testing.T) {
 
 	m := matrix.New([]todo.Todo{todo1, todo2, todo3})
 
-	metrics := usecases.AnalyzeInventory(m)
+	metrics := m.CalculateInventory(now)
 
 	// Should have context breakdown
 	is.True(len(metrics.ContextBreakdown) > 0)
@@ -74,17 +80,19 @@ func TestAnalyzeInventory_ContextBreakdown(t *testing.T) {
 	is.True(found)
 	is.Equal(peopleMetrics.Count, 2)
 
-	// Average age should be ~18 days
-	is.True(peopleMetrics.AvgAgeDays >= 17)
-	is.True(peopleMetrics.AvgAgeDays <= 19)
+	// Average age should be exactly 18 days (deterministic now)
+	is.Equal(peopleMetrics.AvgAgeDays, 18)
 }
 
 func TestAnalyzeInventory_ProjectBreakdown(t *testing.T) {
 	is := is.New(t)
 
-	// Create todos with projects
-	old := time.Now().AddDate(0, 0, -20)
-	recent := time.Now().AddDate(0, 0, -5)
+	// Use fixed "now" for deterministic testing
+	now := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
+
+	// Create todos with projects 20 and 5 days before "now"
+	old := now.AddDate(0, 0, -20)
+	recent := now.AddDate(0, 0, -5)
 
 	todo1 := todo.NewWithTagsAndDates("Task 1", todo.PriorityA, &old, []string{"WebApp"}, nil)
 	todo2 := todo.NewWithTagsAndDates("Task 2", todo.PriorityA, &old, []string{"WebApp"}, nil)
@@ -92,7 +100,7 @@ func TestAnalyzeInventory_ProjectBreakdown(t *testing.T) {
 
 	m := matrix.New([]todo.Todo{todo1, todo2, todo3})
 
-	metrics := usecases.AnalyzeInventory(m)
+	metrics := m.CalculateInventory(now)
 
 	// Should have project breakdown
 	is.True(len(metrics.ProjectBreakdown) > 0)
@@ -102,22 +110,24 @@ func TestAnalyzeInventory_ProjectBreakdown(t *testing.T) {
 	is.True(found)
 	is.Equal(webappMetrics.Count, 2)
 
-	// Average age should be ~20 days
-	is.True(webappMetrics.AvgAgeDays >= 19)
-	is.True(webappMetrics.AvgAgeDays <= 21)
+	// Average age should be exactly 20 days (deterministic now)
+	is.Equal(webappMetrics.AvgAgeDays, 20)
 }
 
 func TestAnalyzeInventory_ExcludesTodosWithoutCreationDates(t *testing.T) {
 	is := is.New(t)
 
+	// Use fixed "now" for deterministic testing
+	now := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
+
 	// Create todos: one with date, one without
-	withDate := time.Now().AddDate(0, 0, -10)
+	withDate := now.AddDate(0, 0, -10)
 	todoWithDate := todo.NewWithTagsAndDates("Has date", todo.PriorityA, &withDate, []string{"project1"}, []string{"context1"})
 	todoNoDate := todo.NewWithTagsAndDates("No date", todo.PriorityA, nil, []string{"project2"}, []string{"context2"})
 
 	m := matrix.New([]todo.Todo{todoWithDate, todoNoDate})
 
-	metrics := usecases.AnalyzeInventory(m)
+	metrics := m.CalculateInventory(now)
 
 	// Should count both as active
 	is.Equal(metrics.DoFirstActive, 2)
@@ -137,22 +147,25 @@ func TestAnalyzeInventory_ExcludesTodosWithoutCreationDates(t *testing.T) {
 func TestAnalyzeInventory_Throughput(t *testing.T) {
 	is := is.New(t)
 
-	// Completed recently (within 7 days)
-	recentCompletion := time.Now().AddDate(0, 0, -3)
+	// Use fixed "now" for deterministic testing
+	now := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
+
+	// Completed recently (within 7 days of "now")
+	recentCompletion := now.AddDate(0, 0, -3)
 	completed1 := todo.NewCompletedWithDates("Done 1", todo.PriorityA, &recentCompletion, nil)
 	completed2 := todo.NewCompletedWithDates("Done 2", todo.PriorityA, &recentCompletion, nil)
 
-	// Completed long ago (>7 days)
-	oldCompletion := time.Now().AddDate(0, 0, -10)
+	// Completed long ago (>7 days before "now")
+	oldCompletion := now.AddDate(0, 0, -10)
 	completedOld := todo.NewCompletedWithDates("Done old", todo.PriorityA, &oldCompletion, nil)
 
-	// Created recently
-	recentCreation := time.Now().AddDate(0, 0, -2)
+	// Created recently (within 7 days of "now")
+	recentCreation := now.AddDate(0, 0, -2)
 	newTodo := todo.NewWithCreationDate("New", todo.PriorityA, &recentCreation)
 
 	m := matrix.New([]todo.Todo{completed1, completed2, completedOld, newTodo})
 
-	metrics := usecases.AnalyzeInventory(m)
+	metrics := m.CalculateInventory(now)
 
 	// Should show 2 completed in last 7 days
 	is.Equal(metrics.CompletedLast7Days, 2)
@@ -166,13 +179,16 @@ func TestAnalyzeInventory_ThroughputBoundaries(t *testing.T) {
 	t.Run("exactly 7 days ago should not be counted", func(t *testing.T) {
 		is := is.New(t)
 
-		// Exactly 7 days ago
-		exactly7Days := time.Now().AddDate(0, 0, -7)
+		// Use fixed "now" for deterministic testing
+		now := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
+
+		// Exactly 7 days before "now"
+		exactly7Days := now.AddDate(0, 0, -7)
 		completed := todo.NewCompletedWithDates("Done exactly 7", todo.PriorityA, &exactly7Days, nil)
 		created := todo.NewWithCreationDate("Created exactly 7", todo.PriorityA, &exactly7Days)
 
 		m := matrix.New([]todo.Todo{completed, created})
-		metrics := usecases.AnalyzeInventory(m)
+		metrics := m.CalculateInventory(now)
 
 		// After(sevenDaysAgo) should exclude exactly 7 days ago
 		is.Equal(metrics.CompletedLast7Days, 0) // not counted (too old)
@@ -182,13 +198,16 @@ func TestAnalyzeInventory_ThroughputBoundaries(t *testing.T) {
 	t.Run("6 days ago should be counted", func(t *testing.T) {
 		is := is.New(t)
 
-		// 6 days ago (within threshold)
-		within7Days := time.Now().AddDate(0, 0, -6)
+		// Use fixed "now" for deterministic testing
+		now := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
+
+		// 6 days before "now" (within threshold)
+		within7Days := now.AddDate(0, 0, -6)
 		completed := todo.NewCompletedWithDates("Done 6 days", todo.PriorityA, &within7Days, nil)
 		created := todo.NewWithCreationDate("Created 6 days", todo.PriorityA, &within7Days)
 
 		m := matrix.New([]todo.Todo{completed, created})
-		metrics := usecases.AnalyzeInventory(m)
+		metrics := m.CalculateInventory(now)
 
 		// Should be counted (recent enough)
 		is.Equal(metrics.CompletedLast7Days, 1)
@@ -198,13 +217,16 @@ func TestAnalyzeInventory_ThroughputBoundaries(t *testing.T) {
 	t.Run("8 days ago should not be counted", func(t *testing.T) {
 		is := is.New(t)
 
-		// 8 days ago (too old)
-		moreThan7Days := time.Now().AddDate(0, 0, -8)
+		// Use fixed "now" for deterministic testing
+		now := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
+
+		// 8 days before "now" (too old)
+		moreThan7Days := now.AddDate(0, 0, -8)
 		completed := todo.NewCompletedWithDates("Done 8 days", todo.PriorityA, &moreThan7Days, nil)
 		created := todo.NewWithCreationDate("Created 8 days", todo.PriorityA, &moreThan7Days)
 
 		m := matrix.New([]todo.Todo{completed, created})
-		metrics := usecases.AnalyzeInventory(m)
+		metrics := m.CalculateInventory(now)
 
 		// Should not be counted (too old)
 		is.Equal(metrics.CompletedLast7Days, 0)
@@ -217,33 +239,37 @@ func TestAnalyzeInventory_OldestAgeBoundaries(t *testing.T) {
 	t.Run("when two todos have same age, tracks the age correctly", func(t *testing.T) {
 		is := is.New(t)
 
-		// Two todos with identical ages
-		sameAge := time.Now().AddDate(0, 0, -15)
+		// Use fixed "now" for deterministic testing
+		now := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
+
+		// Two todos with identical ages (15 days before "now")
+		sameAge := now.AddDate(0, 0, -15)
 		todo1 := todo.NewWithCreationDate("First", todo.PriorityA, &sameAge)
 		todo2 := todo.NewWithCreationDate("Second", todo.PriorityA, &sameAge)
 
 		m := matrix.New([]todo.Todo{todo1, todo2})
-		metrics := usecases.AnalyzeInventory(m)
+		metrics := m.CalculateInventory(now)
 
-		// Should track the age (both are equally old)
-		is.True(metrics.DoFirstOldestDays >= 14)
-		is.True(metrics.DoFirstOldestDays <= 15)
+		// Should track the age (both are equally old) - exactly 15 days
+		is.Equal(metrics.DoFirstOldestDays, 15)
 	})
 
 	t.Run("tracks oldest when one is older", func(t *testing.T) {
 		is := is.New(t)
 
-		// Different ages
-		older := time.Now().AddDate(0, 0, -20)
-		newer := time.Now().AddDate(0, 0, -10)
+		// Use fixed "now" for deterministic testing
+		now := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
+
+		// Different ages (20 and 10 days before "now")
+		older := now.AddDate(0, 0, -20)
+		newer := now.AddDate(0, 0, -10)
 		todo1 := todo.NewWithCreationDate("Older", todo.PriorityA, &older)
 		todo2 := todo.NewWithCreationDate("Newer", todo.PriorityA, &newer)
 
 		m := matrix.New([]todo.Todo{todo1, todo2})
-		metrics := usecases.AnalyzeInventory(m)
+		metrics := m.CalculateInventory(now)
 
 		// Should track the older one (20 days, not 10)
-		is.True(metrics.DoFirstOldestDays >= 19)
-		is.True(metrics.DoFirstOldestDays <= 20)
+		is.Equal(metrics.DoFirstOldestDays, 20)
 	})
 }

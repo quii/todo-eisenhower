@@ -232,7 +232,7 @@ func RenderInventoryDashboard(m matrix.Matrix, width, height int) string {
 
 	// Project Breakdown Table
 	if len(metrics.ProjectBreakdown) > 0 {
-		projects := make([]usecases.TagMetrics, 0, len(metrics.ProjectBreakdown))
+		projects := make([]matrix.TagMetrics, 0, len(metrics.ProjectBreakdown))
 		for _, pm := range metrics.ProjectBreakdown {
 			projects = append(projects, pm)
 		}
@@ -288,7 +288,7 @@ func RenderInventoryDashboard(m matrix.Matrix, width, height int) string {
 
 	// Context Breakdown Table
 	if len(metrics.ContextBreakdown) > 0 {
-		contexts := make([]usecases.TagMetrics, 0, len(metrics.ContextBreakdown))
+		contexts := make([]matrix.TagMetrics, 0, len(metrics.ContextBreakdown))
 		for _, cm := range metrics.ContextBreakdown {
 			contexts = append(contexts, cm)
 		}

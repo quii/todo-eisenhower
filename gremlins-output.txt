@@ -1,0 +1,395 @@
+Starting...
+Gathering coverage... done in 272.996041ms
+ NOT COVERED CONDITIONALS_NEGATION at adapters/file/source.go:35:9
+ NOT COVERED CONDITIONALS_NEGATION at adapters/file/source.go:39:38
+ NOT COVERED CONDITIONALS_NEGATION at adapters/file/source.go:39:52
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/autocomplete.go:15:16
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/autocomplete.go:15:16
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/autocomplete.go:18:14
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/autocomplete.go:18:14
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/autocomplete.go:21:19
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/autocomplete.go:21:19
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/autocomplete.go:26:16
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/autocomplete.go:26:19
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/autocomplete.go:26:19
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/autocomplete.go:31:39
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/autocomplete.go:43:12
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/autocomplete.go:65:16
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/autocomplete.go:65:19
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/autocomplete.go:65:19
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/autocomplete.go:70:34
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/autocomplete.go:71:31
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/autocomplete.go:71:16
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/colors.go:37:26
+      KILLED CONDITIONALS_NEGATION at adapters/file/source.go:24:58
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/help.go:30:15
+       LIVED CONDITIONALS_NEGATION at adapters/ui/colors.go:54:10
+       LIVED CONDITIONALS_BOUNDARY at adapters/ui/help.go:41:9
+       LIVED CONDITIONALS_NEGATION at adapters/ui/help.go:41:9
+       LIVED INVERT_NEGATIVES at adapters/ui/help.go:41:21
+       LIVED ARITHMETIC_BASE at adapters/ui/help.go:41:21
+       LIVED CONDITIONALS_BOUNDARY at adapters/ui/help.go:47:8
+       LIVED CONDITIONALS_NEGATION at adapters/ui/help.go:47:8
+       LIVED INVERT_NEGATIVES at adapters/ui/help.go:47:20
+ NOT COVERED INCREMENT_DECREMENT at adapters/ui/inventory.go:31:22
+ NOT COVERED INCREMENT_DECREMENT at adapters/ui/inventory.go:34:22
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:57:25
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:58:28
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:58:28
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:60:29
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:60:29
+       LIVED ARITHMETIC_BASE at adapters/ui/help.go:47:20
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:86:25
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:93:9
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:93:9
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/inventory.go:93:32
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:93:32
+       LIVED CONDITIONALS_NEGATION at adapters/ui/inventory.go:81:24
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:107:25
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:114:9
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:114:9
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/inventory.go:114:32
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:114:32
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:163:15
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:163:15
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:166:15
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:166:15
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:178:13
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:178:13
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:181:16
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:181:16
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:182:87
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:183:16
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:183:16
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:184:72
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:211:18
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:211:18
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:227:27
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:234:35
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:234:35
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:240:25
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:241:28
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:241:28
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:243:29
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:243:29
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:249:20
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:249:20
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:259:16
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:259:16
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:266:25
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:279:64
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:279:57
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:282:20
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:282:20
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/inventory.go:283:31
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:283:31
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:285:23
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:290:35
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:290:35
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:296:25
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:297:28
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:297:28
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:299:29
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:299:29
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:305:20
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:305:20
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:315:16
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:315:16
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:322:25
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:335:65
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:335:58
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:338:20
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:338:20
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/inventory.go:339:31
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:339:31
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:341:24
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:350:16
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:350:37
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/inventory.go:377:28
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/inventory.go:377:28
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/inventory.go:381:51
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/model.go:141:47
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:141:47
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/model.go:144:56
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/model.go:144:51
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/model.go:147:77
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/model.go:147:55
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/model.go:147:51
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/model.go:147:51
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:211:18
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/model.go:211:63
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:211:63
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:216:18
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/model.go:216:63
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:216:63
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/model.go:225:57
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/model.go:225:57
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:233:18
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:235:25
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:240:18
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:246:18
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:252:18
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:260:18
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:266:18
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:274:18
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:280:17
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:292:17
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/model.go:294:44
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/model.go:294:44
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:305:17
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:311:14
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:320:9
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/model.go:365:41
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:365:41
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:365:59
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:373:24
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:441:14
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:448:9
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:463:14
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:463:33
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:470:9
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:481:16
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/model.go:484:26
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:484:26
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/model.go:486:37
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/model.go:486:37
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:497:14
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/model.go:503:25
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:503:25
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/model.go:503:52
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:503:52
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:511:9
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:522:16
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/model.go:525:26
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:525:26
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/model.go:527:37
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/model.go:527:37
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:538:16
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/model.go:668:14
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:668:14
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/model.go:668:30
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/model.go:668:30
+       LIVED CONDITIONALS_NEGATION at adapters/ui/inventory.go:102:24
+      KILLED ARITHMETIC_BASE at adapters/ui/render.go:93:41
+      KILLED CONDITIONALS_NEGATION at adapters/ui/render.go:92:14
+       LIVED ARITHMETIC_BASE at adapters/ui/render.go:115:77
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:153:14
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:157:20
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/render.go:164:36
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:164:36
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:180:16
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/render.go:184:9
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:184:9
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/render.go:185:29
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:185:29
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:198:50
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:202:19
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:202:41
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:205:28
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:210:47
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:212:63
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:219:9
+       LIVED ARITHMETIC_BASE at adapters/ui/render.go:115:75
+       LIVED CONDITIONALS_NEGATION at adapters/ui/render.go:248:19
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/render.go:259:36
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:259:36
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/render.go:260:21
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:260:21
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:260:40
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:263:28
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/render.go:272:34
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:272:34
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/render.go:273:20
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:273:20
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:273:38
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:276:26
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:294:10
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:303:45
+       LIVED CONDITIONALS_NEGATION at adapters/ui/render.go:248:42
+       LIVED INCREMENT_DECREMENT at adapters/ui/render.go:349:18
+       LIVED CONDITIONALS_NEGATION at adapters/ui/render.go:355:16
+      KILLED CONDITIONALS_NEGATION at adapters/ui/render.go:372:16
+       LIVED CONDITIONALS_BOUNDARY at adapters/ui/render.go:376:9
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/render.go:377:29
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:377:29
+      KILLED ARITHMETIC_BASE at adapters/ui/render.go:391:50
+      KILLED ARITHMETIC_BASE at adapters/ui/render.go:393:47
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:422:14
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:426:20
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:444:16
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/render.go:473:37
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:473:37
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/render.go:481:74
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:481:74
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/render.go:481:61
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:481:61
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/render.go:481:47
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:481:47
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/render.go:481:33
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:481:33
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:499:15
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:505:15
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:511:14
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:517:16
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/render.go:534:35
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:534:35
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/render.go:564:19
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:564:19
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/render.go:564:41
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render.go:564:41
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render.go:576:31
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render_delete.go:12:31
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render_input.go:28:14
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render_input.go:32:20
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/render_input.go:39:36
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render_input.go:39:36
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render_input.go:54:16
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/render_input.go:58:9
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render_input.go:58:9
+ NOT COVERED INVERT_NEGATIVES at adapters/ui/render_input.go:59:29
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render_input.go:59:29
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render_input.go:69:50
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render_input.go:73:19
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render_input.go:73:41
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render_input.go:76:28
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render_input.go:81:47
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render_input.go:83:63
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render_input.go:144:15
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render_input.go:145:37
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render_input.go:154:28
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render_input.go:161:43
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render_input.go:161:36
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render_input.go:169:22
+ NOT COVERED CONDITIONALS_BOUNDARY at adapters/ui/render_input.go:180:8
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render_input.go:180:8
+ NOT COVERED ARITHMETIC_BASE at adapters/ui/render_input.go:185:28
+ NOT COVERED CONDITIONALS_NEGATION at adapters/ui/render_input.go:190:8
+ NOT COVERED CONDITIONALS_NEGATION at cmd/eisenhower/main.go:17:9
+ NOT COVERED CONDITIONALS_NEGATION at cmd/eisenhower/main.go:25:9
+ NOT COVERED CONDITIONALS_NEGATION at cmd/eisenhower/main.go:33:28
+ NOT COVERED CONDITIONALS_BOUNDARY at cmd/eisenhower/main.go:44:18
+ NOT COVERED CONDITIONALS_NEGATION at cmd/eisenhower/main.go:44:18
+ NOT COVERED CONDITIONALS_NEGATION at cmd/eisenhower/main.go:48:10
+ NOT COVERED CONDITIONALS_NEGATION at cmd/eisenhower/main.go:57:10
+ NOT COVERED CONDITIONALS_NEGATION at cmd/eisenhower/main.go:65:9
+ NOT COVERED CONDITIONALS_BOUNDARY at domain/matrix/matrix.go:88:12
+ NOT COVERED CONDITIONALS_NEGATION at domain/matrix/matrix.go:88:12
+ NOT COVERED CONDITIONALS_BOUNDARY at domain/matrix/matrix.go:88:26
+ NOT COVERED CONDITIONALS_NEGATION at domain/matrix/matrix.go:88:26
+ NOT COVERED CONDITIONALS_BOUNDARY at domain/matrix/matrix.go:92:12
+ NOT COVERED CONDITIONALS_NEGATION at domain/matrix/matrix.go:92:12
+ NOT COVERED CONDITIONALS_BOUNDARY at domain/matrix/matrix.go:92:26
+ NOT COVERED CONDITIONALS_NEGATION at domain/matrix/matrix.go:92:26
+ NOT COVERED CONDITIONALS_BOUNDARY at domain/matrix/matrix.go:96:12
+ NOT COVERED CONDITIONALS_NEGATION at domain/matrix/matrix.go:96:12
+ NOT COVERED CONDITIONALS_BOUNDARY at domain/matrix/matrix.go:96:26
+ NOT COVERED CONDITIONALS_NEGATION at domain/matrix/matrix.go:96:26
+ NOT COVERED CONDITIONALS_BOUNDARY at domain/matrix/matrix.go:100:12
+ NOT COVERED CONDITIONALS_NEGATION at domain/matrix/matrix.go:100:12
+ NOT COVERED CONDITIONALS_BOUNDARY at domain/matrix/matrix.go:100:26
+ NOT COVERED CONDITIONALS_NEGATION at domain/matrix/matrix.go:100:26
+      KILLED CONDITIONALS_NEGATION at adapters/ui/render.go:376:9
+      KILLED CONDITIONALS_NEGATION at domain/matrix/matrix.go:122:22
+      KILLED CONDITIONALS_NEGATION at domain/parser/parser.go:29:30
+ NOT COVERED CONDITIONALS_NEGATION at domain/parser/parser.go:61:64
+ NOT COVERED CONDITIONALS_NEGATION at domain/parser/parser.go:71:64
+      KILLED CONDITIONALS_NEGATION at domain/parser/parser.go:37:31
+       LIVED CONDITIONALS_BOUNDARY at domain/parser/parser.go:80:19
+      KILLED CONDITIONALS_NEGATION at domain/parser/parser.go:80:19
+      KILLED CONDITIONALS_NEGATION at domain/parser/parser.go:88:18
+       LIVED CONDITIONALS_NEGATION at domain/parser/parser.go:90:64
+       LIVED CONDITIONALS_BOUNDARY at domain/parser/parser.go:111:20
+       LIVED CONDITIONALS_BOUNDARY at domain/parser/parser.go:111:41
+       LIVED CONDITIONALS_NEGATION at domain/parser/parser.go:111:20
+       LIVED CONDITIONALS_NEGATION at domain/parser/parser.go:111:41
+       LIVED CONDITIONALS_BOUNDARY at domain/parser/parser.go:117:19
+       LIVED CONDITIONALS_BOUNDARY at domain/parser/parser.go:117:40
+      KILLED CONDITIONALS_NEGATION at domain/parser/parser.go:117:19
+      KILLED CONDITIONALS_NEGATION at domain/parser/parser.go:117:40
+       LIVED CONDITIONALS_NEGATION at domain/parser/parser.go:118:19
+       LIVED CONDITIONALS_NEGATION at domain/parser/parser.go:124:18
+      KILLED INVERT_NEGATIVES at domain/parser/parser.go:133:49
+      KILLED ARITHMETIC_BASE at domain/parser/parser.go:133:49
+       LIVED CONDITIONALS_BOUNDARY at domain/parser/parser.go:136:17
+      KILLED CONDITIONALS_NEGATION at domain/parser/parser.go:136:17
+      KILLED CONDITIONALS_NEGATION at domain/todo/todo.go:82:14
+ NOT COVERED CONDITIONALS_NEGATION at domain/todo/todo.go:101:14
+ NOT COVERED CONDITIONALS_NEGATION at domain/todo/todo.go:104:14
+ NOT COVERED CONDITIONALS_NEGATION at domain/todo/todo.go:120:14
+ NOT COVERED CONDITIONALS_NEGATION at domain/todo/todo.go:123:14
+ NOT COVERED CONDITIONALS_NEGATION at domain/todo/todo.go:139:14
+ NOT COVERED CONDITIONALS_NEGATION at domain/todo/todo.go:142:14
+ NOT COVERED CONDITIONALS_BOUNDARY at usecases/add_todo.go:27:19
+ NOT COVERED CONDITIONALS_NEGATION at usecases/add_todo.go:27:19
+ NOT COVERED CONDITIONALS_BOUNDARY at usecases/add_todo.go:27:40
+ NOT COVERED CONDITIONALS_NEGATION at usecases/add_todo.go:27:40
+ NOT COVERED CONDITIONALS_NEGATION at usecases/add_todo.go:38:9
+ NOT COVERED INVERT_NEGATIVES at usecases/add_todo.go:48:51
+ NOT COVERED ARITHMETIC_BASE at usecases/add_todo.go:48:51
+ NOT COVERED CONDITIONALS_BOUNDARY at usecases/add_todo.go:51:17
+ NOT COVERED CONDITIONALS_NEGATION at usecases/add_todo.go:51:17
+ NOT COVERED CONDITIONALS_BOUNDARY at usecases/change_priority.go:24:11
+ NOT COVERED CONDITIONALS_NEGATION at usecases/change_priority.go:24:11
+ NOT COVERED CONDITIONALS_BOUNDARY at usecases/change_priority.go:24:24
+ NOT COVERED CONDITIONALS_NEGATION at usecases/change_priority.go:24:24
+ NOT COVERED CONDITIONALS_NEGATION at usecases/change_priority.go:30:29
+ NOT COVERED CONDITIONALS_NEGATION at usecases/change_priority.go:42:9
+      KILLED CONDITIONALS_NEGATION at domain/todo/todo.go:85:14
+      KILLED CONDITIONALS_NEGATION at usecases/delete_todo.go:15:9
+      KILLED INVERT_NEGATIVES at usecases/inventory.go:43:36
+      KILLED ARITHMETIC_BASE at usecases/inventory.go:43:36
+      KILLED CONDITIONALS_NEGATION at usecases/inventory.go:61:19
+      KILLED ARITHMETIC_BASE at usecases/inventory.go:62:49
+      KILLED INCREMENT_DECREMENT at usecases/inventory.go:68:23
+      KILLED INCREMENT_DECREMENT at usecases/inventory.go:73:27
+       LIVED CONDITIONALS_BOUNDARY at usecases/inventory.go:74:17
+      KILLED CONDITIONALS_NEGATION at usecases/inventory.go:74:17
+       LIVED INCREMENT_DECREMENT at usecases/inventory.go:78:28
+       LIVED CONDITIONALS_BOUNDARY at usecases/inventory.go:79:17
+ NOT COVERED INCREMENT_DECREMENT at usecases/inventory.go:83:28
+ NOT COVERED CONDITIONALS_BOUNDARY at usecases/inventory.go:84:17
+ NOT COVERED CONDITIONALS_NEGATION at usecases/inventory.go:84:17
+ NOT COVERED INCREMENT_DECREMENT at usecases/inventory.go:88:29
+ NOT COVERED CONDITIONALS_BOUNDARY at usecases/inventory.go:89:17
+ NOT COVERED CONDITIONALS_NEGATION at usecases/inventory.go:89:17
+       LIVED CONDITIONALS_NEGATION at usecases/inventory.go:79:17
+      KILLED INCREMENT_DECREMENT at usecases/inventory.go:97:27
+ NOT COVERED INCREMENT_DECREMENT at usecases/inventory.go:101:28
+ NOT COVERED INCREMENT_DECREMENT at usecases/inventory.go:103:29
+      KILLED INCREMENT_DECREMENT at usecases/inventory.go:99:28
+      KILLED CONDITIONALS_NEGATION at usecases/inventory.go:110:17
+      KILLED CONDITIONALS_NEGATION at usecases/inventory.go:120:17
+      KILLED CONDITIONALS_NEGATION at usecases/inventory.go:132:60
+      KILLED INCREMENT_DECREMENT at usecases/inventory.go:134:32
+      KILLED CONDITIONALS_NEGATION at usecases/inventory.go:140:19
+      KILLED INCREMENT_DECREMENT at usecases/inventory.go:142:27
+       LIVED CONDITIONALS_BOUNDARY at usecases/inventory.go:155:12
+      KILLED CONDITIONALS_NEGATION at usecases/inventory.go:155:12
+      KILLED ARITHMETIC_BASE at usecases/inventory.go:156:17
+       LIVED CONDITIONALS_BOUNDARY at usecases/inventory.go:174:12
+      KILLED CONDITIONALS_NEGATION at usecases/inventory.go:174:12
+      KILLED ARITHMETIC_BASE at usecases/inventory.go:175:17
+      KILLED CONDITIONALS_NEGATION at usecases/load_matrix.go:18:9
+       LIVED CONDITIONALS_NEGATION at usecases/load_matrix.go:22:43
+       LIVED CONDITIONALS_NEGATION at usecases/load_matrix.go:22:57
+ NOT COVERED CONDITIONALS_NEGATION at usecases/save_todo.go:32:59
+ NOT COVERED ARITHMETIC_BASE at usecases/save_todo.go:33:50
+ NOT COVERED CONDITIONALS_NEGATION at usecases/save_todo.go:36:53
+ NOT COVERED ARITHMETIC_BASE at usecases/save_todo.go:37:48
+      KILLED CONDITIONALS_NEGATION at usecases/load_matrix.go:28:9
+       LIVED CONDITIONALS_NEGATION at usecases/save_todo.go:42:18
+ NOT COVERED ARITHMETIC_BASE at usecases/save_todo.go:50:48
+ NOT COVERED ARITHMETIC_BASE at usecases/save_todo.go:59:18
+ NOT COVERED ARITHMETIC_BASE at usecases/save_todo.go:64:18
+ NOT COVERED CONDITIONALS_BOUNDARY at usecases/toggle_completion.go:24:11
+ NOT COVERED CONDITIONALS_NEGATION at usecases/toggle_completion.go:24:11
+ NOT COVERED CONDITIONALS_BOUNDARY at usecases/toggle_completion.go:24:24
+ NOT COVERED CONDITIONALS_NEGATION at usecases/toggle_completion.go:24:24
+ NOT COVERED CONDITIONALS_NEGATION at usecases/toggle_completion.go:37:9
+      KILLED CONDITIONALS_NEGATION at usecases/save_todo.go:49:53
+
+Mutation testing completed in 13 seconds 876 milliseconds
+Killed: 42, Lived: 38, Not covered: 307
+Timed out: 0, Not viable: 0, Skipped: 0
+Test efficacy: 52.50%
+Mutator coverage: 20.67%
