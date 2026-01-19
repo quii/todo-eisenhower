@@ -15,12 +15,17 @@ import (
 // TestRepositoryContract_Memory runs the contract tests against the memory repository
 func TestRepositoryContract_Memory(t *testing.T) {
 	t.Run("empty repository", func(t *testing.T) {
-		repo := memory.NewRepository("")
+		repo := memory.NewRepository()
 		repositoryContract(t, repo)
 	})
 
 	t.Run("repository with initial data", func(t *testing.T) {
-		repo := memory.NewRepository("(A) Existing task\n")
+		repo := memory.NewRepository()
+		initialTodo := todo.New("Existing task", todo.PriorityA)
+		err := repo.SaveAll([]todo.Todo{initialTodo})
+		if err != nil {
+			t.Fatalf("failed to create initial data: %v", err)
+		}
 		repositoryContractWithInitialData(t, repo)
 	})
 }

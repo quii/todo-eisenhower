@@ -9,6 +9,7 @@ import (
 	"github.com/matryer/is"
 	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
+	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -21,11 +22,13 @@ func TestStory019_ViewInventoryDashboard(t *testing.T) {
 	tenDaysAgo := time.Now().AddDate(0, 0, -10)
 	fiveDaysAgo := time.Now().AddDate(0, 0, -5)
 
-	input := "(A) " + tenDaysAgo.Format("2006-01-02") + " Urgent task +project1 @people\n" +
-		"(A) " + fiveDaysAgo.Format("2006-01-02") + " Another urgent +project1 @architecture\n" +
-		"(B) " + fiveDaysAgo.Format("2006-01-02") + " Important task +project2 @people"
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTagsAndDates("Urgent task", todo.PriorityA, &tenDaysAgo, []string{"project1"}, []string{"people"}),
+		todo.NewWithTagsAndDates("Another urgent", todo.PriorityA, &fiveDaysAgo, []string{"project1"}, []string{"architecture"}),
+		todo.NewWithTagsAndDates("Important task", todo.PriorityB, &fiveDaysAgo, []string{"project2"}, []string{"people"}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -69,10 +72,12 @@ func TestStory019_StaleItemsWarning(t *testing.T) {
 	veryOld := time.Now().AddDate(0, 0, -25) // 25 days ago - VERY STALE
 	stale := time.Now().AddDate(0, 0, -16)   // 16 days ago - STALE
 
-	input := "(A) " + veryOld.Format("2006-01-02") + " Very old task\n" +
-		"(B) " + stale.Format("2006-01-02") + " Stale task"
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithCreationDate("Very old task", todo.PriorityA, &veryOld),
+		todo.NewWithCreationDate("Stale task", todo.PriorityB, &stale),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -103,22 +108,24 @@ func TestStory019_ThroughputCalculation(t *testing.T) {
 
 	// 3 todos completed in last 7 days
 	// 11 todos added in last 7 days (we'll create several)
-	input := "x " + threeDaysAgo.Format("2006-01-02") + " " + tenDaysAgo.Format("2006-01-02") + " (A) Completed 1\n" +
-		"x " + threeDaysAgo.Format("2006-01-02") + " " + tenDaysAgo.Format("2006-01-02") + " (A) Completed 2\n" +
-		"x " + twoDaysAgo.Format("2006-01-02") + " " + tenDaysAgo.Format("2006-01-02") + " (A) Completed 3\n" +
-		"(A) " + threeDaysAgo.Format("2006-01-02") + " New task 1\n" +
-		"(A) " + threeDaysAgo.Format("2006-01-02") + " New task 2\n" +
-		"(A) " + threeDaysAgo.Format("2006-01-02") + " New task 3\n" +
-		"(A) " + twoDaysAgo.Format("2006-01-02") + " New task 4\n" +
-		"(B) " + twoDaysAgo.Format("2006-01-02") + " New task 5\n" +
-		"(B) " + twoDaysAgo.Format("2006-01-02") + " New task 6\n" +
-		"(B) " + twoDaysAgo.Format("2006-01-02") + " New task 7\n" +
-		"(C) " + threeDaysAgo.Format("2006-01-02") + " New task 8\n" +
-		"(C) " + threeDaysAgo.Format("2006-01-02") + " New task 9\n" +
-		"(C) " + threeDaysAgo.Format("2006-01-02") + " New task 10\n" +
-		"(C) " + threeDaysAgo.Format("2006-01-02") + " New task 11"
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewCompletedWithDates("Completed 1", todo.PriorityA, &threeDaysAgo, &tenDaysAgo),
+		todo.NewCompletedWithDates("Completed 2", todo.PriorityA, &threeDaysAgo, &tenDaysAgo),
+		todo.NewCompletedWithDates("Completed 3", todo.PriorityA, &twoDaysAgo, &tenDaysAgo),
+		todo.NewWithCreationDate("New task 1", todo.PriorityA, &threeDaysAgo),
+		todo.NewWithCreationDate("New task 2", todo.PriorityA, &threeDaysAgo),
+		todo.NewWithCreationDate("New task 3", todo.PriorityA, &threeDaysAgo),
+		todo.NewWithCreationDate("New task 4", todo.PriorityA, &twoDaysAgo),
+		todo.NewWithCreationDate("New task 5", todo.PriorityB, &twoDaysAgo),
+		todo.NewWithCreationDate("New task 6", todo.PriorityB, &twoDaysAgo),
+		todo.NewWithCreationDate("New task 7", todo.PriorityB, &twoDaysAgo),
+		todo.NewWithCreationDate("New task 8", todo.PriorityC, &threeDaysAgo),
+		todo.NewWithCreationDate("New task 9", todo.PriorityC, &threeDaysAgo),
+		todo.NewWithCreationDate("New task 10", todo.PriorityC, &threeDaysAgo),
+		todo.NewWithCreationDate("New task 11", todo.PriorityC, &threeDaysAgo),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -151,15 +158,17 @@ func TestStory019_TagBreakdowns(t *testing.T) {
 
 	// 6 todos with @people context
 	// 4 todos with +WebApp project
-	input := "(A) " + eighteenDaysAgo.Format("2006-01-02") + " Task 1 @people +WebApp\n" +
-		"(A) " + eighteenDaysAgo.Format("2006-01-02") + " Task 2 @people +WebApp\n" +
-		"(A) " + eighteenDaysAgo.Format("2006-01-02") + " Task 3 @people +WebApp\n" +
-		"(A) " + eighteenDaysAgo.Format("2006-01-02") + " Task 4 @people +WebApp\n" +
-		"(B) " + eighteenDaysAgo.Format("2006-01-02") + " Task 5 @people\n" +
-		"(B) " + eighteenDaysAgo.Format("2006-01-02") + " Task 6 @people\n" +
-		"(C) " + tenDaysAgo.Format("2006-01-02") + " Task 7 @architecture +Mobile"
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTagsAndDates("Task 1", todo.PriorityA, &eighteenDaysAgo, []string{"WebApp"}, []string{"people"}),
+		todo.NewWithTagsAndDates("Task 2", todo.PriorityA, &eighteenDaysAgo, []string{"WebApp"}, []string{"people"}),
+		todo.NewWithTagsAndDates("Task 3", todo.PriorityA, &eighteenDaysAgo, []string{"WebApp"}, []string{"people"}),
+		todo.NewWithTagsAndDates("Task 4", todo.PriorityA, &eighteenDaysAgo, []string{"WebApp"}, []string{"people"}),
+		todo.NewWithTagsAndDates("Task 5", todo.PriorityB, &eighteenDaysAgo, []string{}, []string{"people"}),
+		todo.NewWithTagsAndDates("Task 6", todo.PriorityB, &eighteenDaysAgo, []string{}, []string{"people"}),
+		todo.NewWithTagsAndDates("Task 7", todo.PriorityC, &tenDaysAgo, []string{"Mobile"}, []string{"architecture"}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -189,8 +198,11 @@ func TestStory019_ExitInventoryMode(t *testing.T) {
 	// Scenario: Press 'i' again to exit dashboard
 	is := is.New(t)
 
-	input := "(A) Task 1"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task 1", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -221,8 +233,11 @@ func TestStory019_ExitInventoryModeWithESC(t *testing.T) {
 	// Scenario: Press ESC to exit dashboard
 	is := is.New(t)
 
-	input := "(A) Task 1"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task 1", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -251,13 +266,15 @@ func TestStory019_ExcludeTodosWithoutCreationDates(t *testing.T) {
 	tenDaysAgo := time.Now().AddDate(0, 0, -10)
 
 	// 5 active todos in Do First: 3 with dates, 2 without
-	input := "(A) " + tenDaysAgo.Format("2006-01-02") + " Task with date 1 +project1 @context1\n" +
-		"(A) " + tenDaysAgo.Format("2006-01-02") + " Task with date 2 +project1 @context1\n" +
-		"(A) " + tenDaysAgo.Format("2006-01-02") + " Task with date 3 +project1 @context1\n" +
-		"(A) Task without date 1 +project2 @context2\n" +
-		"(A) Task without date 2 +project2 @context2"
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTagsAndDates("Task with date 1", todo.PriorityA, &tenDaysAgo, []string{"project1"}, []string{"context1"}),
+		todo.NewWithTagsAndDates("Task with date 2", todo.PriorityA, &tenDaysAgo, []string{"project1"}, []string{"context1"}),
+		todo.NewWithTagsAndDates("Task with date 3", todo.PriorityA, &tenDaysAgo, []string{"project1"}, []string{"context1"}),
+		todo.NewWithTags("Task without date 1", todo.PriorityA, []string{"project2"}, []string{"context2"}),
+		todo.NewWithTags("Task without date 2", todo.PriorityA, []string{"project2"}, []string{"context2"}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -292,8 +309,12 @@ func TestStory019_InventoryOnlyInOverviewMode(t *testing.T) {
 	// Scenario: 'i' key only works in overview mode
 	is := is.New(t)
 
-	input := "(A) Task 1\n(A) Task 2"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task 1", todo.PriorityA),
+		todo.New("Task 2", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)

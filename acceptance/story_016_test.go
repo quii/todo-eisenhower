@@ -16,9 +16,11 @@ func TestStory016_EnterMoveModeWithMKey(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Enter move mode with 'm' key
 
-	input := `(A) Review quarterly goals`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Review quarterly goals", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -49,9 +51,11 @@ func TestStory016_SelectDestinationQuadrant(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Select destination quadrant
 
-	input := `(A) Review quarterly goals`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Review quarterly goals", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -88,9 +92,11 @@ func TestStory016_CancelMoveModeWithESC(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Cancel move mode with ESC
 
-	input := `(A) Review quarterly goals`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Review quarterly goals", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -144,9 +150,25 @@ func TestStory016_MoveToEachQuadrant(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			input := tt.initialPriority + " Test task"
-
-			repository := memory.NewRepository(input)
+			is := is.New(t)
+			repository := memory.NewRepository()
+			var priority todo.Priority
+			switch tt.initialPriority {
+			case "(A)":
+				priority = todo.PriorityA
+			case "(B)":
+				priority = todo.PriorityB
+			case "(C)":
+				priority = todo.PriorityC
+			case "(D)":
+				priority = todo.PriorityD
+			default:
+				priority = todo.PriorityNone
+			}
+			err := repository.SaveAll([]todo.Todo{
+				todo.New("Test task", priority),
+			})
+			is.NoErr(err)
 
 			m, err := usecases.LoadMatrix(repository)
 			if err != nil {
@@ -215,10 +237,13 @@ func TestStory016_MoveToEachQuadrant(t *testing.T) {
 
 func TestStory016_MovingToCurrentQuadrantIsNoOp(t *testing.T) {
 	// Scenario: Moving to current quadrant is no-op
+	is := is.New(t)
 
-	input := `(A) Review quarterly goals`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Review quarterly goals", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	if err != nil {
@@ -268,10 +293,13 @@ func TestStory016_MovingToCurrentQuadrantIsNoOp(t *testing.T) {
 
 func TestStory016_MoveModeOnlyAvailableInFocusMode(t *testing.T) {
 	// Scenario: Move mode only available in focus mode
+	is := is.New(t)
 
-	input := `(A) Review quarterly goals`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Review quarterly goals", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	if err != nil {
@@ -301,9 +329,13 @@ func TestStory016_MoveModeOnlyAvailableInFocusMode(t *testing.T) {
 func TestStory016_MoveModeOnlyAvailableWhenTodoSelected(t *testing.T) {
 	// Scenario: Move mode only available when todo selected
 
-	input := `(A) Task in DO FIRST`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task in DO FIRST", todo.PriorityA),
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	m, err := usecases.LoadMatrix(repository)
 	if err != nil {
@@ -338,9 +370,11 @@ func TestStory016_OtherKeysIgnoredInMoveMode(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Other keys should be ignored while in move mode
 
-	input := `(A) Review quarterly goals`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Review quarterly goals", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)

@@ -13,10 +13,13 @@ func TestMemoryRepository_RoundTrip(t *testing.T) {
 	is := is.New(t)
 
 	// Start with some initial content
-	initialContent := `(A) First task
-(B) Second task
-`
-	repo := memory.NewRepository(initialContent)
+	repo := memory.NewRepository()
+	initialTodos := []todo.Todo{
+		todo.New("First task", todo.PriorityA),
+		todo.New("Second task", todo.PriorityB),
+	}
+	err := repo.SaveAll(initialTodos)
+	is.NoErr(err)
 
 	// Load using repository
 	m, err := usecases.LoadMatrix(repo)
@@ -60,7 +63,7 @@ func TestMemoryRepository_RoundTrip(t *testing.T) {
 func TestMemoryRepository_EmptySource(t *testing.T) {
 	is := is.New(t)
 
-	repo := memory.NewRepository("")
+	repo := memory.NewRepository()
 
 	m, err := usecases.LoadMatrix(repo)
 	is.NoErr(err)
@@ -72,10 +75,10 @@ func TestMemoryRepository_UsesRealMarshal(t *testing.T) {
 	// not duplicating serialization logic
 	is := is.New(t)
 
-	repo := memory.NewRepository("")
+	repo := memory.NewRepository()
 
 	// Create a todo with projects and contexts
-	todoWithTags := todo.New("Deploy feature +WebApp @computer", todo.PriorityA)
+	todoWithTags := todo.NewWithTags("Deploy feature", todo.PriorityA, []string{"WebApp"}, []string{"computer"})
 	err := repo.SaveAll([]todo.Todo{todoWithTags})
 	is.NoErr(err)
 

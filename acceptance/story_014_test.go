@@ -49,8 +49,7 @@ func TestStory014_NewTodosGetCreationDateSet(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Set creation date to today when adding new todos
 
-	input := ""
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -96,9 +95,11 @@ func TestStory014_DisplayCreationDatesInUI(t *testing.T) {
 
 	// Create a todo from 5 days ago
 	fiveDaysAgo := time.Now().AddDate(0, 0, -5)
-	input := "(A) " + fiveDaysAgo.Format("2006-01-02") + " Task from five days ago"
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithCreationDate("Task from five days ago", todo.PriorityA, &fiveDaysAgo),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -126,9 +127,11 @@ func TestStory014_PreserveCreationDateOnToggle(t *testing.T) {
 	// Scenario: Toggling completion preserves creation date
 
 	threeDaysAgo := time.Now().AddDate(0, 0, -3)
-	input := "(A) " + threeDaysAgo.Format("2006-01-02") + " Task to toggle"
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithCreationDate("Task to toggle", todo.PriorityA, &threeDaysAgo),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -163,9 +166,11 @@ func TestStory014_PreserveCreationDateOnMove(t *testing.T) {
 	// Scenario: Moving between quadrants preserves creation date
 
 	twoDaysAgo := time.Now().AddDate(0, 0, -2)
-	input := "(A) " + twoDaysAgo.Format("2006-01-02") + " Task to move"
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithCreationDate("Task to move", todo.PriorityA, &twoDaysAgo),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -205,11 +210,13 @@ func TestStory014_FriendlyDateFormatting(t *testing.T) {
 	yesterday := today.AddDate(0, 0, -1)
 	sevenDaysAgo := today.AddDate(0, 0, -7)
 
-	input := "(A) " + today.Format("2006-01-02") + " Task created today\n" +
-		"(B) " + yesterday.Format("2006-01-02") + " Task created yesterday\n" +
-		"(C) " + sevenDaysAgo.Format("2006-01-02") + " Task from a week ago"
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithCreationDate("Task created today", todo.PriorityA, &today),
+		todo.NewWithCreationDate("Task created yesterday", todo.PriorityB, &yesterday),
+		todo.NewWithCreationDate("Task from a week ago", todo.PriorityC, &sevenDaysAgo),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -247,11 +254,15 @@ func TestStory014_HandleTodosWithoutCreationDate(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Application gracefully handles todos without creation dates
 
-	input := `(A) 2026-01-10 Task with date
-(B) Task without date
-(C) 2026-01-05 Another task with date`
-
-	repository := memory.NewRepository(input)
+	date1 := time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC)
+	date2 := time.Date(2026, 1, 5, 0, 0, 0, 0, time.UTC)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithCreationDate("Task with date", todo.PriorityA, &date1),
+		todo.New("Task without date", todo.PriorityB),
+		todo.NewWithCreationDate("Another task with date", todo.PriorityC, &date2),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)

@@ -1,6 +1,7 @@
 package acceptance_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -8,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
+	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -22,8 +24,9 @@ func TestStory006_MatrixFillsAvailableSpace(t *testing.T) {
 	is := is.New(t)
 
 	// Create todos (15 in Priority A to test display limit)
-	input := generateManyTodos(15)
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll(generateManyTodoObjects(15))
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -51,8 +54,9 @@ func TestStory006_MatrixAdjustsToDifferentSizes(t *testing.T) {
 	// Then the quadrants are larger than in a 120x40 terminal
 	is := is.New(t)
 
-	input := generateManyTodos(30)
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll(generateManyTodoObjects(30))
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -77,8 +81,11 @@ func TestStory006_MatrixRespectsMinimumDimensions(t *testing.T) {
 	// And does not break the layout
 	is := is.New(t)
 
-	input := "(A) Test todo"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Test todo", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -124,8 +131,9 @@ func TestStory006_DisplayLimitScalesWithHeight(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			is := is.New(t)
 
-			input := generateManyTodos(20)
-			repository := memory.NewRepository(input)
+			repository := memory.NewRepository()
+			err := repository.SaveAll(generateManyTodoObjects(20))
+			is.NoErr(err)
 
 			m, err := usecases.LoadMatrix(repository)
 			is.NoErr(err)
@@ -147,8 +155,9 @@ func TestStory006_WindowResizeHandledGracefully(t *testing.T) {
 	// Then the matrix re-renders with new dimensions
 	is := is.New(t)
 
-	input := generateManyTodos(15)
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll(generateManyTodoObjects(15))
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -175,8 +184,9 @@ func TestStory006_DefaultDimensionsWhenNoWindowSize(t *testing.T) {
 	// (edge case for initial render before WindowSizeMsg)
 	is := is.New(t)
 
-	input := generateManyTodos(10)
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll(generateManyTodoObjects(10))
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -194,13 +204,10 @@ func TestStory006_DefaultDimensionsWhenNoWindowSize(t *testing.T) {
 }
 
 // Helper function to generate many Priority A todos for testing
-func generateManyTodos(count int) string {
-	var builder strings.Builder
-	for i := 1; i <= count; i++ {
-		builder.WriteString("(A) Task number ")
-		builder.WriteString(string(rune('0' + (i/10)%10)))
-		builder.WriteString(string(rune('0' + i%10)))
-		builder.WriteString("\n")
+func generateManyTodoObjects(count int) []todo.Todo {
+	todos := make([]todo.Todo, count)
+	for i := range count {
+		todos[i] = todo.New(fmt.Sprintf("Task number %02d", i+1), todo.PriorityA)
 	}
-	return builder.String()
+	return todos
 }

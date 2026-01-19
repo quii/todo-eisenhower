@@ -14,10 +14,10 @@ type Repository struct {
 	buffer *bytes.Buffer
 }
 
-// NewRepository creates a new in-memory repository, optionally initialized with content
-func NewRepository(initialContent string) *Repository {
+// NewRepository creates a new empty in-memory repository
+func NewRepository() *Repository {
 	return &Repository{
-		buffer: bytes.NewBufferString(initialContent),
+		buffer: &bytes.Buffer{},
 	}
 }
 

@@ -19,8 +19,11 @@ func TestStory008_PressAToEnterInputMode(t *testing.T) {
 	// Scenario: Press 'a' to enter input mode in focused quadrant
 	is := is.New(t)
 
-	input := "(A) Existing task"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Existing task", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -55,8 +58,11 @@ func TestStory008_AddSimpleTodoWithoutTags(t *testing.T) {
 	// Scenario: Add a simple todo without tags
 	is := is.New(t)
 
-	input := "(A) Existing task"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Existing task", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -107,8 +113,11 @@ func TestStory008_AddTodoWithProjectTags(t *testing.T) {
 	// Scenario: Add todo with project tags
 	is := is.New(t)
 
-	input := "(B) Existing task +WebApp"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Existing task", todo.PriorityB, []string{"WebApp"}, []string{}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -161,8 +170,11 @@ func TestStory008_AddTodoWithContextTags(t *testing.T) {
 	// Scenario: Add todo with context tags
 	is := is.New(t)
 
-	input := "(C) Existing task @phone"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Existing task", todo.PriorityC, []string{}, []string{"phone"}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -215,8 +227,11 @@ func TestStory008_AddTodoWithMixedTags(t *testing.T) {
 	// Scenario: Add todo with mixed tags
 	is := is.New(t)
 
-	input := "(A) Existing task"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Existing task", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -272,8 +287,11 @@ func TestStory008_CancelInputWithESC(t *testing.T) {
 	// Scenario: Cancel input with ESC
 	is := is.New(t)
 
-	input := "(A) Existing task"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Existing task", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -317,8 +335,13 @@ func TestStory008_TagReferenceShowsExistingTags(t *testing.T) {
 	// Scenario: Tag reference display shows existing tags
 	is := is.New(t)
 
-	input := "(A) Task 1 +WebApp @computer\n(B) Task 2 +Mobile @phone\n(C) Task 3 @office"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Task 1", todo.PriorityA, []string{"WebApp"}, []string{"computer"}),
+		todo.NewWithTags("Task 2", todo.PriorityB, []string{"Mobile"}, []string{"phone"}),
+		todo.NewWithTags("Task 3", todo.PriorityC, []string{}, []string{"office"}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -351,8 +374,12 @@ func TestStory008_EmptyTagReferenceWhenNoTags(t *testing.T) {
 	// Scenario: Empty tag reference when no tags exist
 	is := is.New(t)
 
-	input := "(A) Task without tags\n(B) Another task"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task without tags", todo.PriorityA),
+		todo.New("Another task", todo.PriorityB),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -378,8 +405,11 @@ func TestStory008_InputOnlyAvailableInFocusMode(t *testing.T) {
 	// Scenario: Input only available in focus mode
 	is := is.New(t)
 
-	input := "(A) Task"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -419,8 +449,11 @@ func TestStory008_AutoAssignPriorityFromQuadrant(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			is := is.New(t)
 
-			input := "(A) Existing task"
-			repository := memory.NewRepository(input)
+			repository := memory.NewRepository()
+			err := repository.SaveAll([]todo.Todo{
+				todo.New("Existing task", todo.PriorityA),
+			})
+			is.NoErr(err)
 
 			m, err := usecases.LoadMatrix(repository)
 			is.NoErr(err)
@@ -480,8 +513,11 @@ func TestStory008_NewTagsAreAccepted(t *testing.T) {
 	// Scenario: New tags are accepted
 	is := is.New(t)
 
-	input := "(A) Task +WebApp +Mobile"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Task", todo.PriorityA, []string{"WebApp", "Mobile"}, []string{}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)

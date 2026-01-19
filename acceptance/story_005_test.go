@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
+	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -20,8 +21,11 @@ import (
 func TestStory005_ModelRespondsToQuitKey(t *testing.T) {
 	is := is.New(t)
 
-	input := "(A) Test todo"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Test todo", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -38,8 +42,11 @@ func TestStory005_ModelRespondsToQuitKey(t *testing.T) {
 func TestStory005_ModelRespondsToCtrlC(t *testing.T) {
 	is := is.New(t)
 
-	input := "(A) Test todo"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Test todo", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -56,8 +63,11 @@ func TestStory005_ModelRespondsToCtrlC(t *testing.T) {
 func TestStory005_ModelHandlesWindowSize(t *testing.T) {
 	is := is.New(t)
 
-	input := "(A) Test todo"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Test todo", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -77,8 +87,11 @@ func TestStory005_ModelHandlesWindowSize(t *testing.T) {
 func TestStory005_ModelInitialViewWithoutWindowSize(t *testing.T) {
 	is := is.New(t)
 
-	input := "(A) Test todo"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Test todo", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)

@@ -3,11 +3,13 @@ package acceptance_test
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/matryer/is"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
+	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -15,14 +17,17 @@ func TestStory017_ShowSummaryStatsForEachQuadrant(t *testing.T) {
 	// Scenario: Show summary stats for each quadrant
 	is := is.New(t)
 
-	input := `(A) Task one
-(A) Task two
-x 2026-01-15 (A) Completed task
-(B) Schedule task
-(C) Delegate task
-(D) Eliminate task`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	completionDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task one", todo.PriorityA),
+		todo.New("Task two", todo.PriorityA),
+		todo.NewCompleted("Completed task", todo.PriorityA, &completionDate),
+		todo.New("Schedule task", todo.PriorityB),
+		todo.New("Delegate task", todo.PriorityC),
+		todo.New("Eliminate task", todo.PriorityD),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -46,11 +51,13 @@ func TestStory017_ShowTopNTodosAsSimpleList(t *testing.T) {
 	// Scenario: Show top N todos as simple list
 	is := is.New(t)
 
-	input := `(A) First task
-(A) Second task
-(A) Third task`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("First task", todo.PriorityA),
+		todo.New("Second task", todo.PriorityA),
+		todo.New("Third task", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -77,16 +84,18 @@ func TestStory017_IndicateWhenThereAreMoreTodos(t *testing.T) {
 	is := is.New(t)
 
 	// Create more than 5 tasks to trigger the "... and N more" message
-	input := `(A) Task 1
-(A) Task 2
-(A) Task 3
-(A) Task 4
-(A) Task 5
-(A) Task 6
-(A) Task 7
-(A) Task 8`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task 1", todo.PriorityA),
+		todo.New("Task 2", todo.PriorityA),
+		todo.New("Task 3", todo.PriorityA),
+		todo.New("Task 4", todo.PriorityA),
+		todo.New("Task 5", todo.PriorityA),
+		todo.New("Task 6", todo.PriorityA),
+		todo.New("Task 7", todo.PriorityA),
+		todo.New("Task 8", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -109,9 +118,11 @@ func TestStory017_EmptyQuadrantShowsHelpfulMessage(t *testing.T) {
 	// Scenario: Empty quadrant shows helpful message
 	is := is.New(t)
 
-	input := `(A) Only in DO FIRST`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Only in DO FIRST", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -136,11 +147,14 @@ func TestStory017_AllCompletedTodosShowsInStats(t *testing.T) {
 	// Scenario: All completed todos shows in stats
 	is := is.New(t)
 
-	input := `x 2026-01-15 (A) Completed one
-x 2026-01-15 (A) Completed two
-x 2026-01-15 (A) Completed three`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	completionDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewCompleted("Completed one", todo.PriorityA, &completionDate),
+		todo.NewCompleted("Completed two", todo.PriorityA, &completionDate),
+		todo.NewCompleted("Completed three", todo.PriorityA, &completionDate),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -159,10 +173,13 @@ func TestStory017_CompletedTodosShownWithVisualIndicator(t *testing.T) {
 	// Scenario: Completed todos shown with visual indicator
 	is := is.New(t)
 
-	input := `x 2026-01-15 (A) Completed task
-(A) Active task`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	completionDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewCompleted("Completed task", todo.PriorityA, &completionDate),
+		todo.New("Active task", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -184,12 +201,14 @@ func TestStory017_QuadrantLayoutPreserved(t *testing.T) {
 	// Scenario: Quadrant layout preserved
 	is := is.New(t)
 
-	input := `(A) DO FIRST task
-(B) SCHEDULE task
-(C) DELEGATE task
-(D) ELIMINATE task`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("DO FIRST task", todo.PriorityA),
+		todo.New("SCHEDULE task", todo.PriorityB),
+		todo.New("DELEGATE task", todo.PriorityC),
+		todo.New("ELIMINATE task", todo.PriorityD),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -214,10 +233,15 @@ func TestStory017_NoTagsOrDatesInOverview(t *testing.T) {
 	// Scenario: Overview shows simple descriptions without tags or dates
 	is := is.New(t)
 
-	input := `(A) 2026-01-10 Review code +WebApp @computer
-x 2026-01-15 (A) 2026-01-12 Deploy feature +WebApp @terminal`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	creationDate := time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC)
+	creationDate2 := time.Date(2026, 1, 12, 0, 0, 0, 0, time.UTC)
+	completionDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTagsAndDates("Review code", todo.PriorityA, &creationDate, []string{"WebApp"}, []string{"computer"}),
+		todo.NewCompletedWithTagsAndDates("Deploy feature", todo.PriorityA, &completionDate, &creationDate2, []string{"WebApp"}, []string{"terminal"}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)

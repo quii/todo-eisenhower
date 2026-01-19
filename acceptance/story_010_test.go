@@ -3,6 +3,7 @@ package acceptance_test
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/matryer/is"
 	tea "github.com/charmbracelet/bubbletea"
@@ -16,15 +17,18 @@ func TestStory010_DisplayProjectTagInventory(t *testing.T) {
 	// Scenario: Display project tag inventory
 	is := is.New(t)
 
-	input := `(A) Task one +strategy
-(A) Task two +strategy
-(A) Task three +strategy
-(B) Task four +hiring
-(B) Task five +hiring
-(C) Task six +architecture
-x (A) Completed task +strategy`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	completionDate := time.Now()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Task one", todo.PriorityA, []string{"strategy"}, []string{}),
+		todo.NewWithTags("Task two", todo.PriorityA, []string{"strategy"}, []string{}),
+		todo.NewWithTags("Task three", todo.PriorityA, []string{"strategy"}, []string{}),
+		todo.NewWithTags("Task four", todo.PriorityB, []string{"hiring"}, []string{}),
+		todo.NewWithTags("Task five", todo.PriorityB, []string{"hiring"}, []string{}),
+		todo.NewWithTags("Task six", todo.PriorityC, []string{"architecture"}, []string{}),
+		todo.NewCompletedWithTags("Completed task", todo.PriorityA, &completionDate, []string{"strategy"}, []string{}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -57,16 +61,18 @@ func TestStory010_DisplayContextTagInventory(t *testing.T) {
 	// Scenario: Display context tag inventory
 	is := is.New(t)
 
-	input := `(A) Task one @computer
-(A) Task two @computer
-(A) Task three @computer
-(A) Task four @computer
-(A) Task five @computer
-(B) Task six @phone
-(B) Task seven @phone
-(C) Task eight @office`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Task one", todo.PriorityA, []string{}, []string{"computer"}),
+		todo.NewWithTags("Task two", todo.PriorityA, []string{}, []string{"computer"}),
+		todo.NewWithTags("Task three", todo.PriorityA, []string{}, []string{"computer"}),
+		todo.NewWithTags("Task four", todo.PriorityA, []string{}, []string{"computer"}),
+		todo.NewWithTags("Task five", todo.PriorityA, []string{}, []string{"computer"}),
+		todo.NewWithTags("Task six", todo.PriorityB, []string{}, []string{"phone"}),
+		todo.NewWithTags("Task seven", todo.PriorityB, []string{}, []string{"phone"}),
+		todo.NewWithTags("Task eight", todo.PriorityC, []string{}, []string{"office"}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -94,11 +100,13 @@ func TestStory010_DisplayBothProjectAndContextInventory(t *testing.T) {
 	// Scenario: Display both project and context inventory
 	is := is.New(t)
 
-	input := `(A) Task one +strategy @computer
-(A) Task two +strategy @computer
-(B) Task three +hiring @phone`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Task one", todo.PriorityA, []string{"strategy"}, []string{"computer"}),
+		todo.NewWithTags("Task two", todo.PriorityA, []string{"strategy"}, []string{"computer"}),
+		todo.NewWithTags("Task three", todo.PriorityB, []string{"hiring"}, []string{"phone"}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -122,10 +130,12 @@ func TestStory010_NoTagsInUse(t *testing.T) {
 	// Scenario: No tags in use
 	is := is.New(t)
 
-	input := `(A) Task without tags
-(B) Another task`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task without tags", todo.PriorityA),
+		todo.New("Another task", todo.PriorityB),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -148,10 +158,12 @@ func TestStory010_InventoryNotShownInFocusMode(t *testing.T) {
 	// Scenario: Inventory not shown in focus mode
 	is := is.New(t)
 
-	input := `(A) Task +strategy @computer
-(B) Task +hiring @phone`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Task", todo.PriorityA, []string{"strategy"}, []string{"computer"}),
+		todo.NewWithTags("Task", todo.PriorityB, []string{"hiring"}, []string{"phone"}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -174,9 +186,11 @@ func TestStory010_CountsUpdateWhenAddingTodos(t *testing.T) {
 	// Scenario: Counts update when adding todos
 	is := is.New(t)
 
-	input := `(A) Existing task +strategy`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Existing task", todo.PriorityA, []string{"strategy"}, []string{}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)

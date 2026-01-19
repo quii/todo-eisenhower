@@ -2,9 +2,11 @@ package acceptance_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/matryer/is"
 	"github.com/quii/todo-eisenhower/adapters/memory"
+	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -12,11 +14,15 @@ func TestStory002_LoadFromHardcodedPath(t *testing.T) {
 	t.Run("Scenario: Load todos from hardcoded file path", func(t *testing.T) {
 		is := is.New(t)
 		// Given a todo.txt file exists at "~/todo.txt" containing:
-		repository := memory.NewRepository( `(A) Fix critical bug
-(B) Plan quarterly goals
-(C) Reply to emails
-(D) Clean workspace
-`)
+		repository := memory.NewRepository()
+		initialTodos := []todo.Todo{
+			todo.New("Fix critical bug", todo.PriorityA),
+			todo.New("Plan quarterly goals", todo.PriorityB),
+			todo.New("Reply to emails", todo.PriorityC),
+			todo.New("Clean workspace", todo.PriorityD),
+		}
+		err := repository.SaveAll(initialTodos)
+		is.NoErr(err)
 
 		// When I run "eisenhower"
 		m, err := usecases.LoadMatrix(repository)
@@ -54,7 +60,7 @@ func TestStory002_LoadFromHardcodedPath(t *testing.T) {
 	t.Run("Scenario: Handle empty file", func(t *testing.T) {
 		is := is.New(t)
 		// Given an empty file exists at "~/todo.txt"
-		repository := memory.NewRepository("")
+		repository := memory.NewRepository()
 
 		// When I run "eisenhower"
 		m, err := usecases.LoadMatrix(repository)
@@ -71,10 +77,15 @@ func TestStory002_LoadFromHardcodedPath(t *testing.T) {
 	t.Run("Scenario: Parse completed todos", func(t *testing.T) {
 		is := is.New(t)
 		// Given a todo.txt file containing:
-		repository := memory.NewRepository( `(A) Active task
-x (A) 2026-01-11 Completed task
-(B) Another active task
-`)
+		repository := memory.NewRepository()
+		completionDate := time.Date(2026, 1, 11, 0, 0, 0, 0, time.UTC)
+		initialTodos := []todo.Todo{
+			todo.New("Active task", todo.PriorityA),
+			todo.NewCompleted("Completed task", todo.PriorityA, &completionDate),
+			todo.New("Another active task", todo.PriorityB),
+		}
+		err := repository.SaveAll(initialTodos)
+		is.NoErr(err)
 
 		// When I run "eisenhower"
 		m, err := usecases.LoadMatrix(repository)
@@ -105,9 +116,13 @@ x (A) 2026-01-11 Completed task
 	t.Run("Scenario: Handle todos without priority", func(t *testing.T) {
 		is := is.New(t)
 		// Given a todo.txt file containing:
-		repository := memory.NewRepository( `(A) High priority task
-No priority task
-`)
+		repository := memory.NewRepository()
+		initialTodos := []todo.Todo{
+			todo.New("High priority task", todo.PriorityA),
+			todo.New("No priority task", todo.PriorityNone),
+		}
+		err := repository.SaveAll(initialTodos)
+		is.NoErr(err)
 
 		// When I run "eisenhower"
 		m, err := usecases.LoadMatrix(repository)

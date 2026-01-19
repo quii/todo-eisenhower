@@ -8,6 +8,7 @@ import (
 	"github.com/matryer/is"
 	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
+	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -17,8 +18,13 @@ func TestStory009_TriggerAutocompleteWithPlus(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Trigger autocomplete with +
 
-	input := "(A) Task +WebApp\n(A) Task +Mobile\n(A) Task +Backend"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Task", todo.PriorityA, []string{"WebApp"}, []string{}),
+		todo.NewWithTags("Task", todo.PriorityA, []string{"Mobile"}, []string{}),
+		todo.NewWithTags("Task", todo.PriorityA, []string{"Backend"}, []string{}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -51,8 +57,13 @@ func TestStory009_FilterSuggestionsAsIType(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Filter suggestions as I type
 
-	input := "(A) Existing task +WebApp\n(B) Other task +Mobile\n(C) Another task +Backend"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Existing task", todo.PriorityA, []string{"WebApp"}, []string{}),
+		todo.NewWithTags("Other task", todo.PriorityB, []string{"Mobile"}, []string{}),
+		todo.NewWithTags("Another task", todo.PriorityC, []string{"Backend"}, []string{}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -85,8 +96,13 @@ func TestStory009_NavigateSuggestionsWithArrows(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Navigate suggestions with arrow keys
 
-	input := "(A) Task +WebApp\n(A) Task +Mobile\n(A) Task +Backend"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Task", todo.PriorityA, []string{"WebApp"}, []string{}),
+		todo.NewWithTags("Task", todo.PriorityA, []string{"Mobile"}, []string{}),
+		todo.NewWithTags("Task", todo.PriorityA, []string{"Backend"}, []string{}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -132,8 +148,12 @@ func TestStory009_CompleteTagWithTab(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Complete tag with Tab
 
-	input := "(A) Task +API\n(A) Task +WebApp"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Task", todo.PriorityA, []string{"API"}, []string{}),
+		todo.NewWithTags("Task", todo.PriorityA, []string{"WebApp"}, []string{}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -187,8 +207,12 @@ func TestStory009_CompleteTagWithEnter(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Complete tag with Enter (when suggestions visible)
 
-	input := "(A) Task +API\n(A) Task +WebApp"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Task", todo.PriorityA, []string{"API"}, []string{}),
+		todo.NewWithTags("Task", todo.PriorityA, []string{"WebApp"}, []string{}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -231,8 +255,11 @@ func TestStory009_DismissSuggestionsWithESC(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Dismiss suggestions with ESC
 
-	input := "(A) Task +WebApp"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Task", todo.PriorityA, []string{"WebApp"}, []string{}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -275,8 +302,13 @@ func TestStory009_AutocompleteContextTags(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Autocomplete context tags with @
 
-	input := "(B) Existing task @computer\n(C) Other task @phone\n(D) Another task @office"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Existing task", todo.PriorityB, []string{}, []string{"computer"}),
+		todo.NewWithTags("Other task", todo.PriorityC, []string{}, []string{"phone"}),
+		todo.NewWithTags("Another task", todo.PriorityD, []string{}, []string{"office"}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -320,8 +352,11 @@ func TestStory009_MultipleTagsInOneInput(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Multiple tags in one todo
 
-	input := "(B) Existing task +WebApp @computer"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Existing task", todo.PriorityB, []string{"WebApp"}, []string{"computer"}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -365,8 +400,11 @@ func TestStory009_NoMatchesMessage(t *testing.T) {
 	is := is.New(t)
 	// Scenario: No suggestions available
 
-	input := "(A) Task +WebApp"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Task", todo.PriorityA, []string{"WebApp"}, []string{}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -397,8 +435,11 @@ func TestStory009_CaseInsensitiveMatching(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Case-insensitive matching
 
-	input := "(A) Task +WebApp"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Task", todo.PriorityA, []string{"WebApp"}, []string{}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -429,8 +470,11 @@ func TestStory009_NewTagsAvailableInAutocomplete(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Newly created tags should appear in autocomplete
 
-	input := "(B) Task +OldTag"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Task", todo.PriorityB, []string{"OldTag"}, []string{}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)

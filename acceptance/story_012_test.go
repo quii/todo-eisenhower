@@ -3,6 +3,7 @@ package acceptance_test
 import (
 	"strings"
 	"testing"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/matryer/is"
@@ -16,9 +17,11 @@ func TestStory012_MoveFromDoFirstToSchedule(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Move todo from DO FIRST to SCHEDULE
 
-	input := `(A) Review quarterly goals`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Review quarterly goals", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -49,9 +52,11 @@ func TestStory012_MoveFromDelegateToDoFirst(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Move todo from DELEGATE to DO FIRST
 
-	input := `(C) Update documentation`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Update documentation", todo.PriorityC),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -82,9 +87,11 @@ func TestStory012_MoveToEliminate(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Move todo to ELIMINATE (priority D)
 
-	input := `(B) Optional feature idea`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Optional feature idea", todo.PriorityB),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -115,11 +122,13 @@ func TestStory012_MovingTodoAdjustsSelection(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Moving todo adjusts selection
 
-	input := `(A) First task
-(A) Second task
-(A) Third task`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("First task", todo.PriorityA),
+		todo.New("Second task", todo.PriorityA),
+		todo.New("Third task", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -169,9 +178,11 @@ func TestStory012_MovingLastTodoReturnsToOverview(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Moving last todo in quadrant returns to overview
 
-	input := `(C) Only delegate task`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Only delegate task", todo.PriorityC),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -206,9 +217,12 @@ func TestStory012_PreservesTagsAndCompletion(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Moving todo preserves tags and completion status
 
-	input := `x 2025-01-10 (A) Fix bug +WebApp @computer`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	completionDate := time.Date(2025, 1, 10, 0, 0, 0, 0, time.UTC)
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewCompletedWithTags("Fix bug", todo.PriorityA, &completionDate, []string{"WebApp"}, []string{"computer"}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -242,9 +256,11 @@ func TestStory012_PressingCurrentQuadrantDoesNothing(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Pressing current quadrant number does nothing
 
-	input := `(B) Plan sprint`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Plan sprint", todo.PriorityB),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -295,10 +311,12 @@ func TestStory012_NumberKeysStillFocusInOverview(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Number keys still focus quadrants in overview mode
 
-	input := `(A) Task one
-(B) Task two`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task one", todo.PriorityA),
+		todo.New("Task two", todo.PriorityB),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)

@@ -17,8 +17,11 @@ import (
 func TestStory004_ParseSingleProjectTag(t *testing.T) {
 	is := is.New(t)
 
-	input := "(A) Deploy new feature +WebApp"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Deploy new feature", todo.PriorityA, []string{"WebApp"}, []string{}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -34,8 +37,11 @@ func TestStory004_ParseSingleProjectTag(t *testing.T) {
 func TestStory004_ParseSingleContextTag(t *testing.T) {
 	is := is.New(t)
 
-	input := "(B) Call client @phone"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Call client", todo.PriorityB, []string{}, []string{"phone"}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -51,8 +57,11 @@ func TestStory004_ParseSingleContextTag(t *testing.T) {
 func TestStory004_ParseMultipleProjectsAndContexts(t *testing.T) {
 	is := is.New(t)
 
-	input := "(A) Write quarterly report +Work +Q1Goals @office @computer"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Write quarterly report", todo.PriorityA, []string{"Work", "Q1Goals"}, []string{"office", "computer"}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -74,8 +83,11 @@ func TestStory004_ParseMultipleProjectsAndContexts(t *testing.T) {
 func TestStory004_ParseTagsAnywhereInDescription(t *testing.T) {
 	is := is.New(t)
 
-	input := "(A) Review +OpenSource code for @github issues"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Review code for issues", todo.PriorityA, []string{"OpenSource"}, []string{"github"}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -95,8 +107,11 @@ func TestStory004_ParseTagsAnywhereInDescription(t *testing.T) {
 func TestStory004_TodosWithoutTagsRenderNormally(t *testing.T) {
 	is := is.New(t)
 
-	input := "(A) Simple task without tags"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Simple task without tags", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -110,9 +125,12 @@ func TestStory004_TodosWithoutTagsRenderNormally(t *testing.T) {
 func TestStory004_ConsistentColorForSameTag(t *testing.T) {
 	is := is.New(t)
 
-	input := `(A) First task +WebApp
-(B) Second task +WebApp`
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("First task", todo.PriorityA, []string{"WebApp"}, []string{}),
+		todo.NewWithTags("Second task", todo.PriorityB, []string{"WebApp"}, []string{}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -176,14 +194,16 @@ func (n *nopStubCloser) Close() error {
 func TestStory004_Integration_MixedTagsInMatrix(t *testing.T) {
 	is := is.New(t)
 
-	input := `(A) Deploy feature +WebApp @computer
-(B) Plan sprint +Work @office
-(C) Reply to emails @computer
-(D) Organize desk @office
-(A) Fix bug +MobileApp @phone
-No priority task +PersonalProject`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Deploy feature", todo.PriorityA, []string{"WebApp"}, []string{"computer"}),
+		todo.NewWithTags("Plan sprint", todo.PriorityB, []string{"Work"}, []string{"office"}),
+		todo.NewWithTags("Reply to emails", todo.PriorityC, []string{}, []string{"computer"}),
+		todo.NewWithTags("Organize desk", todo.PriorityD, []string{}, []string{"office"}),
+		todo.NewWithTags("Fix bug", todo.PriorityA, []string{"MobileApp"}, []string{"phone"}),
+		todo.NewWithTags("No priority task", todo.PriorityNone, []string{"PersonalProject"}, []string{}),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)

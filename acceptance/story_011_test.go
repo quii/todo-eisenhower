@@ -3,6 +3,7 @@ package acceptance_test
 import (
 	"strings"
 	"testing"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/matryer/is"
@@ -16,11 +17,13 @@ func TestStory011_NavigateTodosWithArrowKeys(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Navigate todos with arrow keys
 
-	input := `(A) Task one
-(A) Task two
-(A) Task three`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task one", todo.PriorityA),
+		todo.New("Task two", todo.PriorityA),
+		todo.New("Task three", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -58,10 +61,12 @@ func TestStory011_NavigateTodosWithWASD(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Navigate todos with w/s keys
 
-	input := `(A) Task one
-(A) Task two`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task one", todo.PriorityA),
+		todo.New("Task two", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -87,10 +92,12 @@ func TestStory011_MarkTodoAsComplete(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Mark todo as complete
 
-	input := `(A) Fix bug +WebApp
-(A) Another task`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewWithTags("Fix bug", todo.PriorityA, []string{"WebApp"}, []string{}),
+		todo.New("Another task", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -115,24 +122,33 @@ func TestStory011_MarkTodoAsComplete(t *testing.T) {
 	// Should show "today" in the Completed column
 	is.True(strings.Contains(stripANSI(view), "today"))  // expected completed todo to show 'today' in Completed column
 
-	// Verify todo was marked as complete
+	// Verify todo was marked as complete in repository
 	savedTodos, err := repository.LoadAll()
 	is.NoErr(err)
 	is.Equal(len(savedTodos), 2)
-	is.True(savedTodos[0].IsCompleted()) // expected first todo to be completed
-	is.True(strings.Contains(savedTodos[0].Description(), "Fix bug")) // description should contain base text
-	is.Equal(len(savedTodos[0].Projects()), 1)
-	is.Equal(savedTodos[0].Projects()[0], "WebApp")
-	is.True(savedTodos[0].CompletionDate() != nil) // expected completion date to be set
+
+	// Check that first todo was completed
+	is.True(savedTodos[0].IsCompleted())
+	is.Equal(savedTodos[0].Description(), "Fix bug")
+	is.Equal(savedTodos[0].Priority(), todo.PriorityA)
+	is.Equal(savedTodos[0].Projects(), []string{"WebApp"})
+
+	// Should have today's date
+	today := time.Now().Format("2006-01-02")
+	is.True(savedTodos[0].CompletionDate() != nil)
+	is.Equal(savedTodos[0].CompletionDate().Format("2006-01-02"), today)
 }
 
 func TestStory011_UnmarkCompletedTodo(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Unmark completed todo
 
-	input := `x 2025-12-25 (A) Completed task`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	completionDate := time.Date(2025, 12, 25, 0, 0, 0, 0, time.UTC)
+	err := repository.SaveAll([]todo.Todo{
+		todo.NewCompleted("Completed task", todo.PriorityA, &completionDate),
+	})
+	is.NoErr(err)
 
 	// First, let's parse the todos to see what we get
 	todos, err := repository.LoadAll()
@@ -176,9 +192,11 @@ func TestStory011_EmptyQuadrantNoSelection(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Empty quadrant has no selection
 
-	input := `(A) Task in DO FIRST`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task in DO FIRST", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -209,11 +227,13 @@ func TestStory011_SelectionNotShownInOverviewMode(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Selection state not shown in overview mode
 
-	input := `(A) Task one
-(A) Task two
-(A) Task three`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task one", todo.PriorityA),
+		todo.New("Task two", todo.PriorityA),
+		todo.New("Task three", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -249,11 +269,13 @@ func TestStory011_InputModePreservesSelection(t *testing.T) {
 	is := is.New(t)
 	// Scenario: Entering input mode preserves selection
 
-	input := `(A) Task one
-(A) Task two
-(A) Task three`
-
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task one", todo.PriorityA),
+		todo.New("Task two", todo.PriorityA),
+		todo.New("Task three", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)

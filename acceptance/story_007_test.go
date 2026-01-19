@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
+	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -17,8 +18,11 @@ func TestStory007_NoEmojisInQuadrantTitles(t *testing.T) {
 	// Scenario: No emojis in quadrant titles
 	is := is.New(t)
 
-	input := "(A) Test todo"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Test todo", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -43,8 +47,9 @@ func TestStory007_FocusOnDoFirst(t *testing.T) {
 	// Scenario: Focus on DO FIRST quadrant
 	is := is.New(t)
 
-	input := generateManyTodos(20)
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll(generateManyTodoObjects(20))
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -79,8 +84,12 @@ func TestStory007_FocusOnSchedule(t *testing.T) {
 	// Scenario: Focus on SCHEDULE quadrant
 	is := is.New(t)
 
-	input := "(B) Schedule task\n(B) Another schedule task"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Schedule task", todo.PriorityB),
+		todo.New("Another schedule task", todo.PriorityB),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -103,8 +112,11 @@ func TestStory007_FocusOnDelegate(t *testing.T) {
 	// Scenario: Focus on DELEGATE quadrant
 	is := is.New(t)
 
-	input := "(C) Delegate task"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Delegate task", todo.PriorityC),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -126,8 +138,11 @@ func TestStory007_FocusOnEliminate(t *testing.T) {
 	// Scenario: Focus on ELIMINATE quadrant
 	is := is.New(t)
 
-	input := "(D) Eliminate task"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Eliminate task", todo.PriorityD),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -149,8 +164,11 @@ func TestStory007_ReturnToOverviewWithESC(t *testing.T) {
 	// Scenario: Return to overview with ESC
 	is := is.New(t)
 
-	input := "(A) Test todo"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Test todo", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -189,8 +207,14 @@ func TestStory007_JumpBetweenQuadrantsInFocusMode(t *testing.T) {
 	// Scenario: Jump between quadrants in focus mode
 	is := is.New(t)
 
-	input := "(A) Task A\n(B) Task B\n(C) Task C\n(D) Task D"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task A", todo.PriorityA),
+		todo.New("Task B", todo.PriorityB),
+		todo.New("Task C", todo.PriorityC),
+		todo.New("Task D", todo.PriorityD),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -229,8 +253,13 @@ func TestStory007_EmptyQuadrantInFocusMode(t *testing.T) {
 	is := is.New(t)
 
 	// No Priority D or untagged tasks, so ELIMINATE will be empty
-	input := "(A) Task A\n(B) Task B\n(C) Task C"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task A", todo.PriorityA),
+		todo.New("Task B", todo.PriorityB),
+		todo.New("Task C", todo.PriorityC),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -253,8 +282,9 @@ func TestStory007_DisplayLimitScalesInFocusMode(t *testing.T) {
 	// Scenario: Display limit scales in focus mode
 	is := is.New(t)
 
-	input := generateManyTodos(50)
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll(generateManyTodoObjects(50))
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)

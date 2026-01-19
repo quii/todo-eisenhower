@@ -8,6 +8,7 @@ import (
 	"github.com/matryer/is"
 	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
+	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -17,8 +18,12 @@ func TestStory018_DeleteTodoWithConfirmation(t *testing.T) {
 	// Scenario: Delete a todo with confirmation
 	is := is.New(t)
 
-	input := "(A) Task to keep\n(A) Task to delete\n"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task to keep", todo.PriorityA),
+		todo.New("Task to delete", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -63,8 +68,11 @@ func TestStory018_CancelDeletionWithESC(t *testing.T) {
 	// Scenario: Cancel deletion with ESC
 	is := is.New(t)
 
-	input := "(A) Task to keep\n"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task to keep", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
@@ -98,8 +106,11 @@ func TestStory018_CancelDeletionWithN(t *testing.T) {
 	// Scenario: Cancel deletion with 'n'
 	is := is.New(t)
 
-	input := "(A) Task to keep\n"
-	repository := memory.NewRepository(input)
+	repository := memory.NewRepository()
+	err := repository.SaveAll([]todo.Todo{
+		todo.New("Task to keep", todo.PriorityA),
+	})
+	is.NoErr(err)
 
 	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
