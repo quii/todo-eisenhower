@@ -146,6 +146,85 @@ func (m Matrix) AllTodos() []todo.Todo {
 	return all
 }
 
+// FilterByTag returns a new Matrix containing only todos that match the given tag filter.
+// Filter format: "+project" for projects, "@context" for contexts.
+// Returns an empty matrix if the filter doesn't match any todos.
+func (m Matrix) FilterByTag(filter string) Matrix {
+	if filter == "" {
+		return m
+	}
+
+	return Matrix{
+		doFirst:   filterTodosByTag(m.doFirst, filter),
+		schedule:  filterTodosByTag(m.schedule, filter),
+		delegate:  filterTodosByTag(m.delegate, filter),
+		eliminate: filterTodosByTag(m.eliminate, filter),
+	}
+}
+
+// filterTodosByTag filters a slice of todos by project or context tag
+func filterTodosByTag(todos []todo.Todo, filter string) []todo.Todo {
+	if filter == "" {
+		return todos
+	}
+
+	if len(filter) < 2 {
+		return []todo.Todo{}
+	}
+
+	prefix := filter[0]
+	tag := filter[1:]
+
+	filtered := make([]todo.Todo, 0)
+	for _, t := range todos {
+		match := false
+
+		if prefix == '+' {
+			// Filter by project
+			for _, p := range t.Projects() {
+				if equalsFold(p, tag) {
+					match = true
+					break
+				}
+			}
+		} else if prefix == '@' {
+			// Filter by context
+			for _, c := range t.Contexts() {
+				if equalsFold(c, tag) {
+					match = true
+					break
+				}
+			}
+		}
+
+		if match {
+			filtered = append(filtered, t)
+		}
+	}
+	return filtered
+}
+
+// equalsFold is a simple case-insensitive string comparison
+func equalsFold(a, b string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := 0; i < len(a); i++ {
+		ca, cb := a[i], b[i]
+		// Convert to lowercase if uppercase letter
+		if ca >= 'A' && ca <= 'Z' {
+			ca += 'a' - 'A'
+		}
+		if cb >= 'A' && cb <= 'Z' {
+			cb += 'a' - 'A'
+		}
+		if ca != cb {
+			return false
+		}
+	}
+	return true
+}
+
 // ToggleCompletionAt toggles the completion status of a todo at the specified position.
 // Returns the updated matrix and true if successful, or the original matrix and false if invalid.
 // The now parameter allows deterministic testing and follows dependency inversion.

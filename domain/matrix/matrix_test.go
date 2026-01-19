@@ -121,3 +121,82 @@ func TestMatrix_RemoveTodo(t *testing.T) {
 	is.Equal(allTodos[0].Description(), "First task")
 	is.Equal(allTodos[1].Description(), "Third task")
 }
+
+func TestMatrix_FilterByTag(t *testing.T) {
+	t.Run("filters by project tag", func(t *testing.T) {
+		is := is.New(t)
+
+		todos := []todo.Todo{
+			todo.NewWithTags("Task 1", todo.PriorityA, []string{"WebApp"}, []string{"computer"}),
+			todo.NewWithTags("Task 2", todo.PriorityB, []string{"Mobile"}, []string{"phone"}),
+			todo.NewWithTags("Task 3", todo.PriorityA, []string{"WebApp"}, []string{}),
+		}
+
+		m := matrix.New(todos)
+		filtered := m.FilterByTag("+WebApp")
+
+		// Should only have tasks with +WebApp
+		is.Equal(len(filtered.DoFirst()), 2)  // Both WebApp tasks are Priority A
+		is.Equal(len(filtered.Schedule()), 0) // No Schedule tasks with WebApp
+		is.Equal(len(filtered.AllTodos()), 2) // Total filtered
+	})
+
+	t.Run("filters by context tag", func(t *testing.T) {
+		is := is.New(t)
+
+		todos := []todo.Todo{
+			todo.NewWithTags("Task 1", todo.PriorityA, []string{"WebApp"}, []string{"computer"}),
+			todo.NewWithTags("Task 2", todo.PriorityB, []string{"Mobile"}, []string{"phone"}),
+			todo.NewWithTags("Task 3", todo.PriorityC, []string{"Backend"}, []string{"computer"}),
+		}
+
+		m := matrix.New(todos)
+		filtered := m.FilterByTag("@computer")
+
+		// Should only have tasks with @computer
+		is.Equal(len(filtered.DoFirst()), 1)   // Task 1
+		is.Equal(len(filtered.Schedule()), 0)  // No Schedule tasks
+		is.Equal(len(filtered.Delegate()), 1)  // Task 3
+		is.Equal(len(filtered.AllTodos()), 2)  // Total filtered
+	})
+
+	t.Run("returns empty matrix when no matches", func(t *testing.T) {
+		is := is.New(t)
+
+		todos := []todo.Todo{
+			todo.NewWithTags("Task 1", todo.PriorityA, []string{"WebApp"}, []string{"computer"}),
+		}
+
+		m := matrix.New(todos)
+		filtered := m.FilterByTag("+NonExistent")
+
+		is.Equal(len(filtered.AllTodos()), 0) // No matches
+	})
+
+	t.Run("returns original matrix when filter is empty", func(t *testing.T) {
+		is := is.New(t)
+
+		todos := []todo.Todo{
+			todo.NewWithTags("Task 1", todo.PriorityA, []string{"WebApp"}, []string{}),
+			todo.NewWithTags("Task 2", todo.PriorityB, []string{"Mobile"}, []string{}),
+		}
+
+		m := matrix.New(todos)
+		filtered := m.FilterByTag("")
+
+		is.Equal(len(filtered.AllTodos()), 2) // All todos present
+	})
+
+	t.Run("filter is case insensitive", func(t *testing.T) {
+		is := is.New(t)
+
+		todos := []todo.Todo{
+			todo.NewWithTags("Task 1", todo.PriorityA, []string{"WebApp"}, []string{}),
+		}
+
+		m := matrix.New(todos)
+		filtered := m.FilterByTag("+webapp") // lowercase
+
+		is.Equal(len(filtered.AllTodos()), 1) // Should match case-insensitively
+	})
+}

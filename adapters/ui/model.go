@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"strings"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -33,6 +35,8 @@ type Model struct {
 	viewMode           ViewMode
 	inputMode          bool
 	editMode           bool       // true when editing an existing todo
+	filterMode         bool       // true when in filter input mode
+	activeFilter       string     // currently applied filter (e.g., "+WebApp" or "@computer")
 	moveMode           bool       // true when in move mode (selecting quadrant to move to)
 	deleteMode         bool       // true when in delete confirmation mode
 	input              textinput.Model
@@ -146,7 +150,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m = m.completeSuggestion()
 					return m, nil
 				case "esc":
-					// Dismiss suggestions but stay in input mode
+					// In filter mode, cancel entirely; otherwise just dismiss suggestions
+					if m.filterMode {
+						m.inputMode = false
+						m.filterMode = false
+						m.input.SetValue("")
+						m.showSuggestions = false
+						return m, nil
+					}
+					// Normal mode: just dismiss suggestions
 					m.showSuggestions = false
 					return m, nil
 				}
@@ -155,15 +167,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Handle regular input mode keys
 			switch msg.String() {
 			case "enter":
-				// Only save if suggestions are not visible
+				// Only save/apply if suggestions are not visible
 				if !m.showSuggestions {
-					m = m.saveTodo()
+					if m.filterMode {
+						m = m.applyFilter()
+					} else {
+						m = m.saveTodo()
+					}
 					return m, nil
 				}
 			case "esc":
 				// Cancel input mode entirely
 				m.inputMode = false
 				m.editMode = false
+				m.filterMode = false
 				m.input.SetValue("")
 				m.showSuggestions = false
 				return m, nil
@@ -202,6 +219,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.viewMode = FocusEliminate
 			m.selectedTodoIndex = 0
 			m = m.rebuildTable()
+		case "0":
+			// Return to overview (with filter persisting if active)
+			m.viewMode = Overview
 		case "m":
 			// Enter move mode (only in focus mode with todos)
 			if m.viewMode != Overview && len(m.currentQuadrantTodos()) > 0 {
@@ -251,6 +271,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.input.SetValue(todotxt.FormatForInput(currentTodo))
 					m.input.Focus()
 				}
+			}
+		case "f":
+			// Enter filter mode from overview
+			if m.viewMode == Overview {
+				m.inputMode = true
+				m.filterMode = true
+				m.input.SetValue("")
+				m.input.Focus()
+			}
+		case "c":
+			// Clear filter
+			if m.activeFilter != "" {
+				m.activeFilter = ""
+				m.viewMode = Overview
 			}
 		case "down", "s", "j":
 			// Scroll down in inventory mode
@@ -364,9 +398,91 @@ func (m Model) saveTodo() Model {
 	return m
 }
 
+// applyFilter applies the filter from input
+func (m Model) applyFilter() Model {
+	filterInput := strings.TrimSpace(m.input.Value())
+
+	// Empty input, just return to overview
+	if filterInput == "" {
+		m.inputMode = false
+		m.filterMode = false
+		m.input.SetValue("")
+		return m
+	}
+
+	// Normalize the filter
+	var prefix byte
+	if filterInput != "" {
+		prefix = filterInput[0]
+	}
+
+	switch prefix {
+	case '+':
+		// Project filter - validate and normalize
+		projectName := filterInput[1:] // Strip the +
+		for _, project := range m.allProjects {
+			if strings.EqualFold(projectName, project) {
+				m.activeFilter = "+" + project // Use the actual casing from allProjects
+				break
+			}
+		}
+		// If not found in list, still use what user typed
+		if m.activeFilter == "" {
+			m.activeFilter = filterInput
+		}
+	case '@':
+		// Context filter - validate and normalize
+		contextName := filterInput[1:] // Strip the @
+		for _, context := range m.allContexts {
+			if strings.EqualFold(contextName, context) {
+				m.activeFilter = "@" + context // Use the actual casing from allContexts
+				break
+			}
+		}
+		// If not found in list, still use what user typed
+		if m.activeFilter == "" {
+			m.activeFilter = filterInput
+		}
+	default:
+		// No prefix - try to match against existing tags
+		found := false
+		for _, project := range m.allProjects {
+			if strings.EqualFold(filterInput, project) {
+				m.activeFilter = "+" + project
+				found = true
+				break
+			}
+		}
+		if !found {
+			for _, context := range m.allContexts {
+				if strings.EqualFold(filterInput, context) {
+					m.activeFilter = "@" + context
+					break
+				}
+			}
+		}
+	}
+
+	// Exit filter input mode
+	m.inputMode = false
+	m.filterMode = false
+	m.input.SetValue("")
+	m.showSuggestions = false
+
+	// Stay in overview to show filtered view
+	m.viewMode = Overview
+
+	return m
+}
+
 // updateSuggestions updates autocomplete suggestions based on current input
 func (m Model) updateSuggestions() Model {
 	inputValue := m.input.Value()
+
+	// Filter mode: show all projects and contexts
+	if m.filterMode {
+		return m.updateFilterSuggestions(inputValue)
+	}
 
 	// Detect if we're at a tag trigger
 	trigger, partialTag, found := detectTrigger(inputValue)
@@ -392,6 +508,47 @@ func (m Model) updateSuggestions() Model {
 	return m
 }
 
+// updateFilterSuggestions updates suggestions for filter mode (shows both projects and contexts)
+func (m Model) updateFilterSuggestions(inputValue string) Model {
+	// If input ends with space, hide suggestions (user is done typing)
+	if strings.HasSuffix(inputValue, " ") {
+		m.showSuggestions = false
+		return m
+	}
+
+	inputValue = strings.TrimSpace(inputValue)
+	inputValue = strings.ToLower(inputValue)
+
+	// Remove prefix if present for matching
+	searchTerm := inputValue
+	if strings.HasPrefix(searchTerm, "+") || strings.HasPrefix(searchTerm, "@") {
+		searchTerm = searchTerm[1:]
+	}
+
+	// Collect matching tags from both projects and contexts
+	var matches []string
+
+	// Add matching projects
+	for _, project := range m.allProjects {
+		if searchTerm == "" || strings.HasPrefix(strings.ToLower(project), searchTerm) {
+			matches = append(matches, "+"+project)
+		}
+	}
+
+	// Add matching contexts
+	for _, context := range m.allContexts {
+		if searchTerm == "" || strings.HasPrefix(strings.ToLower(context), searchTerm) {
+			matches = append(matches, "@"+context)
+		}
+	}
+
+	m.suggestions = matches
+	m.showSuggestions = len(matches) > 0
+	m.selectedSuggestion = 0
+
+	return m
+}
+
 // completeSuggestion completes the currently selected suggestion
 func (m Model) completeSuggestion() Model {
 	if len(m.suggestions) == 0 {
@@ -399,7 +556,16 @@ func (m Model) completeSuggestion() Model {
 	}
 
 	selectedTag := m.suggestions[m.selectedSuggestion]
-	completedValue := completeTag(m.input.Value(), selectedTag)
+
+	var completedValue string
+	if m.filterMode {
+		// In filter mode, suggestions already include prefix ("+WebApp" or "@computer")
+		// Just use the suggestion directly with a space
+		completedValue = selectedTag + " "
+	} else {
+		// In add/edit mode, use normal tag completion
+		completedValue = completeTag(m.input.Value(), selectedTag)
+	}
 
 	m.input.SetValue(completedValue)
 	m.showSuggestions = false
@@ -429,16 +595,24 @@ func (m Model) currentQuadrantPriority() todo.Priority {
 }
 
 // currentQuadrantTodos returns the todos for the current focused quadrant
+// with active filter applied at the domain level
 func (m Model) currentQuadrantTodos() []todo.Todo {
+	// Apply filter at domain level if active
+	displayMatrix := m.matrix
+	if m.activeFilter != "" {
+		displayMatrix = m.matrix.FilterByTag(m.activeFilter)
+	}
+
+	// Get todos from the (possibly filtered) matrix
 	switch m.viewMode {
 	case FocusDoFirst:
-		return m.matrix.DoFirst()
+		return displayMatrix.DoFirst()
 	case FocusSchedule:
-		return m.matrix.Schedule()
+		return displayMatrix.Schedule()
 	case FocusDelegate:
-		return m.matrix.Delegate()
+		return displayMatrix.Delegate()
 	case FocusEliminate:
-		return m.matrix.Eliminate()
+		return displayMatrix.Eliminate()
 	default:
 		return []todo.Todo{}
 	}
@@ -689,8 +863,29 @@ func (m Model) View() string {
 	case Inventory:
 		content = m.inventoryViewport.View()
 	default: // Overview
+		// If in filter input mode, show filter input
+		if m.inputMode && m.filterMode {
+			content = RenderFilterInput(
+				m.filePath,
+				m.input,
+				m.showSuggestions,
+				m.suggestions,
+				m.selectedSuggestion,
+				m.width,
+				m.height,
+			)
+			return content
+		}
+
+		// Apply filter at the domain level if active
+		displayMatrix := m.matrix
+		if m.activeFilter != "" {
+			displayMatrix = m.matrix.FilterByTag(m.activeFilter)
+		}
+
 		// Pass terminal dimensions to RenderMatrix for responsive sizing
-		content = RenderMatrix(m.matrix, m.filePath, m.width, m.height)
+		// Pass the active filter for help text display only
+		content = RenderMatrixWithFilterHint(displayMatrix, m.filePath, m.width, m.height, m.activeFilter)
 
 		// Center the content in the terminal if we have dimensions
 		if m.width > 0 && m.height > 0 {

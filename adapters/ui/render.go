@@ -80,7 +80,14 @@ var (
 
 // RenderMatrix renders the Eisenhower matrix as a string with optional file path header
 // terminalWidth and terminalHeight are optional (0 = use defaults)
+// Note: Filtering should be applied at the domain level before calling this function
 func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeight int) string {
+	return RenderMatrixWithFilterHint(m, filePath, terminalWidth, terminalHeight, "")
+}
+
+// RenderMatrixWithFilterHint renders the matrix with a filter hint for help text
+// The activeFilter parameter is only used for display (help text), not for actual filtering
+func RenderMatrixWithFilterHint(m matrix.Matrix, filePath string, terminalWidth, terminalHeight int, activeFilter string) string {
 	// Calculate quadrant dimensions based on terminal size
 	quadrantWidth, quadrantHeight := calculateQuadrantDimensions(terminalWidth, terminalHeight)
 	// For overview mode, always show top 5 todos per quadrant (cleaner, more consistent)
@@ -95,11 +102,17 @@ func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeigh
 		output.WriteString("\n\n")
 	}
 
+	// Get todos from matrix
+	doFirstTodos := m.DoFirst()
+	scheduleTodos := m.Schedule()
+	delegateTodos := m.Delegate()
+	eliminateTodos := m.Eliminate()
+
 	// Render quadrant contents
-	doFirst := renderQuadrantContent("Do First", urgentImportantColor, m.DoFirst(), quadrantWidth, quadrantHeight, displayLimit, 1)
-	schedule := renderQuadrantContent("Schedule", importantColor, m.Schedule(), quadrantWidth, quadrantHeight, displayLimit, 2)
-	delegate := renderQuadrantContent("Delegate", urgentColor, m.Delegate(), quadrantWidth, quadrantHeight, displayLimit, 3)
-	eliminate := renderQuadrantContent("Eliminate", neitherColor, m.Eliminate(), quadrantWidth, quadrantHeight, displayLimit, 4)
+	doFirst := renderQuadrantContent("Do First", urgentImportantColor, doFirstTodos, quadrantWidth, quadrantHeight, displayLimit, 1)
+	schedule := renderQuadrantContent("Schedule", importantColor, scheduleTodos, quadrantWidth, quadrantHeight, displayLimit, 2)
+	delegate := renderQuadrantContent("Delegate", urgentColor, delegateTodos, quadrantWidth, quadrantHeight, displayLimit, 3)
+	eliminate := renderQuadrantContent("Eliminate", neitherColor, eliminateTodos, quadrantWidth, quadrantHeight, displayLimit, 4)
 
 	// Create vertical divider that spans quadrant height
 	verticalDivider := createVerticalDivider(quadrantHeight)
@@ -138,8 +151,13 @@ func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeigh
 	output.WriteString(inventory)
 	output.WriteString("\n\n")
 
-	// Add help text
-	helpText := renderHelp("Press 1/2/3/4 to focus on a quadrant", "Press i for inventory", "Press q to quit")
+	// Add help text with filter instructions
+	var helpText string
+	if activeFilter != "" {
+		helpText = renderHelp("Press 1/2/3/4 to focus on a quadrant", "Press c to clear filter", "Press i for inventory", "Press q to quit")
+	} else {
+		helpText = renderHelp("Press 1/2/3/4 to focus on a quadrant", "Press f to filter", "Press i for inventory", "Press q to quit")
+	}
 	output.WriteString(helpText)
 
 	return output.String()
