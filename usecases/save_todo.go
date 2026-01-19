@@ -12,7 +12,6 @@ type TodoRepository interface {
 	SaveAll(todos []todo.Todo) error
 }
 
-// saveAllTodos is a helper that saves all todos from a matrix
 func saveAllTodos(repo TodoRepository, m matrix.Matrix) error {
 	return repo.SaveAll(m.AllTodos())
 }
