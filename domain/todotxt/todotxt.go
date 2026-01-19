@@ -168,9 +168,34 @@ func parsePriority(p string) todo.Priority {
 	}
 }
 
+// ParseNew creates a new todo from user input.
+// It parses the description to extract tags and creates the appropriate todo with creation date.
+// This is the primary way to create todos from user input in the application.
+func ParseNew(description string, priority todo.Priority, creationDate time.Time) todo.Todo {
+	// Extract projects and contexts from description
+	projects := extractTags(description, projectPattern)
+	contexts := extractTags(description, contextPattern)
+
+	// Remove tags from description to get clean text
+	cleanDesc := projectPattern.ReplaceAllString(description, "")
+	cleanDesc = contextPattern.ReplaceAllString(cleanDesc, "")
+
+	// Clean up extra whitespace
+	cleanDesc = strings.Join(strings.Fields(cleanDesc), " ")
+	cleanDesc = strings.TrimSpace(cleanDesc)
+
+	// Create todo with appropriate constructor based on what we have
+	if len(projects) > 0 || len(contexts) > 0 {
+		return todo.NewWithTagsAndDates(cleanDesc, priority, &creationDate, projects, contexts)
+	}
+
+	return todo.NewWithCreationDate(cleanDesc, priority, &creationDate)
+}
+
 // ParseDescription extracts the description text and tags from a todo description string.
 // It returns the clean description (with tags removed), projects, and contexts.
-// This is useful when creating new todos from user input.
+//
+// Deprecated: Use ParseNew instead for creating new todos.
 func ParseDescription(description string) (cleanDesc string, projects, contexts []string) {
 	// Extract projects and contexts
 	projects = extractTags(description, projectPattern)

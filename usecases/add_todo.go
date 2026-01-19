@@ -11,26 +11,14 @@ import (
 
 // AddTodo creates a new todo and adds it to the matrix
 func AddTodo(repo TodoRepository, m matrix.Matrix, description string, priority todo.Priority) (matrix.Matrix, error) {
-	// Parse description to extract clean text and tags
-	cleanDescription, projects, contexts := todotxt.ParseDescription(description)
-
-	// Set creation date to now
-	now := time.Now()
-	creationDate := &now
-
-	// Create the todo using rich domain model with creation date
-	var newTodo todo.Todo
-	if len(projects) > 0 || len(contexts) > 0 {
-		newTodo = todo.NewWithTagsAndDates(cleanDescription, priority, creationDate, projects, contexts)
-	} else {
-		newTodo = todo.NewWithCreationDate(cleanDescription, priority, creationDate)
-	}
+	// Let the domain parse user input and create the todo
+	newTodo := todotxt.ParseNew(description, priority, time.Now())
 
 	// Add todo to matrix
 	updatedMatrix := m.AddTodo(newTodo)
 
 	// Persist changes
-	err := saveTodo(repo, newTodo)
+	err := saveAllTodos(repo, updatedMatrix)
 	if err != nil {
 		return m, err // Return original matrix if save fails
 	}

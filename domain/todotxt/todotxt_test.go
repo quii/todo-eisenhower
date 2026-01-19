@@ -3,6 +3,7 @@ package todotxt_test
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/matryer/is"
 	"github.com/quii/todo-eisenhower/domain/todotxt"
@@ -445,6 +446,84 @@ func TestTodoTxtSpecCompliance(t *testing.T) {
 		// First date should be completion, second should be creation
 		is.Equal(todos[0].CompletionDate().Format("2006-01-02"), "2026-01-18")
 		is.Equal(todos[0].CreationDate().Format("2006-01-02"), "2026-01-15")
+	})
+}
+
+func TestParseNew(t *testing.T) {
+	t.Run("creates todo without tags", func(t *testing.T) {
+		is := is.New(t)
+		creationDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
+
+		result := todotxt.ParseNew("Buy milk", todo.PriorityA, creationDate)
+
+		is.Equal(result.Description(), "Buy milk")
+		is.Equal(result.Priority(), todo.PriorityA)
+		is.True(!result.IsCompleted())
+		is.Equal(len(result.Projects()), 0)
+		is.Equal(len(result.Contexts()), 0)
+		is.True(result.CreationDate() != nil)
+		is.Equal(result.CreationDate().Format("2006-01-02"), "2026-01-20")
+	})
+
+	t.Run("creates todo with project tags", func(t *testing.T) {
+		is := is.New(t)
+		creationDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
+
+		result := todotxt.ParseNew("Review code +WebApp +Mobile", todo.PriorityB, creationDate)
+
+		is.Equal(result.Description(), "Review code")
+		is.Equal(result.Priority(), todo.PriorityB)
+		is.Equal(len(result.Projects()), 2)
+		is.Equal(result.Projects()[0], "WebApp")
+		is.Equal(result.Projects()[1], "Mobile")
+		is.Equal(len(result.Contexts()), 0)
+	})
+
+	t.Run("creates todo with context tags", func(t *testing.T) {
+		is := is.New(t)
+		creationDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
+
+		result := todotxt.ParseNew("Call manager @phone @urgent", todo.PriorityA, creationDate)
+
+		is.Equal(result.Description(), "Call manager")
+		is.Equal(result.Priority(), todo.PriorityA)
+		is.Equal(len(result.Contexts()), 2)
+		is.Equal(result.Contexts()[0], "phone")
+		is.Equal(result.Contexts()[1], "urgent")
+		is.Equal(len(result.Projects()), 0)
+	})
+
+	t.Run("creates todo with mixed tags", func(t *testing.T) {
+		is := is.New(t)
+		creationDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
+
+		result := todotxt.ParseNew("Fix bug +WebApp @computer", todo.PriorityA, creationDate)
+
+		is.Equal(result.Description(), "Fix bug")
+		is.Equal(len(result.Projects()), 1)
+		is.Equal(result.Projects()[0], "WebApp")
+		is.Equal(len(result.Contexts()), 1)
+		is.Equal(result.Contexts()[0], "computer")
+	})
+
+	t.Run("creates todo with tags in middle of description", func(t *testing.T) {
+		is := is.New(t)
+		creationDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
+
+		result := todotxt.ParseNew("Review +WebApp pull request @github", todo.PriorityC, creationDate)
+
+		is.Equal(result.Description(), "Review pull request")
+		is.Equal(result.Projects()[0], "WebApp")
+		is.Equal(result.Contexts()[0], "github")
+	})
+
+	t.Run("cleans up extra whitespace", func(t *testing.T) {
+		is := is.New(t)
+		creationDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
+
+		result := todotxt.ParseNew("Task   with    extra     spaces +project", todo.PriorityD, creationDate)
+
+		is.Equal(result.Description(), "Task with extra spaces")
 	})
 }
 
