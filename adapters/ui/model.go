@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/quii/todo-eisenhower/domain/matrix"
 	"github.com/quii/todo-eisenhower/domain/todo"
+	"github.com/quii/todo-eisenhower/domain/todotxt"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -31,6 +32,7 @@ type Model struct {
 	height             int
 	viewMode           ViewMode
 	inputMode          bool
+	editMode           bool       // true when editing an existing todo
 	moveMode           bool       // true when in move mode (selecting quadrant to move to)
 	deleteMode         bool       // true when in delete confirmation mode
 	input              textinput.Model
@@ -161,6 +163,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "esc":
 				// Cancel input mode entirely
 				m.inputMode = false
+				m.editMode = false
 				m.input.SetValue("")
 				m.showSuggestions = false
 				return m, nil
@@ -232,7 +235,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Enter input mode only if in focus mode
 			if m.viewMode != Overview {
 				m.inputMode = true
+				m.editMode = false
+				m.input.SetValue("")
 				m.input.Focus()
+			}
+		case "e":
+			// Enter edit mode only if in focus mode with a selected todo
+			if m.viewMode != Overview {
+				todos := m.currentQuadrantTodos()
+				if len(todos) > 0 && m.selectedTodoIndex < len(todos) {
+					m.inputMode = true
+					m.editMode = true
+					// Pre-fill with current todo's description and tags
+					currentTodo := todos[m.selectedTodoIndex]
+					m.input.SetValue(todotxt.FormatForInput(currentTodo))
+					m.input.Focus()
+				}
 			}
 		case "down", "s", "j":
 			// Scroll down in inventory mode
@@ -297,6 +315,7 @@ func (m Model) saveTodo() Model {
 	// Don't create empty todos
 	if description == "" {
 		m.inputMode = false
+		m.editMode = false
 		m.input.SetValue("")
 		return m
 	}
@@ -305,11 +324,20 @@ func (m Model) saveTodo() Model {
 		return m // No-op if no writer configured
 	}
 
-	// Determine priority from current quadrant
-	priority := m.currentQuadrantPriority()
+	var updatedMatrix matrix.Matrix
+	var err error
 
-	// Use the AddTodo usecase
-	updatedMatrix, err := usecases.AddTodo(m.repo, m.matrix, description, priority)
+	if m.editMode {
+		// Use EditTodo usecase
+		quadrant := m.currentQuadrantType()
+		updatedMatrix, err = usecases.EditTodo(m.repo, m.matrix, quadrant, m.selectedTodoIndex, description)
+	} else {
+		// Determine priority from current quadrant
+		priority := m.currentQuadrantPriority()
+		// Use AddTodo usecase
+		updatedMatrix, err = usecases.AddTodo(m.repo, m.matrix, description, priority)
+	}
+
 	if err != nil {
 		// TODO: Show error to user in future story
 		return m
@@ -320,14 +348,17 @@ func (m Model) saveTodo() Model {
 	// Refresh tag lists
 	m.allProjects, m.allContexts = extractAllTags(m.matrix)
 
-	// Reset selection to first todo
-	m.selectedTodoIndex = 0
+	if !m.editMode {
+		// Reset selection to first todo only when adding
+		m.selectedTodoIndex = 0
+	}
 
 	// Exit input mode
 	m.inputMode = false
+	m.editMode = false
 	m.input.SetValue("")
 
-	// Rebuild table with new todo
+	// Rebuild table with updated todo
 	m = m.rebuildTable()
 
 	return m
@@ -558,6 +589,7 @@ func (m Model) View() string {
 				m.selectedSuggestion,
 				m.width,
 				m.height,
+				m.editMode,
 			)
 		} else {
 			content = RenderFocusedQuadrantWithTable(
@@ -585,6 +617,7 @@ func (m Model) View() string {
 				m.selectedSuggestion,
 				m.width,
 				m.height,
+				m.editMode,
 			)
 		} else {
 			content = RenderFocusedQuadrantWithTable(
@@ -612,6 +645,7 @@ func (m Model) View() string {
 				m.selectedSuggestion,
 				m.width,
 				m.height,
+				m.editMode,
 			)
 		} else {
 			content = RenderFocusedQuadrantWithTable(
@@ -639,6 +673,7 @@ func (m Model) View() string {
 				m.selectedSuggestion,
 				m.width,
 				m.height,
+				m.editMode,
 			)
 		} else {
 			content = RenderFocusedQuadrantWithTable(

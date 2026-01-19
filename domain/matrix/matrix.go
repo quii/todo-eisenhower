@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/quii/todo-eisenhower/domain/todo"
+	"github.com/quii/todo-eisenhower/domain/todotxt"
 )
 
 // Matrix represents an Eisenhower matrix organizing todos by quadrant
@@ -87,34 +88,39 @@ const (
 
 // UpdateTodoAtIndex updates the todo at the given index in the specified quadrant
 func (m Matrix) UpdateTodoAtIndex(quadrant QuadrantType, index int, newTodo todo.Todo) Matrix {
-	switch quadrant {
-	case DoFirstQuadrant:
-		if index >= 0 && index < len(m.doFirst) {
-			m.doFirst[index] = newTodo
-		}
-	case ScheduleQuadrant:
-		if index >= 0 && index < len(m.schedule) {
-			m.schedule[index] = newTodo
-		}
-	case DelegateQuadrant:
-		if index >= 0 && index < len(m.delegate) {
-			m.delegate[index] = newTodo
-		}
-	case EliminateQuadrant:
-		if index >= 0 && index < len(m.eliminate) {
-			m.eliminate[index] = newTodo
-		}
+	todos := m.getTodosForQuadrant(quadrant)
+
+	if index < 0 || index >= len(todos) {
+		return m
 	}
-	return m
+
+	todos[index] = newTodo
+	return m.setTodosForQuadrant(quadrant, todos)
+}
+
+// EditTodo edits the todo at the given index in the specified quadrant with a new description
+func (m Matrix) EditTodo(quadrant QuadrantType, index int, newDescription string) Matrix {
+	todos := m.getTodosForQuadrant(quadrant)
+
+	if index < 0 || index >= len(todos) {
+		return m
+	}
+
+	originalTodo := todos[index]
+	priority := originalTodo.Priority()
+	updatedTodo := todotxt.ParseEdit(originalTodo, newDescription, priority)
+
+	return m.UpdateTodoAtIndex(quadrant, index, updatedTodo)
 }
 
 // RemoveTodo removes a todo from the matrix by comparing descriptions
 // Returns a new Matrix without the specified todo
 func (m Matrix) RemoveTodo(todoToRemove todo.Todo) Matrix {
-	m.doFirst = removeFromSlice(m.doFirst, todoToRemove)
-	m.schedule = removeFromSlice(m.schedule, todoToRemove)
-	m.delegate = removeFromSlice(m.delegate, todoToRemove)
-	m.eliminate = removeFromSlice(m.eliminate, todoToRemove)
+	quadrants := []QuadrantType{DoFirstQuadrant, ScheduleQuadrant, DelegateQuadrant, EliminateQuadrant}
+	for _, q := range quadrants {
+		todos := m.getTodosForQuadrant(q)
+		m = m.setTodosForQuadrant(q, removeFromSlice(todos, todoToRemove))
+	}
 	return m
 }
 
@@ -133,10 +139,10 @@ func removeFromSlice(todos []todo.Todo, todoToRemove todo.Todo) []todo.Todo {
 // AllTodos returns all todos from all quadrants
 func (m Matrix) AllTodos() []todo.Todo {
 	all := make([]todo.Todo, 0)
-	all = append(all, m.doFirst...)
-	all = append(all, m.schedule...)
-	all = append(all, m.delegate...)
-	all = append(all, m.eliminate...)
+	quadrants := []QuadrantType{DoFirstQuadrant, ScheduleQuadrant, DelegateQuadrant, EliminateQuadrant}
+	for _, q := range quadrants {
+		all = append(all, m.getTodosForQuadrant(q)...)
+	}
 	return all
 }
 
@@ -197,4 +203,19 @@ func (m Matrix) getTodosForQuadrant(quadrant QuadrantType) []todo.Todo {
 	default:
 		return []todo.Todo{}
 	}
+}
+
+// setTodosForQuadrant is a helper that sets the todos for a given quadrant
+func (m Matrix) setTodosForQuadrant(quadrant QuadrantType, todos []todo.Todo) Matrix {
+	switch quadrant {
+	case DoFirstQuadrant:
+		m.doFirst = todos
+	case ScheduleQuadrant:
+		m.schedule = todos
+	case DelegateQuadrant:
+		m.delegate = todos
+	case EliminateQuadrant:
+		m.eliminate = todos
+	}
+	return m
 }

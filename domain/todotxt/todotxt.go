@@ -168,21 +168,28 @@ func parsePriority(p string) todo.Priority {
 	}
 }
 
-// ParseNew creates a new todo from user input.
-// It parses the description to extract tags and creates the appropriate todo with creation date.
-// This is the primary way to create todos from user input in the application.
-func ParseNew(description string, priority todo.Priority, creationDate time.Time) todo.Todo {
+// parseDescriptionAndTags extracts clean description, projects, and contexts from user input
+func parseDescriptionAndTags(description string) (cleanDesc string, projects, contexts []string) {
 	// Extract projects and contexts from description
-	projects := extractTags(description, projectPattern)
-	contexts := extractTags(description, contextPattern)
+	projects = extractTags(description, projectPattern)
+	contexts = extractTags(description, contextPattern)
 
 	// Remove tags from description to get clean text
-	cleanDesc := projectPattern.ReplaceAllString(description, "")
+	cleanDesc = projectPattern.ReplaceAllString(description, "")
 	cleanDesc = contextPattern.ReplaceAllString(cleanDesc, "")
 
 	// Clean up extra whitespace
 	cleanDesc = strings.Join(strings.Fields(cleanDesc), " ")
 	cleanDesc = strings.TrimSpace(cleanDesc)
+
+	return cleanDesc, projects, contexts
+}
+
+// ParseNew creates a new todo from user input.
+// It parses the description to extract tags and creates the appropriate todo with creation date.
+// This is the primary way to create todos from user input in the application.
+func ParseNew(description string, priority todo.Priority, creationDate time.Time) todo.Todo {
+	cleanDesc, projects, contexts := parseDescriptionAndTags(description)
 
 	// Create todo with appropriate constructor based on what we have
 	if len(projects) > 0 || len(contexts) > 0 {
@@ -190,6 +197,58 @@ func ParseNew(description string, priority todo.Priority, creationDate time.Time
 	}
 
 	return todo.NewWithCreationDate(cleanDesc, priority, &creationDate)
+}
+
+// ParseEdit updates a todo from user input while preserving dates and completion status.
+// It parses the new description to extract tags and creates an updated todo that preserves
+// the original creation date, completion date, and completion status.
+func ParseEdit(original todo.Todo, newDescription string, priority todo.Priority) todo.Todo {
+	cleanDesc, projects, contexts := parseDescriptionAndTags(newDescription)
+
+	// Preserve original dates and completion status
+	creationDate := original.CreationDate()
+	completionDate := original.CompletionDate()
+	isCompleted := original.IsCompleted()
+
+	// Create updated todo with appropriate constructor
+	if isCompleted {
+		if len(projects) > 0 || len(contexts) > 0 {
+			return todo.NewCompletedWithTagsAndDates(cleanDesc, priority, completionDate, creationDate, projects, contexts)
+		}
+		return todo.NewCompletedWithDates(cleanDesc, priority, completionDate, creationDate)
+	}
+
+	if len(projects) > 0 || len(contexts) > 0 {
+		if creationDate != nil {
+			return todo.NewWithTagsAndDates(cleanDesc, priority, creationDate, projects, contexts)
+		}
+		return todo.NewWithTags(cleanDesc, priority, projects, contexts)
+	}
+
+	if creationDate != nil {
+		return todo.NewWithCreationDate(cleanDesc, priority, creationDate)
+	}
+
+	return todo.New(cleanDesc, priority)
+}
+
+// FormatForInput formats a todo for user input by combining description and tags.
+// This is the inverse of parsing - it converts a structured todo back to input format.
+func FormatForInput(t todo.Todo) string {
+	var result strings.Builder
+	result.WriteString(t.Description())
+
+	for _, project := range t.Projects() {
+		result.WriteString(" +")
+		result.WriteString(project)
+	}
+
+	for _, context := range t.Contexts() {
+		result.WriteString(" @")
+		result.WriteString(context)
+	}
+
+	return result.String()
 }
 
 // ParseDescription extracts the description text and tags from a todo description string.

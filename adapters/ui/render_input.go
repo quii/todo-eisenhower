@@ -21,6 +21,7 @@ func RenderFocusedQuadrantWithInput(
 	suggestions []string,
 	selectedSuggestion int,
 	terminalWidth, terminalHeight int,
+	editMode bool,
 ) string {
 	var output strings.Builder
 
@@ -98,9 +99,13 @@ func RenderFocusedQuadrantWithInput(
 	output.WriteString("\n\n")
 
 	// Input prompt and field
+	promptText := "Add todo: "
+	if editMode {
+		promptText = "Edit Todo: "
+	}
 	inputPrompt := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#FFFFFF")).
-		Render("Add todo: ")
+		Render(promptText)
 	output.WriteString(inputPrompt)
 	output.WriteString(input.View())
 	output.WriteString("\n")
