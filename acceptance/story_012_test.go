@@ -6,7 +6,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/matryer/is"
+	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
+	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -16,15 +18,12 @@ func TestStory012_MoveFromDoFirstToSchedule(t *testing.T) {
 
 	input := `(A) Review quarterly goals`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -39,9 +38,11 @@ func TestStory012_MoveFromDoFirstToSchedule(t *testing.T) {
 	_ = updatedModel.(ui.Model)
 
 	// Check file was updated with priority B
-	written := source.writer.(*strings.Builder).String()
-	is.True(strings.Contains(written, "(B) Review quarterly goals"))  // expected file to contain '(B) Review quarterly goals'
-	is.True(!strings.Contains(written, "(A)"))  // expected priority A to be changed to B
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.Equal(savedTodos[0].Priority(), todo.PriorityB)
+	is.Equal(savedTodos[0].Description(), "Review quarterly goals")
 }
 
 func TestStory012_MoveFromDelegateToDoFirst(t *testing.T) {
@@ -50,15 +51,12 @@ func TestStory012_MoveFromDelegateToDoFirst(t *testing.T) {
 
 	input := `(C) Update documentation`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -73,8 +71,11 @@ func TestStory012_MoveFromDelegateToDoFirst(t *testing.T) {
 	_ = updatedModel.(ui.Model)
 
 	// Check file was updated with priority A
-	written := source.writer.(*strings.Builder).String()
-	is.True(strings.Contains(written, "(A) Update documentation"))  // expected file to contain '(A) Update documentation'
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.Equal(savedTodos[0].Priority(), todo.PriorityA)
+	is.Equal(savedTodos[0].Description(), "Update documentation")
 }
 
 func TestStory012_MoveToEliminate(t *testing.T) {
@@ -83,15 +84,12 @@ func TestStory012_MoveToEliminate(t *testing.T) {
 
 	input := `(B) Optional feature idea`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -106,8 +104,11 @@ func TestStory012_MoveToEliminate(t *testing.T) {
 	_ = updatedModel.(ui.Model)
 
 	// Check file was updated with priority D
-	written := source.writer.(*strings.Builder).String()
-	is.True(strings.Contains(written, "(D) Optional feature idea"))  // expected file to contain '(D) Optional feature idea'
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.Equal(savedTodos[0].Priority(), todo.PriorityD)
+	is.Equal(savedTodos[0].Description(), "Optional feature idea")
 }
 
 func TestStory012_MovingTodoAdjustsSelection(t *testing.T) {
@@ -118,15 +119,12 @@ func TestStory012_MovingTodoAdjustsSelection(t *testing.T) {
 (A) Second task
 (A) Third task`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -145,18 +143,26 @@ func TestStory012_MovingTodoAdjustsSelection(t *testing.T) {
 	_ = updatedModel.(ui.Model)
 
 	// Check file shows second task moved to priority B
-	written := source.writer.(*strings.Builder).String()
-	is.True(strings.Contains(written, "(B) Second task"))  // expected second task to have priority B
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 3)
 
-	// First and third tasks should still be priority A
-	lines := strings.Split(strings.TrimSpace(written), "\n")
+	// Count priority A and B tasks
 	priorityACount := 0
-	for _, line := range lines {
-		if strings.Contains(line, "(A)") {
+	priorityBCount := 0
+	hasSecondTask := false
+	for _, t := range savedTodos {
+		if t.Priority() == todo.PriorityA {
 			priorityACount++
+		}
+		if t.Priority() == todo.PriorityB && t.Description() == "Second task" {
+			priorityBCount++
+			hasSecondTask = true
 		}
 	}
 	is.Equal(priorityACount, 2)  // expected 2 tasks with priority A
+	is.Equal(priorityBCount, 1)  // expected 1 task with priority B
+	is.True(hasSecondTask)       // expected second task to have priority B
 }
 
 func TestStory012_MovingLastTodoReturnsToOverview(t *testing.T) {
@@ -165,15 +171,12 @@ func TestStory012_MovingLastTodoReturnsToOverview(t *testing.T) {
 
 	input := `(C) Only delegate task`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -192,8 +195,11 @@ func TestStory012_MovingLastTodoReturnsToOverview(t *testing.T) {
 	is.True(strings.Contains(stripANSI(view), "Do First") || strings.Contains(stripANSI(view), "Schedule") || strings.Contains(stripANSI(view), "Delegate") || strings.Contains(stripANSI(view), "Eliminate"))  // expected to return to overview mode showing all quadrants
 
 	// Verify the moved todo is in the file with priority A
-	written := source.writer.(*strings.Builder).String()
-	is.True(strings.Contains(written, "(A) Only delegate task"))  // expected todo to be moved to priority A
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.Equal(savedTodos[0].Priority(), todo.PriorityA)
+	is.Equal(savedTodos[0].Description(), "Only delegate task")
 }
 
 func TestStory012_PreservesTagsAndCompletion(t *testing.T) {
@@ -202,15 +208,12 @@ func TestStory012_PreservesTagsAndCompletion(t *testing.T) {
 
 	input := `x 2025-01-10 (A) Fix bug +WebApp @computer`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -225,12 +228,14 @@ func TestStory012_PreservesTagsAndCompletion(t *testing.T) {
 	_ = updatedModel.(ui.Model)
 
 	// Check file preserves everything
-	written := source.writer.(*strings.Builder).String()
-	is.True(strings.Contains(written, "x "))  // expected completion marker to be preserved
-	is.True(strings.Contains(written, "(C)"))  // expected priority to change to C
-	is.True(strings.Contains(written, "+WebApp"))  // expected project tag to be preserved
-	is.True(strings.Contains(written, "@computer"))  // expected context tag to be preserved
-	is.True(strings.Contains(written, "Fix bug"))  // expected description to be preserved
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.True(savedTodos[0].IsCompleted())                           // expected completion marker to be preserved
+	is.Equal(savedTodos[0].Priority(), todo.PriorityC)             // expected priority to change to C
+	is.Equal(savedTodos[0].Projects(), []string{"WebApp"})         // expected project tag to be preserved
+	is.Equal(savedTodos[0].Contexts(), []string{"computer"})       // expected context tag to be preserved
+	is.Equal(savedTodos[0].Description(), "Fix bug")               // expected description to be preserved
 }
 
 func TestStory012_PressingCurrentQuadrantDoesNothing(t *testing.T) {
@@ -239,15 +244,12 @@ func TestStory012_PressingCurrentQuadrantDoesNothing(t *testing.T) {
 
 	input := `(B) Plan sprint`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -282,8 +284,11 @@ func TestStory012_PressingCurrentQuadrantDoesNothing(t *testing.T) {
 	_ = updatedModel.(ui.Model)
 
 	// Check that it was moved to priority A
-	written := source.writer.(*strings.Builder).String()
-	is.True(strings.Contains(written, "(A) Plan sprint"))  // after pressing Shift+1, todo should be moved to priority A
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.Equal(savedTodos[0].Priority(), todo.PriorityA)
+	is.Equal(savedTodos[0].Description(), "Plan sprint")
 }
 
 func TestStory012_NumberKeysStillFocusInOverview(t *testing.T) {
@@ -293,15 +298,12 @@ func TestStory012_NumberKeysStillFocusInOverview(t *testing.T) {
 	input := `(A) Task one
 (B) Task two`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 

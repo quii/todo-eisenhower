@@ -1,30 +1,12 @@
 package usecases
 
 import (
-	"io"
-
 	"github.com/quii/todo-eisenhower/domain/matrix"
-	"github.com/quii/todo-eisenhower/domain/todotxt"
 )
 
-// TodoSource is a port for retrieving todo data
-type TodoSource interface {
-	GetTodos() (io.ReadCloser, error)
-}
-
-// LoadMatrix loads todos from the given source and returns an Eisenhower matrix
-func LoadMatrix(source TodoSource) (matrix.Matrix, error) {
-	reader, err := source.GetTodos()
-	if err != nil {
-		return matrix.Matrix{}, err
-	}
-	defer func() {
-		if closeErr := reader.Close(); closeErr != nil && err == nil {
-			err = closeErr
-		}
-	}()
-
-	todos, err := todotxt.Unmarshal(reader)
+// LoadMatrix loads todos from the repository and returns an Eisenhower matrix
+func LoadMatrix(repo TodoRepository) (matrix.Matrix, error) {
+	todos, err := repo.LoadAll()
 	if err != nil {
 		return matrix.Matrix{}, err
 	}

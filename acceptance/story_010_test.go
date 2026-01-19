@@ -6,7 +6,9 @@ import (
 
 	"github.com/matryer/is"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
+	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -22,12 +24,9 @@ func TestStory010_DisplayProjectTagInventory(t *testing.T) {
 (C) Task six +architecture
 x (A) Completed task +strategy`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -67,12 +66,9 @@ func TestStory010_DisplayContextTagInventory(t *testing.T) {
 (B) Task seven @phone
 (C) Task eight @office`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -102,12 +98,9 @@ func TestStory010_DisplayBothProjectAndContextInventory(t *testing.T) {
 (A) Task two +strategy @computer
 (B) Task three +hiring @phone`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -132,12 +125,9 @@ func TestStory010_NoTagsInUse(t *testing.T) {
 	input := `(A) Task without tags
 (B) Another task`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -161,12 +151,9 @@ func TestStory010_InventoryNotShownInFocusMode(t *testing.T) {
 	input := `(A) Task +strategy @computer
 (B) Task +hiring @phone`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -189,15 +176,12 @@ func TestStory010_CountsUpdateWhenAddingTodos(t *testing.T) {
 
 	input := `(A) Existing task +strategy`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -229,6 +213,17 @@ func TestStory010_CountsUpdateWhenAddingTodos(t *testing.T) {
 
 	// Count should now be 2
 	is.True(strings.Contains(view2, "strategy") && strings.Contains(view2, "(2)")) // expected updated count of +strategy (2)
+
+	// Verify the new todo was persisted to repository
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 2) // expected 2 todos (existing + new)
+
+	newTodo := savedTodos[1]
+	is.True(strings.Contains(newTodo.Description(), "New task")) // description should contain base text
+	is.Equal(newTodo.Priority(), todo.PriorityA)
+	is.Equal(len(newTodo.Projects()), 1)
+	is.Equal(newTodo.Projects()[0], "strategy")
 }
 
 // Helper function to extract a line containing a specific substring

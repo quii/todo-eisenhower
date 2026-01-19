@@ -6,6 +6,7 @@ import (
 
 	"github.com/matryer/is"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
 	"github.com/quii/todo-eisenhower/usecases"
 )
@@ -20,11 +21,9 @@ func TestStory005_ModelRespondsToQuitKey(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Test todo"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -40,11 +39,9 @@ func TestStory005_ModelRespondsToCtrlC(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Test todo"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -60,11 +57,9 @@ func TestStory005_ModelHandlesWindowSize(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Test todo"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -83,11 +78,9 @@ func TestStory005_ModelInitialViewWithoutWindowSize(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Test todo"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")

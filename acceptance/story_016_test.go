@@ -6,7 +6,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/matryer/is"
+	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
+	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -16,15 +18,12 @@ func TestStory016_EnterMoveModeWithMKey(t *testing.T) {
 
 	input := `(A) Review quarterly goals`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -52,15 +51,12 @@ func TestStory016_SelectDestinationQuadrant(t *testing.T) {
 
 	input := `(A) Review quarterly goals`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -81,8 +77,11 @@ func TestStory016_SelectDestinationQuadrant(t *testing.T) {
 	is.True(!strings.Contains(stripANSI(view), "Move to quadrant:")) // expected to exit move mode after selection
 
 	// Should have moved todo to priority B
-	written := source.writer.(*strings.Builder).String()
-	is.True(strings.Contains(written, "(B) Review quarterly goals")) // expected todo to be moved to priority B
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.Equal(savedTodos[0].Priority(), todo.PriorityB)
+	is.Equal(savedTodos[0].Description(), "Review quarterly goals")
 }
 
 func TestStory016_CancelMoveModeWithESC(t *testing.T) {
@@ -91,15 +90,12 @@ func TestStory016_CancelMoveModeWithESC(t *testing.T) {
 
 	input := `(A) Review quarterly goals`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -124,9 +120,11 @@ func TestStory016_CancelMoveModeWithESC(t *testing.T) {
 	is.True(!strings.Contains(stripANSI(view), "Move to quadrant:")) // expected to exit move mode after ESC
 
 	// Todo should remain in DO FIRST (priority A)
-	written := source.writer.(*strings.Builder).String()
-	// No write should have happened - the builder should be empty
-	is.Equal(written, "") // expected no changes to file after canceling move
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.Equal(savedTodos[0].Priority(), todo.PriorityA)
+	is.Equal(savedTodos[0].Description(), "Review quarterly goals")
 }
 
 func TestStory016_MoveToEachQuadrant(t *testing.T) {
@@ -148,17 +146,14 @@ func TestStory016_MoveToEachQuadrant(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			input := tt.initialPriority + " Test task"
 
-			source := &StubTodoSource{
-				reader: strings.NewReader(input),
-				writer: &strings.Builder{},
-			}
+			repository := memory.NewRepository(input)
 
-			m, err := usecases.LoadMatrix(source)
+			m, err := usecases.LoadMatrix(repository)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+			model := ui.NewModelWithRepository(m, "test.txt", repository)
 			updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 			model = updatedModel.(ui.Model)
 
@@ -187,10 +182,32 @@ func TestStory016_MoveToEachQuadrant(t *testing.T) {
 			_ = updatedModel.(ui.Model)
 
 			// Check file was updated with expected priority
-			written := source.writer.(*strings.Builder).String()
-			expectedText := tt.expectedPriority + " Test task"
-			if !strings.Contains(written, expectedText) {
-				t.Errorf("expected file to contain '%s', got: %s", expectedText, written)
+			savedTodos, err := repository.LoadAll()
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if len(savedTodos) != 1 {
+				t.Fatalf("expected 1 todo, got %d", len(savedTodos))
+			}
+
+			// Map expected priority string to priority constant
+			var expectedPriority todo.Priority
+			switch tt.expectedPriority {
+			case "(A)":
+				expectedPriority = todo.PriorityA
+			case "(B)":
+				expectedPriority = todo.PriorityB
+			case "(C)":
+				expectedPriority = todo.PriorityC
+			case "(D)":
+				expectedPriority = todo.PriorityD
+			}
+
+			if savedTodos[0].Priority() != expectedPriority {
+				t.Errorf("expected priority %v, got %v", expectedPriority, savedTodos[0].Priority())
+			}
+			if savedTodos[0].Description() != "Test task" {
+				t.Errorf("expected description 'Test task', got '%s'", savedTodos[0].Description())
 			}
 		})
 	}
@@ -201,17 +218,14 @@ func TestStory016_MovingToCurrentQuadrantIsNoOp(t *testing.T) {
 
 	input := `(A) Review quarterly goals`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -234,9 +248,15 @@ func TestStory016_MovingToCurrentQuadrantIsNoOp(t *testing.T) {
 	}
 
 	// Todo should remain in DO FIRST (no write should occur since priority unchanged)
-	written := source.writer.(*strings.Builder).String()
-	if written != "" {
-		t.Errorf("expected no write to occur when moving to same quadrant, got: %s", written)
+	savedTodos, err := repository.LoadAll()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(savedTodos) != 1 {
+		t.Fatalf("expected 1 todo, got %d", len(savedTodos))
+	}
+	if savedTodos[0].Priority() != todo.PriorityA {
+		t.Errorf("expected priority A, got %v", savedTodos[0].Priority())
 	}
 
 	// Verify still viewing DO FIRST with the todo
@@ -251,17 +271,14 @@ func TestStory016_MoveModeOnlyAvailableInFocusMode(t *testing.T) {
 
 	input := `(A) Review quarterly goals`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -286,17 +303,14 @@ func TestStory016_MoveModeOnlyAvailableWhenTodoSelected(t *testing.T) {
 
 	input := `(A) Task in DO FIRST`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -326,15 +340,12 @@ func TestStory016_OtherKeysIgnoredInMoveMode(t *testing.T) {
 
 	input := `(A) Review quarterly goals`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -367,8 +378,11 @@ func TestStory016_OtherKeysIgnoredInMoveMode(t *testing.T) {
 	is.True(strings.Contains(stripANSI(view), "Move to quadrant:")) // expected to remain in move mode after pressing down arrow
 
 	// Should still have no changes to the file
-	written := source.writer.(*strings.Builder).String()
-	is.Equal(written, "") // expected no changes to file while in move mode
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.Equal(savedTodos[0].Priority(), todo.PriorityA)
+	is.Equal(savedTodos[0].Description(), "Review quarterly goals")
 
 	// Press ESC to exit
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyEsc})

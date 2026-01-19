@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/matryer/is"
+	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/domain/matrix"
 	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/usecases"
@@ -17,11 +18,9 @@ func TestStory004_ParseSingleProjectTag(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Deploy new feature +WebApp"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	doFirst := m.DoFirst()
@@ -36,11 +35,9 @@ func TestStory004_ParseSingleContextTag(t *testing.T) {
 	is := is.New(t)
 
 	input := "(B) Call client @phone"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	schedule := m.Schedule()
@@ -55,11 +52,9 @@ func TestStory004_ParseMultipleProjectsAndContexts(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Write quarterly report +Work +Q1Goals @office @computer"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	doFirst := m.DoFirst()
@@ -80,11 +75,9 @@ func TestStory004_ParseTagsAnywhereInDescription(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Review +OpenSource code for @github issues"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	doFirst := m.DoFirst()
@@ -103,11 +96,9 @@ func TestStory004_TodosWithoutTagsRenderNormally(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Simple task without tags"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	doFirst := m.DoFirst()
@@ -121,11 +112,9 @@ func TestStory004_ConsistentColorForSameTag(t *testing.T) {
 
 	input := `(A) First task +WebApp
 (B) Second task +WebApp`
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	// Verify both todos parsed correctly with same project tag
@@ -141,7 +130,9 @@ func TestStory004_ConsistentColorForSameTag(t *testing.T) {
 	// The UI layer will apply the same color to both instances of +WebApp
 }
 
-// StubTodoSource for testing - implements usecases.TodoSource and usecases.TodoWriter
+// StubTodoSource is a legacy test helper for backward compatibility
+// PREFER: Use memory.NewRepository(input) for new tests - it uses real Marshal/Unmarshal
+// This stub provides io.Writer/io.Reader directly
 type StubTodoSource struct {
 	reader io.Reader
 	writer io.Writer
@@ -155,27 +146,30 @@ func (s *StubTodoSource) GetTodos() (io.ReadCloser, error) {
 	return io.NopCloser(s.reader), nil
 }
 
-func (s *StubTodoSource) SaveTodo(line string) error {
+func (s *StubTodoSource) GetAppendWriter() (io.WriteCloser, error) {
 	if s.writer == nil {
-		return nil
+		return &nopStubCloser{io.Discard}, nil
 	}
-	_, err := s.writer.Write([]byte(line))
-	return err
+	return &nopStubCloser{s.writer}, nil
 }
 
-func (s *StubTodoSource) ReplaceAll(content string) error {
+func (s *StubTodoSource) GetReplaceWriter() (io.WriteCloser, error) {
 	if s.writer == nil {
-		return nil
+		return &nopStubCloser{io.Discard}, nil
 	}
-	// For testing, we use a strings.Builder which doesn't support truncation
-	// So we'll just reset and write the new content
+	// For testing with strings.Builder, reset it
 	if sb, ok := s.writer.(*strings.Builder); ok {
 		sb.Reset()
-		_, err := sb.WriteString(content)
-		return err
 	}
-	_, err := s.writer.Write([]byte(content))
-	return err
+	return &nopStubCloser{s.writer}, nil
+}
+
+type nopStubCloser struct {
+	io.Writer
+}
+
+func (n *nopStubCloser) Close() error {
+	return nil
 }
 
 // Integration test: Load matrix from realistic todo.txt with mixed tags
@@ -189,11 +183,9 @@ func TestStory004_Integration_MixedTagsInMatrix(t *testing.T) {
 (A) Fix bug +MobileApp @phone
 No priority task +PersonalProject`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	// Verify distribution across matrix

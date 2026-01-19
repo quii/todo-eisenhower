@@ -1,4 +1,4 @@
-package usecases_test
+package matrix_test
 
 import (
 	"testing"

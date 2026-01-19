@@ -7,6 +7,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/matryer/is"
+	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
 	"github.com/quii/todo-eisenhower/usecases"
 )
@@ -24,13 +25,12 @@ func TestStory019_ViewInventoryDashboard(t *testing.T) {
 		"(A) " + fiveDaysAgo.Format("2006-01-02") + " Another urgent +project1 @architecture\n" +
 		"(B) " + fiveDaysAgo.Format("2006-01-02") + " Important task +project2 @people"
 
-	source := &StubTodoSource{reader: strings.NewReader(input)}
-	writer := &StubTodoWriter{}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModelWithWriter(m, "test.txt", source, writer)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -72,13 +72,12 @@ func TestStory019_StaleItemsWarning(t *testing.T) {
 	input := "(A) " + veryOld.Format("2006-01-02") + " Very old task\n" +
 		"(B) " + stale.Format("2006-01-02") + " Stale task"
 
-	source := &StubTodoSource{reader: strings.NewReader(input)}
-	writer := &StubTodoWriter{}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModelWithWriter(m, "test.txt", source, writer)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -119,13 +118,12 @@ func TestStory019_ThroughputCalculation(t *testing.T) {
 		"(C) " + threeDaysAgo.Format("2006-01-02") + " New task 10\n" +
 		"(C) " + threeDaysAgo.Format("2006-01-02") + " New task 11"
 
-	source := &StubTodoSource{reader: strings.NewReader(input)}
-	writer := &StubTodoWriter{}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModelWithWriter(m, "test.txt", source, writer)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -161,13 +159,12 @@ func TestStory019_TagBreakdowns(t *testing.T) {
 		"(B) " + eighteenDaysAgo.Format("2006-01-02") + " Task 6 @people\n" +
 		"(C) " + tenDaysAgo.Format("2006-01-02") + " Task 7 @architecture +Mobile"
 
-	source := &StubTodoSource{reader: strings.NewReader(input)}
-	writer := &StubTodoWriter{}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModelWithWriter(m, "test.txt", source, writer)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -193,13 +190,12 @@ func TestStory019_ExitInventoryMode(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Task 1"
-	source := &StubTodoSource{reader: strings.NewReader(input)}
-	writer := &StubTodoWriter{}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModelWithWriter(m, "test.txt", source, writer)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -226,13 +222,12 @@ func TestStory019_ExitInventoryModeWithESC(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Task 1"
-	source := &StubTodoSource{reader: strings.NewReader(input)}
-	writer := &StubTodoWriter{}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModelWithWriter(m, "test.txt", source, writer)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -262,13 +257,12 @@ func TestStory019_ExcludeTodosWithoutCreationDates(t *testing.T) {
 		"(A) Task without date 1 +project2 @context2\n" +
 		"(A) Task without date 2 +project2 @context2"
 
-	source := &StubTodoSource{reader: strings.NewReader(input)}
-	writer := &StubTodoWriter{}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModelWithWriter(m, "test.txt", source, writer)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -299,13 +293,12 @@ func TestStory019_InventoryOnlyInOverviewMode(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Task 1\n(A) Task 2"
-	source := &StubTodoSource{reader: strings.NewReader(input)}
-	writer := &StubTodoWriter{}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModelWithWriter(m, "test.txt", source, writer)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 

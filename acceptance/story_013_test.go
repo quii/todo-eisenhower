@@ -7,7 +7,10 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/matryer/is"
+	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
+	"github.com/quii/todo-eisenhower/domain/todo"
+	"github.com/quii/todo-eisenhower/domain/todotxt"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -20,11 +23,9 @@ func TestStory013_ParseAndPreserveCompletionDates(t *testing.T) {
 	input := `x 2026-01-10 (A) Completed task from last week
 (B) Active task`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	// Check that completed todo has the preserved date
@@ -55,15 +56,12 @@ func TestStory013_SetCompletionDateWhenMarkingComplete(t *testing.T) {
 	is := is.New(t)
 	input := `(A) Review documentation`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -76,20 +74,17 @@ func TestStory013_SetCompletionDateWhenMarkingComplete(t *testing.T) {
 	_ = updatedModel.(ui.Model)
 
 	// Check file contains completion marker with today's date
-	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "x ") {
-		t.Error("expected file to contain completion marker 'x'")
-	}
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.True(savedTodos[0].IsCompleted())
+	is.Equal(savedTodos[0].Description(), "Review documentation")
+	is.Equal(savedTodos[0].Priority(), todo.PriorityA)
 
 	// Should have today's date
 	today := time.Now().Format("2006-01-02")
-	if !strings.Contains(written, today) {
-		t.Errorf("expected file to contain today's date %s, got: %s", today, written)
-	}
-
-	if !strings.Contains(written, "(A) Review documentation") {
-		t.Errorf("expected file to contain task description, got: %s", written)
-	}
+	is.True(savedTodos[0].CompletionDate() != nil)
+	is.Equal(savedTodos[0].CompletionDate().Format("2006-01-02"), today)
 }
 
 func TestStory013_ClearCompletionDateWhenTogglingIncomplete(t *testing.T) {
@@ -97,15 +92,12 @@ func TestStory013_ClearCompletionDateWhenTogglingIncomplete(t *testing.T) {
 	is := is.New(t)
 	input := `x 2026-01-10 (A) Review documentation`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -118,18 +110,13 @@ func TestStory013_ClearCompletionDateWhenTogglingIncomplete(t *testing.T) {
 	_ = updatedModel.(ui.Model)
 
 	// Check file no longer has completion marker or date
-	written := source.writer.(*strings.Builder).String()
-	if strings.Contains(written, "x ") {
-		t.Error("expected file not to contain completion marker 'x'")
-	}
-
-	if strings.Contains(written, "2026-01-10") {
-		t.Error("expected file not to contain old completion date")
-	}
-
-	if !strings.Contains(written, "(A) Review documentation") {
-		t.Errorf("expected file to contain task description, got: %s", written)
-	}
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.True(!savedTodos[0].IsCompleted())
+	is.True(savedTodos[0].CompletionDate() == nil)
+	is.Equal(savedTodos[0].Description(), "Review documentation")
+	is.Equal(savedTodos[0].Priority(), todo.PriorityA)
 }
 
 func TestStory013_NewCompletionDateWhenRecompleting(t *testing.T) {
@@ -137,15 +124,12 @@ func TestStory013_NewCompletionDateWhenRecompleting(t *testing.T) {
 	is := is.New(t)
 	input := `x 2026-01-10 (A) Review documentation`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -155,30 +139,40 @@ func TestStory013_NewCompletionDateWhenRecompleting(t *testing.T) {
 
 	// Toggle to incomplete
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}})
-	model = updatedModel.(ui.Model)
+	_ = updatedModel.(ui.Model)
 
-	// Clear the writer to capture only the new completion
-	source.writer = &strings.Builder{}
+	// Create a new repository to track the next write operation
+	// We need to re-create the model with a fresh repository to capture only the completion write
+	updatedTodos, _ := repository.LoadAll()
+	// Create a buffer with the current todos
+	var buf strings.Builder
+	_ = todotxt.Marshal(&buf, updatedTodos)
+	// Now create a fresh repository starting with these todos
+	tempRepo := memory.NewRepository(buf.String())
+	// Re-load the matrix from this repository
+	m2, _ := usecases.LoadMatrix(tempRepo)
+	// Create a new repository to capture writes
+	repository2 := memory.NewRepository("")
+	model = ui.NewModelWithRepository(m2, "test.txt", repository2)
+	updatedModel, _ = model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
+	model = updatedModel.(ui.Model)
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'1'}})
+	model = updatedModel.(ui.Model)
 
 	// Toggle back to complete
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}})
 	_ = updatedModel.(ui.Model)
 
 	// Check file has completion marker with NEW date (today)
-	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "x ") {
-		t.Error("expected file to contain completion marker 'x'")
-	}
+	savedTodos, err := repository2.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.True(savedTodos[0].IsCompleted())
 
 	// Should have today's date, NOT the old date
 	today := time.Now().Format("2006-01-02")
-	if !strings.Contains(written, today) {
-		t.Errorf("expected file to contain today's date %s, got: %s", today, written)
-	}
-
-	if strings.Contains(written, "2026-01-10") {
-		t.Error("expected old date to be replaced with new date")
-	}
+	is.True(savedTodos[0].CompletionDate() != nil)
+	is.Equal(savedTodos[0].CompletionDate().Format("2006-01-02"), today)
 }
 
 func TestStory013_DisplayCompletionDateInUI(t *testing.T) {
@@ -189,11 +183,9 @@ func TestStory013_DisplayCompletionDateInUI(t *testing.T) {
 	tenDaysAgo := time.Now().AddDate(0, 0, -10).Format("2006-01-02")
 	input := "x " + tenDaysAgo + " (A) Completed task"
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -235,11 +227,9 @@ func TestStory013_DisplayCompletionDateRelativeFormatting(t *testing.T) {
 		"x " + yesterday + " (B) Task completed yesterday\n" +
 		"x " + twoDaysAgo + " (C) Task completed 2 days ago"
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -281,11 +271,9 @@ func TestStory013_NoDateShownForIncompleteTodos(t *testing.T) {
 	is := is.New(t)
 	input := `(A) Active task`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -316,15 +304,12 @@ func TestStory013_PreserveCompletionDateWhenMovingQuadrants(t *testing.T) {
 	is := is.New(t)
 	input := `x 2026-01-10 (A) Completed urgent task`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -339,12 +324,15 @@ func TestStory013_PreserveCompletionDateWhenMovingQuadrants(t *testing.T) {
 	_ = updatedModel.(ui.Model)
 
 	// Check file preserves the completion date
-	written := source.writer.(*strings.Builder).String()
-	if !strings.Contains(written, "x 2026-01-10") {
-		t.Errorf("expected file to preserve completion date 2026-01-10, got: %s", written)
-	}
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.True(savedTodos[0].IsCompleted())
+	is.Equal(savedTodos[0].Priority(), todo.PriorityB)
+	is.Equal(savedTodos[0].Description(), "Completed urgent task")
 
-	if !strings.Contains(written, "(B) Completed urgent task") {
-		t.Errorf("expected file to contain updated priority and description, got: %s", written)
-	}
+	// Completion date should be preserved
+	is.True(savedTodos[0].CompletionDate() != nil)
+	expectedDate := time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC)
+	is.Equal(savedTodos[0].CompletionDate().Format("2006-01-02"), expectedDate.Format("2006-01-02"))
 }

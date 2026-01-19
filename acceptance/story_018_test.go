@@ -4,8 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/matryer/is"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/matryer/is"
+	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
 	"github.com/quii/todo-eisenhower/usecases"
 )
@@ -17,13 +18,12 @@ func TestStory018_DeleteTodoWithConfirmation(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Task to keep\n(A) Task to delete\n"
-	source := &StubTodoSource{reader: strings.NewReader(input)}
-	writer := &StubTodoWriter{}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModelWithWriter(m, "test.txt", source, writer)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -52,8 +52,11 @@ func TestStory018_DeleteTodoWithConfirmation(t *testing.T) {
 	is.Equal(len(updatedMatrix.DoFirst()), 1)
 	is.Equal(updatedMatrix.DoFirst()[0].Description(), "Task to keep")
 
-	// File should be updated
-	is.True(writer.replaceAllCalled)
+	// Verify the todo was deleted by checking the repository
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.Equal(savedTodos[0].Description(), "Task to keep")
 }
 
 func TestStory018_CancelDeletionWithESC(t *testing.T) {
@@ -61,13 +64,12 @@ func TestStory018_CancelDeletionWithESC(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Task to keep\n"
-	source := &StubTodoSource{reader: strings.NewReader(input)}
-	writer := &StubTodoWriter{}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModelWithWriter(m, "test.txt", source, writer)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -85,8 +87,11 @@ func TestStory018_CancelDeletionWithESC(t *testing.T) {
 	updatedMatrix := model.GetMatrix()
 	is.Equal(len(updatedMatrix.DoFirst()), 1)
 
-	// File should NOT be updated
-	is.True(!writer.replaceAllCalled)
+	// Verify no changes were made to the repository
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.Equal(savedTodos[0].Description(), "Task to keep")
 }
 
 func TestStory018_CancelDeletionWithN(t *testing.T) {
@@ -94,13 +99,12 @@ func TestStory018_CancelDeletionWithN(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Task to keep\n"
-	source := &StubTodoSource{reader: strings.NewReader(input)}
-	writer := &StubTodoWriter{}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModelWithWriter(m, "test.txt", source, writer)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -118,6 +122,9 @@ func TestStory018_CancelDeletionWithN(t *testing.T) {
 	updatedMatrix := model.GetMatrix()
 	is.Equal(len(updatedMatrix.DoFirst()), 1)
 
-	// File should NOT be updated
-	is.True(!writer.replaceAllCalled)
+	// Verify no changes were made to the repository
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.Equal(savedTodos[0].Description(), "Task to keep")
 }

@@ -19,15 +19,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	source := file.NewSource(filePath)
+	repo := file.NewRepository(filePath)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repo)
 	if err != nil {
 		fmt.Printf("Error loading todos: %v\n", err)
 		os.Exit(1)
 	}
 
-	model := ui.NewModel(m, filePath).SetSource(source).SetWriter(source)
+	model := ui.NewModel(m, filePath).SetRepository(repo)
 
 	p := tea.NewProgram(model, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {

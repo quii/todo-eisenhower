@@ -7,7 +7,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/matryer/is"
+	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
+	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/domain/todotxt"
 	"github.com/quii/todo-eisenhower/usecases"
 )
@@ -48,15 +50,12 @@ func TestStory014_NewTodosGetCreationDateSet(t *testing.T) {
 	// Scenario: Set creation date to today when adding new todos
 
 	input := ""
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	var updatedModel tea.Model
 	updatedModel, _ = model.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 	model = updatedModel.(ui.Model)
@@ -80,10 +79,15 @@ func TestStory014_NewTodosGetCreationDateSet(t *testing.T) {
 	_ = updatedModel.(ui.Model)
 
 	// Check that creation date was set to today
-	written := source.writer.(*strings.Builder).String()
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.Equal(savedTodos[0].Description(), "New task")
+	is.Equal(savedTodos[0].Priority(), todo.PriorityA)
+
 	today := time.Now().Format("2006-01-02")
-	is.True(strings.Contains(written, today))                    // expected new todo to have today's creation date
-	is.True(strings.Contains(written, "(A) "+today+" New task")) // expected todo in format '(A) YYYY-MM-DD New task'
+	is.True(savedTodos[0].CreationDate() != nil)
+	is.Equal(savedTodos[0].CreationDate().Format("2006-01-02"), today)
 }
 
 func TestStory014_DisplayCreationDatesInUI(t *testing.T) {
@@ -94,15 +98,12 @@ func TestStory014_DisplayCreationDatesInUI(t *testing.T) {
 	fiveDaysAgo := time.Now().AddDate(0, 0, -5)
 	input := "(A) " + fiveDaysAgo.Format("2006-01-02") + " Task from five days ago"
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	var updatedModel tea.Model
 	updatedModel, _ = model.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 	model = updatedModel.(ui.Model)
@@ -127,15 +128,12 @@ func TestStory014_PreserveCreationDateOnToggle(t *testing.T) {
 	threeDaysAgo := time.Now().AddDate(0, 0, -3)
 	input := "(A) " + threeDaysAgo.Format("2006-01-02") + " Task to toggle"
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	var updatedModel tea.Model
 	updatedModel, _ = model.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 	model = updatedModel.(ui.Model)
@@ -149,14 +147,15 @@ func TestStory014_PreserveCreationDateOnToggle(t *testing.T) {
 	_ = updatedModel.(ui.Model)
 
 	// Verify creation date is preserved in written output
-	written := source.writer.(*strings.Builder).String()
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.True(savedTodos[0].IsCompleted())
 
 	// Should contain the creation date (3 days ago)
 	creationDateStr := threeDaysAgo.Format("2006-01-02")
-	is.True(strings.Contains(written, creationDateStr)) // expected creation date to be preserved
-
-	// Should be in completed format: x COMPLETION_DATE CREATION_DATE (A) Description
-	is.True(strings.Contains(written, "x")) // expected todo to be marked as completed
+	is.True(savedTodos[0].CreationDate() != nil)
+	is.Equal(savedTodos[0].CreationDate().Format("2006-01-02"), creationDateStr)
 }
 
 func TestStory014_PreserveCreationDateOnMove(t *testing.T) {
@@ -166,15 +165,12 @@ func TestStory014_PreserveCreationDateOnMove(t *testing.T) {
 	twoDaysAgo := time.Now().AddDate(0, 0, -2)
 	input := "(A) " + twoDaysAgo.Format("2006-01-02") + " Task to move"
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetSource(source).SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	var updatedModel tea.Model
 	updatedModel, _ = model.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 	model = updatedModel.(ui.Model)
@@ -190,14 +186,15 @@ func TestStory014_PreserveCreationDateOnMove(t *testing.T) {
 	_ = updatedModel.(ui.Model)
 
 	// Verify creation date is preserved in written output
-	written := source.writer.(*strings.Builder).String()
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.Equal(savedTodos[0].Priority(), todo.PriorityB)
 
 	// Should contain the creation date (2 days ago)
 	creationDateStr := twoDaysAgo.Format("2006-01-02")
-	is.True(strings.Contains(written, creationDateStr)) // expected creation date to be preserved
-
-	// Should have new priority B
-	is.True(strings.Contains(written, "(B)")) // expected todo to have priority B
+	is.True(savedTodos[0].CreationDate() != nil)
+	is.Equal(savedTodos[0].CreationDate().Format("2006-01-02"), creationDateStr)
 }
 
 func TestStory014_FriendlyDateFormatting(t *testing.T) {
@@ -212,15 +209,12 @@ func TestStory014_FriendlyDateFormatting(t *testing.T) {
 		"(B) " + yesterday.Format("2006-01-02") + " Task created yesterday\n" +
 		"(C) " + sevenDaysAgo.Format("2006-01-02") + " Task from a week ago"
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	var updatedModel tea.Model
 	updatedModel, _ = model.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 	model = updatedModel.(ui.Model)
@@ -257,15 +251,12 @@ func TestStory014_HandleTodosWithoutCreationDate(t *testing.T) {
 (B) Task without date
 (C) 2026-01-05 Another task with date`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	var updatedModel tea.Model
 	updatedModel, _ = model.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 	model = updatedModel.(ui.Model)

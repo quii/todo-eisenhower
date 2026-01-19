@@ -1,6 +1,9 @@
 package acceptance_test
 
-import "regexp"
+import (
+	"io"
+	"regexp"
+)
 
 // stripANSI removes ANSI escape codes from a string for easier testing
 func stripANSI(s string) string {
@@ -10,17 +13,39 @@ func stripANSI(s string) string {
 
 // StubTodoWriter captures write calls for testing
 type StubTodoWriter struct {
-	replaceAllCalled bool
-	lastContent      string
-	saveError        error
+	saveAllTodosCalled bool
+	lastContent        string
+	saveError          error
 }
 
-func (s *StubTodoWriter) SaveTodo(line string) error {
-	return s.saveError
+func (s *StubTodoWriter) GetAppendWriter() (io.WriteCloser, error) {
+	if s.saveError != nil {
+		return nil, s.saveError
+	}
+	return &nopWriteCloser{writer: s}, nil
 }
 
-func (s *StubTodoWriter) ReplaceAll(content string) error {
-	s.replaceAllCalled = true
-	s.lastContent = content
-	return s.saveError
+func (s *StubTodoWriter) GetReplaceWriter() (io.WriteCloser, error) {
+	s.saveAllTodosCalled = true
+	if s.saveError != nil {
+		return nil, s.saveError
+	}
+	return &nopWriteCloser{writer: s}, nil
+}
+
+func (s *StubTodoWriter) Write(p []byte) (n int, err error) {
+	s.lastContent += string(p)
+	return len(p), nil
+}
+
+type nopWriteCloser struct {
+	writer io.Writer
+}
+
+func (n *nopWriteCloser) Write(p []byte) (int, error) {
+	return n.writer.Write(p)
+}
+
+func (n *nopWriteCloser) Close() error {
+	return nil
 }

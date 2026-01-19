@@ -6,6 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/matryer/is"
+	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
 	"github.com/quii/todo-eisenhower/usecases"
 )
@@ -17,15 +18,12 @@ func TestStory009_TriggerAutocompleteWithPlus(t *testing.T) {
 	// Scenario: Trigger autocomplete with +
 
 	input := "(A) Task +WebApp\n(A) Task +Mobile\n(A) Task +Backend"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -54,15 +52,12 @@ func TestStory009_FilterSuggestionsAsIType(t *testing.T) {
 	// Scenario: Filter suggestions as I type
 
 	input := "(A) Existing task +WebApp\n(B) Other task +Mobile\n(C) Another task +Backend"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -91,15 +86,12 @@ func TestStory009_NavigateSuggestionsWithArrows(t *testing.T) {
 	// Scenario: Navigate suggestions with arrow keys
 
 	input := "(A) Task +WebApp\n(A) Task +Mobile\n(A) Task +Backend"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -141,15 +133,12 @@ func TestStory009_CompleteTagWithTab(t *testing.T) {
 	// Scenario: Complete tag with Tab
 
 	input := "(A) Task +API\n(A) Task +WebApp"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -183,9 +172,15 @@ func TestStory009_CompleteTagWithTab(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyEnter})
 	_ = updatedModel.(ui.Model)
 
-	written := source.writer.(*strings.Builder).String()
-	is.True(strings.Contains(written, "+API"))       // expected todo to contain +API tag
-	is.True(strings.Contains(written, "more text"))  // expected todo to contain 'more text'
+	// Verify the todo was persisted with completed tag
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 3) // expected 3 todos (2 existing + 1 new)
+
+	newTodo := savedTodos[2]
+	is.Equal(len(newTodo.Projects()), 1)
+	is.Equal(newTodo.Projects()[0], "API")
+	is.True(strings.Contains(newTodo.Description(), "more text"))
 }
 
 func TestStory009_CompleteTagWithEnter(t *testing.T) {
@@ -193,15 +188,12 @@ func TestStory009_CompleteTagWithEnter(t *testing.T) {
 	// Scenario: Complete tag with Enter (when suggestions visible)
 
 	input := "(A) Task +API\n(A) Task +WebApp"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -230,8 +222,9 @@ func TestStory009_CompleteTagWithEnter(t *testing.T) {
 	is.True(strings.Contains(stripANSI(view), "Enter to save"))  // expected to still be in input mode after completing with Enter
 
 	// Verify no todo was saved yet
-	written := source.writer.(*strings.Builder).String()
-	is.True(written == "")  // expected no todo to be saved when using Enter to complete suggestion
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 2) // expected only original 2 todos, no new one
 }
 
 func TestStory009_DismissSuggestionsWithESC(t *testing.T) {
@@ -239,15 +232,12 @@ func TestStory009_DismissSuggestionsWithESC(t *testing.T) {
 	// Scenario: Dismiss suggestions with ESC
 
 	input := "(A) Task +WebApp"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -276,8 +266,9 @@ func TestStory009_DismissSuggestionsWithESC(t *testing.T) {
 	is.True(strings.Contains(view2, "Enter to save"))  // expected to still be in input mode after ESC
 
 	// Verify no todo was saved
-	written := source.writer.(*strings.Builder).String()
-	is.True(written == "")  // expected no todo to be saved when dismissing suggestions
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1) // expected only original todo
 }
 
 func TestStory009_AutocompleteContextTags(t *testing.T) {
@@ -285,15 +276,12 @@ func TestStory009_AutocompleteContextTags(t *testing.T) {
 	// Scenario: Autocomplete context tags with @
 
 	input := "(B) Existing task @computer\n(C) Other task @phone\n(D) Another task @office"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -333,15 +321,12 @@ func TestStory009_MultipleTagsInOneInput(t *testing.T) {
 	// Scenario: Multiple tags in one todo
 
 	input := "(B) Existing task +WebApp @computer"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -381,15 +366,12 @@ func TestStory009_NoMatchesMessage(t *testing.T) {
 	// Scenario: No suggestions available
 
 	input := "(A) Task +WebApp"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -416,15 +398,12 @@ func TestStory009_CaseInsensitiveMatching(t *testing.T) {
 	// Scenario: Case-insensitive matching
 
 	input := "(A) Task +WebApp"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -451,15 +430,12 @@ func TestStory009_NewTagsAvailableInAutocomplete(t *testing.T) {
 	// Scenario: Newly created tags should appear in autocomplete
 
 	input := "(B) Task +OldTag"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 

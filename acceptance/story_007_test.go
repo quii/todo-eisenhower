@@ -6,6 +6,7 @@ import (
 
 	"github.com/matryer/is"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
 	"github.com/quii/todo-eisenhower/usecases"
 )
@@ -17,11 +18,9 @@ func TestStory007_NoEmojisInQuadrantTitles(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Test todo"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -45,11 +44,9 @@ func TestStory007_FocusOnDoFirst(t *testing.T) {
 	is := is.New(t)
 
 	input := generateManyTodos(20)
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -83,11 +80,9 @@ func TestStory007_FocusOnSchedule(t *testing.T) {
 	is := is.New(t)
 
 	input := "(B) Schedule task\n(B) Another schedule task"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -109,11 +104,9 @@ func TestStory007_FocusOnDelegate(t *testing.T) {
 	is := is.New(t)
 
 	input := "(C) Delegate task"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -134,11 +127,9 @@ func TestStory007_FocusOnEliminate(t *testing.T) {
 	is := is.New(t)
 
 	input := "(D) Eliminate task"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -159,11 +150,9 @@ func TestStory007_ReturnToOverviewWithESC(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Test todo"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -201,11 +190,9 @@ func TestStory007_JumpBetweenQuadrantsInFocusMode(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Task A\n(B) Task B\n(C) Task C\n(D) Task D"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -243,11 +230,9 @@ func TestStory007_EmptyQuadrantInFocusMode(t *testing.T) {
 
 	// No Priority D or untagged tasks, so ELIMINATE will be empty
 	input := "(A) Task A\n(B) Task B\n(C) Task C"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -269,11 +254,9 @@ func TestStory007_DisplayLimitScalesInFocusMode(t *testing.T) {
 	is := is.New(t)
 
 	input := generateManyTodos(50)
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")

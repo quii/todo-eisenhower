@@ -10,7 +10,7 @@ import (
 )
 
 // AddTodo creates a new todo and adds it to the matrix
-func AddTodo(writer TodoWriter, m matrix.Matrix, description string, priority todo.Priority) (matrix.Matrix, error) {
+func AddTodo(repo TodoRepository, m matrix.Matrix, description string, priority todo.Priority) (matrix.Matrix, error) {
 	// Parse description to extract clean text and tags
 	cleanDescription, projects, contexts := todotxt.ParseDescription(description)
 
@@ -29,8 +29,8 @@ func AddTodo(writer TodoWriter, m matrix.Matrix, description string, priority to
 	// Add todo to matrix
 	updatedMatrix := m.AddTodo(newTodo)
 
-	// Persist changes (implementation detail)
-	err := saveTodo(writer, newTodo)
+	// Persist changes
+	err := saveTodo(repo, newTodo)
 	if err != nil {
 		return m, err // Return original matrix if save fails
 	}

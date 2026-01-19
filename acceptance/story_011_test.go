@@ -6,8 +6,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/matryer/is"
+	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
-	"github.com/quii/todo-eisenhower/domain/todotxt"
+	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -19,15 +20,12 @@ func TestStory011_NavigateTodosWithArrowKeys(t *testing.T) {
 (A) Task two
 (A) Task three`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -63,15 +61,12 @@ func TestStory011_NavigateTodosWithWASD(t *testing.T) {
 	input := `(A) Task one
 (A) Task two`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -95,15 +90,12 @@ func TestStory011_MarkTodoAsComplete(t *testing.T) {
 	input := `(A) Fix bug +WebApp
 (A) Another task`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -123,10 +115,15 @@ func TestStory011_MarkTodoAsComplete(t *testing.T) {
 	// Should show "today" in the Completed column
 	is.True(strings.Contains(stripANSI(view), "today"))  // expected completed todo to show 'today' in Completed column
 
-	// Check that file was updated with completion marker
-	written := source.writer.(*strings.Builder).String()
-	is.True(strings.Contains(written, "x"))  // expected file to contain completion marker 'x'
-	is.True(strings.Contains(written, "Fix bug +WebApp"))  // expected completed todo to retain description and tags
+	// Verify todo was marked as complete
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 2)
+	is.True(savedTodos[0].IsCompleted()) // expected first todo to be completed
+	is.True(strings.Contains(savedTodos[0].Description(), "Fix bug")) // description should contain base text
+	is.Equal(len(savedTodos[0].Projects()), 1)
+	is.Equal(savedTodos[0].Projects()[0], "WebApp")
+	is.True(savedTodos[0].CompletionDate() != nil) // expected completion date to be set
 }
 
 func TestStory011_UnmarkCompletedTodo(t *testing.T) {
@@ -135,25 +132,17 @@ func TestStory011_UnmarkCompletedTodo(t *testing.T) {
 
 	input := `x 2025-12-25 (A) Completed task`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
 	// First, let's parse the todos to see what we get
-	reader, _ := source.GetTodos()
-	todos, err := todotxt.Unmarshal(reader)
-	_ = reader.Close()
+	todos, err := repository.LoadAll()
 	is.NoErr(err)
 	t.Logf("Parsed %d todos", len(todos))
 	for i, td := range todos {
 		t.Logf("Todo %d: priority=%v, completed=%v, desc=%s", i, td.Priority(), td.IsCompleted(), td.Description())
 	}
 
-	// Reset the source reader
-	source.reader = strings.NewReader(input)
-
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	t.Logf("Initial matrix DO FIRST count: %d", len(m.DoFirst()))
@@ -161,7 +150,7 @@ func TestStory011_UnmarkCompletedTodo(t *testing.T) {
 		t.Logf("First todo: completed=%v, description=%s", m.DoFirst()[0].IsCompleted(), m.DoFirst()[0].Description())
 	}
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -174,12 +163,13 @@ func TestStory011_UnmarkCompletedTodo(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}})
 	_ = updatedModel.(ui.Model)
 
-	// Check that file was updated without completion marker
-	written := source.writer.(*strings.Builder).String()
-	t.Logf("Written content:\n%s", written)
-
-	is.True(!strings.Contains(written, "x "))  // expected completed task to be unmarked (no 'x' prefix)
-	is.True(strings.Contains(written, "(A) Completed task"))  // expected unmarked todo to retain priority and description
+	// Verify todo was unmarked (no longer completed)
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1)
+	is.True(!savedTodos[0].IsCompleted()) // expected todo to be unmarked
+	is.Equal(savedTodos[0].Description(), "Completed task")
+	is.Equal(savedTodos[0].Priority(), todo.PriorityA)
 }
 
 func TestStory011_EmptyQuadrantNoSelection(t *testing.T) {
@@ -188,15 +178,12 @@ func TestStory011_EmptyQuadrantNoSelection(t *testing.T) {
 
 	input := `(A) Task in DO FIRST`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -226,15 +213,12 @@ func TestStory011_SelectionNotShownInOverviewMode(t *testing.T) {
 (A) Task two
 (A) Task three`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -269,15 +253,12 @@ func TestStory011_InputModePreservesSelection(t *testing.T) {
 (A) Task two
 (A) Task three`
 
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -305,7 +286,10 @@ func TestStory011_InputModePreservesSelection(t *testing.T) {
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}})
 	_ = updatedModel.(ui.Model)
 
-	// Verify third todo was toggled by checking written output
-	written := source.writer.(*strings.Builder).String()
-	is.True(strings.Contains(written, "x") && strings.Contains(written, "Task three"))  // expected third todo to be marked as complete
+	// Verify third todo was toggled to complete
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 3)
+	is.True(savedTodos[2].IsCompleted()) // expected third todo to be marked as complete
+	is.Equal(savedTodos[2].Description(), "Task three")
 }

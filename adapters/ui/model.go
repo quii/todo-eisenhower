@@ -36,8 +36,7 @@ type Model struct {
 	input              textinput.Model
 	allProjects        []string
 	allContexts        []string
-	source             usecases.TodoSource
-	writer             usecases.TodoWriter
+	repo               usecases.TodoRepository
 	showSuggestions    bool
 	suggestions        []string
 	selectedSuggestion int
@@ -68,15 +67,9 @@ func NewModel(m matrix.Matrix, filePath string) Model {
 	}
 }
 
-// SetSource sets the source for reloading todos
-func (m Model) SetSource(s usecases.TodoSource) Model {
-	m.source = s
-	return m
-}
-
-// SetWriter sets the writer for saving todos
-func (m Model) SetWriter(w usecases.TodoWriter) Model {
-	m.writer = w
+// SetRepository sets the repository for loading/saving todos
+func (m Model) SetRepository(r usecases.TodoRepository) Model {
+	m.repo = r
 	return m
 }
 
@@ -308,7 +301,7 @@ func (m Model) saveTodo() Model {
 		return m
 	}
 
-	if m.writer == nil {
+	if m.repo == nil {
 		return m // No-op if no writer configured
 	}
 
@@ -316,7 +309,7 @@ func (m Model) saveTodo() Model {
 	priority := m.currentQuadrantPriority()
 
 	// Use the AddTodo usecase
-	updatedMatrix, err := usecases.AddTodo(m.writer, m.matrix, description, priority)
+	updatedMatrix, err := usecases.AddTodo(m.repo, m.matrix, description, priority)
 	if err != nil {
 		// TODO: Show error to user in future story
 		return m
@@ -438,13 +431,13 @@ func (m Model) currentQuadrantType() matrix.QuadrantType {
 
 // toggleCompletion toggles the completion status of the selected todo
 func (m Model) toggleCompletion() Model {
-	if m.writer == nil {
+	if m.repo == nil {
 		return m // No-op if no writer configured
 	}
 
 	// Use the ToggleCompletion usecase
 	quadrant := m.currentQuadrantType()
-	updatedMatrix, err := usecases.ToggleCompletion(m.writer, m.matrix, quadrant, m.selectedTodoIndex)
+	updatedMatrix, err := usecases.ToggleCompletion(m.repo, m.matrix, quadrant, m.selectedTodoIndex)
 	if err != nil {
 		// TODO: Show error to user in future story
 		return m
@@ -460,13 +453,13 @@ func (m Model) toggleCompletion() Model {
 
 // changeTodoPriority changes the priority of the selected todo
 func (m Model) changeTodoPriority(newPriority todo.Priority) Model {
-	if m.writer == nil || m.source == nil {
-		return m // No-op if no writer or source configured
+	if m.repo == nil {
+		return m // No-op if no repository configured
 	}
 
 	// Use the ChangePriority usecase
 	quadrant := m.currentQuadrantType()
-	updatedMatrix, err := usecases.ChangePriority(m.writer, m.matrix, quadrant, m.selectedTodoIndex, newPriority)
+	updatedMatrix, err := usecases.ChangePriority(m.repo, m.matrix, quadrant, m.selectedTodoIndex, newPriority)
 	if err != nil {
 		// TODO: Show error to user in future story
 		return m
@@ -494,7 +487,7 @@ func (m Model) changeTodoPriority(newPriority todo.Priority) Model {
 
 // deleteTodo deletes the currently selected todo
 func (m Model) deleteTodo() Model {
-	if m.writer == nil {
+	if m.repo == nil {
 		return m // No-op if no writer configured
 	}
 
@@ -507,7 +500,7 @@ func (m Model) deleteTodo() Model {
 	todoToDelete := todos[m.selectedTodoIndex]
 
 	// Use the DeleteTodo usecase
-	updatedMatrix, err := usecases.DeleteTodo(m.writer, m.matrix, todoToDelete)
+	updatedMatrix, err := usecases.DeleteTodo(m.repo, m.matrix, todoToDelete)
 	if err != nil {
 		// TODO: Show error to user in future story
 		return m
@@ -686,11 +679,10 @@ func (m Model) View() string {
 	return content
 }
 
-// NewModelWithWriter creates a model with explicit writer (for testing)
-func NewModelWithWriter(m matrix.Matrix, filePath string, source usecases.TodoSource, writer usecases.TodoWriter) Model {
+// NewModelWithRepository creates a model with explicit repository (for testing)
+func NewModelWithRepository(m matrix.Matrix, filePath string, repo usecases.TodoRepository) Model {
 	model := NewModel(m, filePath)
-	model.source = source
-	model.writer = writer
+	model.repo = repo
 	return model
 }
 

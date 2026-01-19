@@ -7,7 +7,9 @@ import (
 
 	"github.com/matryer/is"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
+	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
@@ -18,14 +20,12 @@ func TestStory008_PressAToEnterInputMode(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Existing task"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -56,15 +56,12 @@ func TestStory008_AddSimpleTodoWithoutTags(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Existing task"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -92,14 +89,18 @@ func TestStory008_AddSimpleTodoWithoutTags(t *testing.T) {
 	// Should exit input mode
 	is.True(!strings.Contains(stripANSI(view), "Add todo:")) // expected view to exit input mode after saving
 
-	// Check that the todo was written to the file with priority (A) and creation date
-	written := source.writer.(*strings.Builder).String()
-	is.True(strings.Contains(written, "(A)")) // expected todo to have priority (A)
-	is.True(strings.Contains(written, "Fix critical bug")) // expected todo to contain description
+	// Verify the todo was persisted to repository
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 2) // expected 2 todos (existing + new)
 
-	// Should have today's creation date
+	newTodo := savedTodos[1]
+	is.Equal(newTodo.Description(), "Fix critical bug")
+	is.Equal(newTodo.Priority(), todo.PriorityA)
+	is.True(newTodo.CreationDate() != nil) // expected new todo to have creation date
+
 	today := time.Now().Format("2006-01-02")
-	is.True(strings.Contains(written, today)) // expected todo to have today's creation date
+	is.Equal(newTodo.CreationDate().Format("2006-01-02"), today) // expected creation date to be today
 }
 
 func TestStory008_AddTodoWithProjectTags(t *testing.T) {
@@ -107,15 +108,12 @@ func TestStory008_AddTodoWithProjectTags(t *testing.T) {
 	is := is.New(t)
 
 	input := "(B) Existing task +WebApp"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -142,13 +140,21 @@ func TestStory008_AddTodoWithProjectTags(t *testing.T) {
 	is.True(strings.Contains(stripANSI(view), "WebApp")) // expected view to show +WebApp tag
 	is.True(strings.Contains(stripANSI(view), "Mobile")) // expected view to show +Mobile tag
 
-	// Check that the todo was written with priority (B) and creation date
-	written := source.writer.(*strings.Builder).String()
-	is.True(strings.Contains(written, "(B)")) // expected todo to have priority (B)
-	is.True(strings.Contains(written, "Plan sprint +WebApp +Mobile")) // expected todo to contain description with tags
+	// Verify the todo was persisted with correct properties
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 2) // expected 2 todos
+
+	newTodo := savedTodos[1]
+	is.True(strings.Contains(newTodo.Description(), "Plan sprint")) // description should contain base text
+	is.Equal(newTodo.Priority(), todo.PriorityB)
+	is.Equal(len(newTodo.Projects()), 2)
+	is.Equal(newTodo.Projects()[0], "WebApp")
+	is.Equal(newTodo.Projects()[1], "Mobile")
+	is.True(newTodo.CreationDate() != nil)
 
 	today := time.Now().Format("2006-01-02")
-	is.True(strings.Contains(written, today)) // expected todo to have today's creation date
+	is.Equal(newTodo.CreationDate().Format("2006-01-02"), today)
 }
 
 func TestStory008_AddTodoWithContextTags(t *testing.T) {
@@ -156,15 +162,12 @@ func TestStory008_AddTodoWithContextTags(t *testing.T) {
 	is := is.New(t)
 
 	input := "(C) Existing task @phone"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -191,13 +194,21 @@ func TestStory008_AddTodoWithContextTags(t *testing.T) {
 	is.True(strings.Contains(stripANSI(view), "phone")) // expected view to show @phone tag
 	is.True(strings.Contains(stripANSI(view), "office")) // expected view to show @office tag
 
-	// Check that the todo was written with priority (C) and creation date
-	written := source.writer.(*strings.Builder).String()
-	is.True(strings.Contains(written, "(C)")) // expected todo to have priority (C)
-	is.True(strings.Contains(written, "Reply to emails @phone @office")) // expected todo to contain description with tags
+	// Verify the todo was persisted with correct properties
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 2) // expected 2 todos
+
+	newTodo := savedTodos[1]
+	is.True(strings.Contains(newTodo.Description(), "Reply to emails")) // description should contain base text
+	is.Equal(newTodo.Priority(), todo.PriorityC)
+	is.Equal(len(newTodo.Contexts()), 2)
+	is.Equal(newTodo.Contexts()[0], "phone")
+	is.Equal(newTodo.Contexts()[1], "office")
+	is.True(newTodo.CreationDate() != nil)
 
 	today := time.Now().Format("2006-01-02")
-	is.True(strings.Contains(written, today)) // expected todo to have today's creation date
+	is.Equal(newTodo.CreationDate().Format("2006-01-02"), today)
 }
 
 func TestStory008_AddTodoWithMixedTags(t *testing.T) {
@@ -205,15 +216,12 @@ func TestStory008_AddTodoWithMixedTags(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Existing task"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -241,14 +249,23 @@ func TestStory008_AddTodoWithMixedTags(t *testing.T) {
 	is.True(strings.Contains(stripANSI(view), "computer")) // expected view to show @computer tag
 	is.True(strings.Contains(stripANSI(view), "work")) // expected view to show @work tag
 
-	// Check written content
-	written := source.writer.(*strings.Builder).String()
-	is.True(strings.Contains(written, "(A)")) // expected todo to have priority (A)
-	is.True(strings.Contains(written, "Deploy to production +WebApp @computer @work")) // expected todo to contain description with all tags
+	// Verify the todo was persisted with correct properties
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 2) // expected 2 todos
 
-	// Should have today's creation date
+	newTodo := savedTodos[1]
+	is.True(strings.Contains(newTodo.Description(), "Deploy to production")) // description should contain base text
+	is.Equal(newTodo.Priority(), todo.PriorityA)
+	is.Equal(len(newTodo.Projects()), 1)
+	is.Equal(newTodo.Projects()[0], "WebApp")
+	is.Equal(len(newTodo.Contexts()), 2)
+	is.Equal(newTodo.Contexts()[0], "computer")
+	is.Equal(newTodo.Contexts()[1], "work")
+	is.True(newTodo.CreationDate() != nil)
+
 	today := time.Now().Format("2006-01-02")
-	is.True(strings.Contains(written, today)) // expected todo to have today's creation date
+	is.Equal(newTodo.CreationDate().Format("2006-01-02"), today)
 }
 
 func TestStory008_CancelInputWithESC(t *testing.T) {
@@ -256,15 +273,12 @@ func TestStory008_CancelInputWithESC(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Existing task"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -292,9 +306,11 @@ func TestStory008_CancelInputWithESC(t *testing.T) {
 	// Should not show the typed text
 	is.True(!strings.Contains(stripANSI(view), "This should be discarded")) // expected typed text to be discarded
 
-	// Should not have written anything to file
-	written := source.writer.(*strings.Builder).String()
-	is.Equal(written, "") // expected no todo to be written after cancel
+	// Verify repository was not modified
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 1) // expected only original todo
+	is.Equal(savedTodos[0].Description(), "Existing task")
 }
 
 func TestStory008_TagReferenceShowsExistingTags(t *testing.T) {
@@ -302,14 +318,12 @@ func TestStory008_TagReferenceShowsExistingTags(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Task 1 +WebApp @computer\n(B) Task 2 +Mobile @phone\n(C) Task 3 @office"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -338,14 +352,12 @@ func TestStory008_EmptyTagReferenceWhenNoTags(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Task without tags\n(B) Another task"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -367,14 +379,12 @@ func TestStory008_InputOnlyAvailableInFocusMode(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Task"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -410,15 +420,12 @@ func TestStory008_AutoAssignPriorityFromQuadrant(t *testing.T) {
 			is := is.New(t)
 
 			input := "(A) Existing task"
-			source := &StubTodoSource{
-				reader: strings.NewReader(input),
-				writer: &strings.Builder{},
-			}
+			repository := memory.NewRepository(input)
 
-			m, err := usecases.LoadMatrix(source)
+			m, err := usecases.LoadMatrix(repository)
 			is.NoErr(err)
 
-			model := ui.NewModel(m, "test.txt").SetWriter(source)
+			model := ui.NewModelWithRepository(m, "test.txt", repository)
 			updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 			model = updatedModel.(ui.Model)
 
@@ -440,14 +447,31 @@ func TestStory008_AutoAssignPriorityFromQuadrant(t *testing.T) {
 			updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyEnter})
 			_ = updatedModel.(ui.Model)
 
-			// Check written content
-			written := source.writer.(*strings.Builder).String()
-			is.True(strings.Contains(written, tt.expectedPrio)) // expected todo to have correct priority
-			is.True(strings.Contains(written, "Test todo")) // expected todo to contain description
+			// Verify todo was persisted with correct properties
+			savedTodos, err := repository.LoadAll()
+			is.NoErr(err)
+			is.Equal(len(savedTodos), 2) // expected 2 todos
 
-			// Should have today's creation date
+			newTodo := savedTodos[1]
+			is.Equal(newTodo.Description(), "Test todo")
+
+			// Verify priority based on quadrant
+			var expectedPriority todo.Priority
+			switch tt.expectedPrio {
+			case "(A)":
+				expectedPriority = todo.PriorityA
+			case "(B)":
+				expectedPriority = todo.PriorityB
+			case "(C)":
+				expectedPriority = todo.PriorityC
+			case "(D)":
+				expectedPriority = todo.PriorityD
+			}
+			is.Equal(newTodo.Priority(), expectedPriority)
+			is.True(newTodo.CreationDate() != nil)
+
 			today := time.Now().Format("2006-01-02")
-			is.True(strings.Contains(written, today)) // expected todo to have today's creation date
+			is.Equal(newTodo.CreationDate().Format("2006-01-02"), today)
 		})
 	}
 }
@@ -457,15 +481,12 @@ func TestStory008_NewTagsAreAccepted(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Task +WebApp +Mobile"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-		writer: &strings.Builder{},
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
-	model := ui.NewModel(m, "test.txt").SetWriter(source)
+	model := ui.NewModelWithRepository(m, "test.txt", repository)
 	updatedModel, _ := model.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	model = updatedModel.(ui.Model)
 
@@ -491,12 +512,18 @@ func TestStory008_NewTagsAreAccepted(t *testing.T) {
 	is.True(strings.Contains(stripANSI(view), "Build API")) // expected view to show new todo
 	is.True(strings.Contains(stripANSI(view), "Backend")) // expected view to show +Backend tag
 
-	// Check written content
-	written := source.writer.(*strings.Builder).String()
-	is.True(strings.Contains(written, "(A)")) // expected todo to have priority (A)
-	is.True(strings.Contains(written, "Build API +Backend")) // expected todo to contain description with +Backend tag
+	// Verify the todo was persisted with correct properties
+	savedTodos, err := repository.LoadAll()
+	is.NoErr(err)
+	is.Equal(len(savedTodos), 2) // expected 2 todos
 
-	// Should have today's creation date
+	newTodo := savedTodos[1]
+	is.True(strings.Contains(newTodo.Description(), "Build API")) // description should contain base text
+	is.Equal(newTodo.Priority(), todo.PriorityA)
+	is.Equal(len(newTodo.Projects()), 1)
+	is.Equal(newTodo.Projects()[0], "Backend")
+	is.True(newTodo.CreationDate() != nil)
+
 	today := time.Now().Format("2006-01-02")
-	is.True(strings.Contains(written, today)) // expected todo to have today's creation date
+	is.Equal(newTodo.CreationDate().Format("2006-01-02"), today)
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/matryer/is"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
 	"github.com/quii/todo-eisenhower/usecases"
 )
@@ -22,11 +23,9 @@ func TestStory006_MatrixFillsAvailableSpace(t *testing.T) {
 
 	// Create todos (15 in Priority A to test display limit)
 	input := generateManyTodos(15)
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -53,11 +52,9 @@ func TestStory006_MatrixAdjustsToDifferentSizes(t *testing.T) {
 	is := is.New(t)
 
 	input := generateManyTodos(30)
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -81,11 +78,9 @@ func TestStory006_MatrixRespectsMinimumDimensions(t *testing.T) {
 	is := is.New(t)
 
 	input := "(A) Test todo"
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -130,11 +125,9 @@ func TestStory006_DisplayLimitScalesWithHeight(t *testing.T) {
 			is := is.New(t)
 
 			input := generateManyTodos(20)
-			source := &StubTodoSource{
-				reader: strings.NewReader(input),
-			}
+			repository := memory.NewRepository(input)
 
-			m, err := usecases.LoadMatrix(source)
+			m, err := usecases.LoadMatrix(repository)
 			is.NoErr(err)
 
 			model := ui.NewModel(m, "test.txt")
@@ -155,11 +148,9 @@ func TestStory006_WindowResizeHandledGracefully(t *testing.T) {
 	is := is.New(t)
 
 	input := generateManyTodos(15)
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
@@ -185,11 +176,9 @@ func TestStory006_DefaultDimensionsWhenNoWindowSize(t *testing.T) {
 	is := is.New(t)
 
 	input := generateManyTodos(10)
-	source := &StubTodoSource{
-		reader: strings.NewReader(input),
-	}
+	repository := memory.NewRepository(input)
 
-	m, err := usecases.LoadMatrix(source)
+	m, err := usecases.LoadMatrix(repository)
 	is.NoErr(err)
 
 	model := ui.NewModel(m, "test.txt")
