@@ -3,6 +3,8 @@ package file
 
 import (
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/domain/todotxt"
@@ -52,4 +54,36 @@ func (r *Repository) SaveAll(todos []todo.Todo) error {
 	}()
 
 	return todotxt.Marshal(f, todos)
+}
+
+// AppendToArchive appends a todo to the archive file (done.txt)
+// The archive file is in the same directory as todo.txt, named done.txt
+func (r *Repository) AppendToArchive(t todo.Todo) error {
+	// Determine archive file path (done.txt in same directory as todo.txt)
+	archivePath := r.archivePath()
+
+	// Open file in append mode, create if doesn't exist
+	//nolint:gosec // G302,G304: done.txt files are intentionally world-readable (0o644 per todo.txt spec)
+	f, err := os.OpenFile(archivePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = f.Close()
+	}()
+
+	// Write the todo as a single line
+	return todotxt.Marshal(f, []todo.Todo{t})
+}
+
+// archivePath returns the path to the archive file (done.txt)
+func (r *Repository) archivePath() string {
+	dir := filepath.Dir(r.path)
+	base := filepath.Base(r.path)
+
+	// Replace todo.txt with done.txt, or append .done to other filenames
+	if strings.HasSuffix(base, "todo.txt") {
+		return filepath.Join(dir, "done.txt")
+	}
+	return filepath.Join(dir, base+".done")
 }

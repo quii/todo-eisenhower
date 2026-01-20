@@ -474,7 +474,7 @@ func RenderFocusedQuadrantWithTable(
 	output.WriteString("\n\n")
 
 	// Render help text at bottom
-	helpText := renderHelp("Press a to add", "Press 1-4 to jump", "m to move", "Press ESC to return")
+	helpText := renderHelp("Press a to add", "d to archive completed", "Press 1-4 to jump", "m to move", "Press ESC to return")
 	centeredHelp := lipgloss.NewStyle().
 		Align(lipgloss.Center).
 		Width(terminalWidth).

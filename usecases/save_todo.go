@@ -10,6 +10,7 @@ import (
 type TodoRepository interface {
 	LoadAll() ([]todo.Todo, error)
 	SaveAll(todos []todo.Todo) error
+	AppendToArchive(todo todo.Todo) error
 }
 
 func saveAllTodos(repo TodoRepository, m matrix.Matrix) error {

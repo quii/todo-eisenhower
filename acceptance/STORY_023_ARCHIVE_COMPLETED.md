@@ -10,7 +10,7 @@ Following the todo.txt convention, completed todos should be movable to a `done.
 in the same directory as `todo.txt`. From a UX perspective, archiving is like "deleting"
 but the data is preserved in a separate file rather than lost.
 
-Archiving is manual and per-todo (not bulk) - press 'A' on a completed todo to archive it.
+Archiving is manual and per-todo (not bulk) - press 'd' on a completed todo to archive it.
 
 ## Acceptance Criteria
 
@@ -18,7 +18,7 @@ Archiving is manual and per-todo (not bulk) - press 'A' on a completed todo to a
 Given I have a completed todo "x 2026-01-20 Buy milk" in the Do First quadrant
 And I am in focus mode on the Do First quadrant
 When I select the completed todo
-And I press 'A' (shift+a)
+And I press 'd' (shift+a)
 Then the todo should be removed from todo.txt
 And the todo should be appended to done.txt in the same directory
 And the matrix should update to reflect the removal
@@ -27,7 +27,7 @@ And the matrix should update to reflect the removal
 Given I have an uncompleted todo "(A) Active task" in the Do First quadrant
 And I am in focus mode on the Do First quadrant
 When I select the uncompleted todo
-And I press 'A'
+And I press 'd'
 Then nothing should happen
 Or a message should indicate "Only completed todos can be archived"
 And the todo should remain in todo.txt
@@ -76,7 +76,7 @@ Including completion date, creation date, priority, projects, contexts, and due 
 
 ### Scenario: Cannot archive from overview mode
 Given I am in overview mode
-When I press 'A'
+When I press 'd'
 Then nothing should happen
 Because archiving requires selecting a specific todo (focus mode only)
 
@@ -103,7 +103,7 @@ But there's no in-app archive viewer (by design)
 
 ## Technical Notes
 
-- Archive is triggered by pressing 'A' (capital A, shift+a) in focus mode
+- Archive is triggered by pressing 'd' in focus mode
 - Only works on completed todos (those with `x` prefix)
 - The selected todo is identified by the current table row selection
 - done.txt location: same directory as the input todo.txt file

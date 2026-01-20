@@ -2,6 +2,7 @@ package matrix_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/matryer/is"
 	"github.com/quii/todo-eisenhower/domain/matrix"
@@ -120,6 +121,79 @@ func TestMatrix_RemoveTodo(t *testing.T) {
 	allTodos := updated.AllTodos()
 	is.Equal(allTodos[0].Description(), "First task")
 	is.Equal(allTodos[1].Description(), "Third task")
+}
+
+func TestMatrix_ArchiveTodoAt(t *testing.T) {
+	t.Run("archives completed todo and removes from matrix", func(t *testing.T) {
+		is := is.New(t)
+
+		activeTodo := todo.New("Active task", todo.PriorityA)
+		completedTodo := todo.New("Completed task", todo.PriorityA).ToggleCompletion(time.Now())
+
+		m := matrix.New([]todo.Todo{activeTodo, completedTodo})
+
+		// Archive the completed todo (index 1 in DoFirst)
+		archived, updated, success := m.ArchiveTodoAt(matrix.DoFirstQuadrant, 1)
+
+		is.True(success)                                        // should succeed
+		is.Equal(archived.Description(), "Completed task")      // archived todo should match
+		is.True(archived.IsCompleted())                         // archived todo should be completed
+		is.Equal(len(updated.DoFirst()), 1)                     // should have one less todo
+		is.Equal(updated.DoFirst()[0].Description(), "Active task") // remaining todo
+		is.True(!updated.DoFirst()[0].IsCompleted())            // remaining todo should not be completed
+	})
+
+	t.Run("cannot archive uncompleted todo", func(t *testing.T) {
+		is := is.New(t)
+
+		activeTodo := todo.New("Active task", todo.PriorityA)
+		m := matrix.New([]todo.Todo{activeTodo})
+
+		_, updated, success := m.ArchiveTodoAt(matrix.DoFirstQuadrant, 0)
+
+		is.True(!success)                      // should fail
+		is.Equal(len(updated.DoFirst()), 1)    // matrix unchanged
+	})
+
+	t.Run("returns false for invalid index", func(t *testing.T) {
+		is := is.New(t)
+
+		activeTodo := todo.New("Active task", todo.PriorityA)
+		m := matrix.New([]todo.Todo{activeTodo})
+
+		_, updated, success := m.ArchiveTodoAt(matrix.DoFirstQuadrant, 99)
+
+		is.True(!success)                   // should fail
+		is.Equal(len(updated.DoFirst()), 1) // matrix unchanged
+	})
+
+	t.Run("archives from different quadrants", func(t *testing.T) {
+		is := is.New(t)
+
+		doFirstTodo := todo.New("Do First", todo.PriorityA).ToggleCompletion(time.Now())
+		scheduleTodo := todo.New("Schedule", todo.PriorityB).ToggleCompletion(time.Now())
+		delegateTodo := todo.New("Delegate", todo.PriorityC).ToggleCompletion(time.Now())
+		eliminateTodo := todo.New("Eliminate", todo.PriorityD).ToggleCompletion(time.Now())
+
+		m := matrix.New([]todo.Todo{doFirstTodo, scheduleTodo, delegateTodo, eliminateTodo})
+
+		// Archive from each quadrant
+		_, m, success := m.ArchiveTodoAt(matrix.DoFirstQuadrant, 0)
+		is.True(success)
+		is.Equal(len(m.DoFirst()), 0)
+
+		_, m, success = m.ArchiveTodoAt(matrix.ScheduleQuadrant, 0)
+		is.True(success)
+		is.Equal(len(m.Schedule()), 0)
+
+		_, m, success = m.ArchiveTodoAt(matrix.DelegateQuadrant, 0)
+		is.True(success)
+		is.Equal(len(m.Delegate()), 0)
+
+		_, m, success = m.ArchiveTodoAt(matrix.EliminateQuadrant, 0)
+		is.True(success)
+		is.Equal(len(m.Eliminate()), 0)
+	})
 }
 
 func TestMatrix_FilterByTag(t *testing.T) {

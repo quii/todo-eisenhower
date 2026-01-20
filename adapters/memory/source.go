@@ -11,13 +11,15 @@ import (
 // Repository is an in-memory implementation of TodoRepository
 // Perfect for testing - backed by bytes.Buffer
 type Repository struct {
-	buffer *bytes.Buffer
+	buffer        *bytes.Buffer
+	archiveBuffer *bytes.Buffer
 }
 
 // NewRepository creates a new empty in-memory repository
 func NewRepository() *Repository {
 	return &Repository{
-		buffer: &bytes.Buffer{},
+		buffer:        &bytes.Buffer{},
+		archiveBuffer: &bytes.Buffer{},
 	}
 }
 
@@ -35,4 +37,14 @@ func (r *Repository) SaveAll(todos []todo.Todo) error {
 // String returns the current buffer contents (useful for test assertions)
 func (r *Repository) String() string {
 	return r.buffer.String()
+}
+
+// AppendToArchive appends a todo to the archive buffer
+func (r *Repository) AppendToArchive(t todo.Todo) error {
+	return todotxt.Marshal(r.archiveBuffer, []todo.Todo{t})
+}
+
+// ArchiveString returns the current archive buffer contents (useful for test assertions)
+func (r *Repository) ArchiveString() string {
+	return r.archiveBuffer.String()
 }

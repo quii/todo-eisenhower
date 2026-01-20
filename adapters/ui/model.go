@@ -286,6 +286,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.activeFilter = ""
 				m.viewMode = Overview
 			}
+		case "d":
+			// Archive completed todo (only in focus mode)
+			if m.viewMode != Overview {
+				m = m.archiveTodo()
+			}
 		case "down", "s", "j":
 			// Scroll down in inventory mode
 			if m.viewMode == Inventory {
@@ -675,6 +680,40 @@ func (m Model) changeTodoPriority(newPriority todo.Priority) Model {
 	// After moving a todo, adjust the view:
 	// - If the current quadrant is now empty, return to overview
 	// - Otherwise, adjust selection index if needed
+	todos := m.currentQuadrantTodos()
+	if len(todos) == 0 {
+		m.viewMode = Overview
+	} else {
+		if m.selectedTodoIndex >= len(todos) {
+			// If selected index is now out of bounds, select the last todo
+			m.selectedTodoIndex = len(todos) - 1
+		}
+		// Rebuild table to reflect the change
+		m = m.rebuildTable()
+	}
+
+	return m
+}
+
+func (m Model) archiveTodo() Model {
+	if m.repo == nil {
+		return m // No-op if no repository configured
+	}
+
+	// Use the ArchiveTodo usecase
+	quadrant := m.currentQuadrantType()
+	updatedMatrix, err := usecases.ArchiveTodo(m.repo, m.matrix, quadrant, m.selectedTodoIndex)
+	if err != nil {
+		// TODO: Show error to user in future story
+		return m
+	}
+
+	m.matrix = updatedMatrix
+
+	// After archiving a todo, adjust the view:
+	// - If the current quadrant is now empty, return to overview
+	// - Otherwise, keep selection on same index (which now points to next todo)
+	//   or adjust if index is out of bounds
 	todos := m.currentQuadrantTodos()
 	if len(todos) == 0 {
 		m.viewMode = Overview

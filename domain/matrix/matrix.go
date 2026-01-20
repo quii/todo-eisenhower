@@ -268,6 +268,28 @@ func (m Matrix) ChangePriorityAt(quadrant QuadrantType, index int, newPriority t
 	return m.RemoveTodo(selectedTodo).AddTodo(updatedTodo), true
 }
 
+// ArchiveTodoAt archives (removes) a completed todo at the specified position.
+// Returns the archived todo, updated matrix, and true if successful.
+// Returns the original matrix and false if the index is invalid or the todo is not completed.
+func (m Matrix) ArchiveTodoAt(quadrant QuadrantType, index int) (todo.Todo, Matrix, bool) {
+	todos := m.getTodosForQuadrant(quadrant)
+
+	// Validate index
+	if index < 0 || index >= len(todos) {
+		return todo.Todo{}, m, false
+	}
+
+	selectedTodo := todos[index]
+
+	// Only archive completed todos
+	if !selectedTodo.IsCompleted() {
+		return todo.Todo{}, m, false
+	}
+
+	// Remove the todo from the matrix
+	return selectedTodo, m.RemoveTodo(selectedTodo), true
+}
+
 // getTodosForQuadrant is a helper that returns the todos for a given quadrant
 func (m Matrix) getTodosForQuadrant(quadrant QuadrantType) []todo.Todo {
 	switch quadrant {
