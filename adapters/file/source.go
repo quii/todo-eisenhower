@@ -4,7 +4,6 @@ package file
 import (
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/quii/todo-eisenhower/domain/todo"
 	"github.com/quii/todo-eisenhower/domain/todotxt"
@@ -77,13 +76,8 @@ func (r *Repository) AppendToArchive(t todo.Todo) error {
 }
 
 // archivePath returns the path to the archive file (done.txt)
+// Following todo.txt convention: always use done.txt in the same directory
 func (r *Repository) archivePath() string {
 	dir := filepath.Dir(r.path)
-	base := filepath.Base(r.path)
-
-	// Replace todo.txt with done.txt, or append .done to other filenames
-	if strings.HasSuffix(base, "todo.txt") {
-		return filepath.Join(dir, "done.txt")
-	}
-	return filepath.Join(dir, base+".done")
+	return filepath.Join(dir, "done.txt")
 }
