@@ -95,6 +95,18 @@ go build -o eisenhower ./cmd/eisenhower/
 go install ./cmd/eisenhower
 ```
 
+## Upgrading
+
+### Homebrew
+
+```bash
+brew upgrade quii/tap/todo-eisenhower
+```
+
+### Pre-built Binary or Source Build
+
+Download the latest binary from the [Releases page](https://github.com/quii/todo-eisenhower/releases) or rebuild from source using the same steps as installation.
+
 ## Usage
 
 ```bash
