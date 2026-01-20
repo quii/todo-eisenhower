@@ -186,12 +186,21 @@ See [CLAUDE.md](./CLAUDE.md) for detailed development conventions and architectu
 - [x] **Story 011**: Mark todos complete/incomplete (arrow keys or w/s to navigate, Space to toggle)
 - [x] **Story 012**: Move todos between quadrants (Shift+1/2/3/4 to move, 1/2/3/4 to jump)
 - [x] **Story 013**: Preserve and render completion dates (shows relative dates like "yesterday", "2 days ago")
+- [x] **Story 014**: Parse and preserve creation dates from existing files
+- [x] **Story 016**: Move todos between quadrants with 'm' key and overlay selector
+- [x] **Story 017**: Show summary stats for each quadrant (task counts, completed counts)
+- [x] **Story 018**: Delete todos with 'x' key and confirmation
+- [x] **Story 019**: Digital inventory dashboard with metrics and analytics (press 'i')
+- [x] **Story 020**: Edit todo descriptions and tags (press 'e' in focus mode)
+- [x] **Story 021**: Filter todos by project or context tag (press 'f')
+- [x] **Story 022**: Due date support with visual indicators (due:YYYY-MM-DD format)
+- [x] **Story 023**: Archive completed todos to done.txt (press 'd')
 
 ### Future Ideas 🚀
-- Todo editing capabilities
-- Delete todos
-- Filtering by project or context
-- Search functionality
-- Due dates support
+- Search functionality (fuzzy search across descriptions)
 - Recurring tasks
-- Multiple file support
+- Multiple file support (manage different todo.txt files)
+- Undo/redo functionality
+- Bulk operations (archive all completed, delete all in quadrant)
+- Custom sorting options
+- Export to different formats
