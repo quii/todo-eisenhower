@@ -400,7 +400,7 @@ func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo
 
 			// Build full description with tags for display
 			description := buildDescriptionWithTags(t)
-			
+
 			// Colorize tags in description
 			description = colorizeDescription(description)
 
@@ -410,6 +410,21 @@ func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo
 			} else {
 				todoLine = activeTodoStyle.Render("• ") + description
 			}
+
+			// Append due date if present
+			dueDateText, isOverdue := formatDueDateWithOverdue(t.DueDate(), time.Now())
+			if dueDateText != "" {
+				if isOverdue {
+					// Red with ! prefix for overdue
+					overdueStyle := lipgloss.NewStyle().Foreground(overdueColor)
+					todoLine += overdueStyle.Render(fmt.Sprintf(" ! due: %s", dueDateText))
+				} else {
+					// Cyan for upcoming due dates
+					dueDateStyle := lipgloss.NewStyle().Foreground(dueDateColor)
+					todoLine += dueDateStyle.Render(fmt.Sprintf(" due: %s", dueDateText))
+				}
+			}
+
 			lines = append(lines, todoLine)
 		}
 	}
@@ -496,7 +511,8 @@ func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight, selectedIn
 	contextsWidth := 15
 	createdWidth := 12
 	completedWidth := 12
-	taskWidth := max(availableWidth-projectsWidth-contextsWidth-createdWidth-completedWidth, 30)
+	dueDateWidth := 12
+	taskWidth := max(availableWidth-projectsWidth-contextsWidth-createdWidth-completedWidth-dueDateWidth, 30)
 
 	columns := []table.Column{
 		{Title: "Task", Width: taskWidth},
@@ -504,6 +520,7 @@ func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight, selectedIn
 		{Title: "Contexts", Width: contextsWidth},
 		{Title: "Created", Width: createdWidth},
 		{Title: "Completed", Width: completedWidth},
+		{Title: "Due Date", Width: dueDateWidth},
 	}
 
 	// Build rows from todos
@@ -536,7 +553,21 @@ func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight, selectedIn
 			completed = "-"
 		}
 
-		rows[i] = table.Row{taskDesc, projects, contexts, created, completed}
+		// Due Date: formatted with overdue indicator
+		dueDateText, isOverdue := formatDueDateWithOverdue(t.DueDate(), time.Now())
+		var dueDate string
+		if dueDateText != "" {
+			if isOverdue {
+				// Add ! prefix for overdue (red styling limited in table)
+				dueDate = "! " + dueDateText
+			} else {
+				dueDate = dueDateText
+			}
+		} else {
+			dueDate = "-"
+		}
+
+		rows[i] = table.Row{taskDesc, projects, contexts, created, completed, dueDate}
 	}
 
 	// Track which rows are completed for styling

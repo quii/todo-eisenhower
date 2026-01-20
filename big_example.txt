@@ -1,4 +1,4 @@
-(A) 2025-11-20 Fix critical security vulnerability in auth module +WebApp @urgent @security
+(A) 2025-11-20 Fix critical security vulnerability in auth module +WebApp @urgent @security due:2026-01-19
 (A) 2025-12-01 Investigate production database performance issues +Infrastructure @performance @people
 (A) 2025-12-15 Complete Q1 roadmap planning with stakeholders +Planning @people @meetings
 (A) 2026-01-05 Review and merge critical hotfix PR -review +WebApp @code

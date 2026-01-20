@@ -21,8 +21,30 @@ type Todo struct {
 	completed      bool
 	completionDate *time.Time // nil if not completed or no date recorded
 	creationDate   *time.Time // nil if no creation date recorded
+	dueDate        *time.Time // nil if no due date recorded
 	projects       []string
 	contexts       []string
+}
+
+// NewFull is a comprehensive constructor used by the todotxt parser to create todos with all fields
+// This allows the parser to set all fields without needing combinatorial constructors
+func NewFull(description string, priority Priority, completed bool, completionDate, creationDate, dueDate *time.Time, projects, contexts []string) Todo {
+	if projects == nil {
+		projects = []string{}
+	}
+	if contexts == nil {
+		contexts = []string{}
+	}
+	return Todo{
+		description:    description,
+		priority:       priority,
+		completed:      completed,
+		completionDate: completionDate,
+		creationDate:   creationDate,
+		dueDate:        dueDate,
+		projects:       projects,
+		contexts:       contexts,
+	}
 }
 
 // New creates a new Todo with the given description and priority
@@ -33,6 +55,7 @@ func New(description string, priority Priority) Todo {
 		completed:      false,
 		completionDate: nil,
 		creationDate:   nil,
+		dueDate:        nil,
 		projects:       []string{},
 		contexts:       []string{},
 	}
@@ -46,6 +69,7 @@ func NewWithCreationDate(description string, priority Priority, creationDate *ti
 		completed:      false,
 		completionDate: nil,
 		creationDate:   creationDate,
+		dueDate:        nil,
 		projects:       []string{},
 		contexts:       []string{},
 	}
@@ -59,6 +83,7 @@ func NewCompleted(description string, priority Priority, completionDate *time.Ti
 		completed:      true,
 		completionDate: completionDate,
 		creationDate:   nil,
+		dueDate:        nil,
 		projects:       []string{},
 		contexts:       []string{},
 	}
@@ -72,6 +97,7 @@ func NewCompletedWithDates(description string, priority Priority, completionDate
 		completed:      true,
 		completionDate: completionDate,
 		creationDate:   creationDate,
+		dueDate:        nil,
 		projects:       []string{},
 		contexts:       []string{},
 	}
@@ -91,6 +117,7 @@ func NewWithTags(description string, priority Priority, projects, contexts []str
 		completed:      false,
 		completionDate: nil,
 		creationDate:   nil,
+		dueDate:        nil,
 		projects:       projects,
 		contexts:       contexts,
 	}
@@ -110,6 +137,7 @@ func NewWithTagsAndDates(description string, priority Priority, creationDate *ti
 		completed:      false,
 		completionDate: nil,
 		creationDate:   creationDate,
+		dueDate:        nil,
 		projects:       projects,
 		contexts:       contexts,
 	}
@@ -129,6 +157,7 @@ func NewCompletedWithTags(description string, priority Priority, completionDate 
 		completed:      true,
 		completionDate: completionDate,
 		creationDate:   nil,
+		dueDate:        nil,
 		projects:       projects,
 		contexts:       contexts,
 	}
@@ -148,6 +177,7 @@ func NewCompletedWithTagsAndDates(description string, priority Priority, complet
 		completed:      true,
 		completionDate: completionDate,
 		creationDate:   creationDate,
+		dueDate:        nil,
 		projects:       projects,
 		contexts:       contexts,
 	}
@@ -176,6 +206,11 @@ func (t Todo) CompletionDate() *time.Time {
 // CreationDate returns the todo's creation date (nil if no date recorded)
 func (t Todo) CreationDate() *time.Time {
 	return t.creationDate
+}
+
+// DueDate returns the todo's due date (nil if no due date recorded)
+func (t Todo) DueDate() *time.Time {
+	return t.dueDate
 }
 
 // Projects returns the todo's project tags
@@ -210,6 +245,7 @@ func (t Todo) ToggleCompletion(now time.Time) Todo {
 		completed:      newCompleted,
 		completionDate: newCompletionDate,
 		creationDate:   t.creationDate,
+		dueDate:        t.dueDate,
 		projects:       t.projects,
 		contexts:       t.contexts,
 	}
@@ -223,6 +259,7 @@ func (t Todo) ChangePriority(newPriority Priority) Todo {
 		completed:      t.completed,
 		completionDate: t.completionDate,
 		creationDate:   t.creationDate,
+		dueDate:        t.dueDate,
 		projects:       t.projects,
 		contexts:       t.contexts,
 	}
@@ -286,6 +323,11 @@ func (t Todo) String() string {
 	// Add context tags
 	for _, context := range t.contexts {
 		result += " @" + context
+	}
+
+	// Add due date
+	if t.dueDate != nil {
+		result += " due:" + t.dueDate.Format("2006-01-02")
 	}
 
 	result += "\n"

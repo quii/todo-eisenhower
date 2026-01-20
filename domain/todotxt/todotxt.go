@@ -18,6 +18,7 @@ var (
 	datePattern     = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}\s+`)
 	projectPattern  = regexp.MustCompile(`\+(\w+)`)
 	contextPattern  = regexp.MustCompile(`@(\w+)`)
+	dueDatePattern  = regexp.MustCompile(`(?i)due:(\d{4}-\d{2}-\d{2})`)
 )
 
 // Unmarshal reads todo.txt format from an io.Reader and returns a slice of Todos.
@@ -112,33 +113,27 @@ func parseLine(line string) todo.Todo {
 	projects := extractTags(description, projectPattern)
 	contexts := extractTags(description, contextPattern)
 
-	// Remove tags from description now that they're extracted
+	// Extract due date (case-insensitive)
+	var dueDate *time.Time
+	if dueDatePattern.MatchString(description) {
+		matches := dueDatePattern.FindStringSubmatch(description)
+		if len(matches) > 1 {
+			if parsedDate, err := time.Parse("2006-01-02", matches[1]); err == nil {
+				dueDate = &parsedDate
+			}
+		}
+	}
+
+	// Remove tags and due date from description now that they're extracted
 	description = projectPattern.ReplaceAllString(description, "")
 	description = contextPattern.ReplaceAllString(description, "")
+	description = dueDatePattern.ReplaceAllString(description, "")
 	// Clean up extra whitespace
 	description = strings.Join(strings.Fields(description), " ")
 	description = strings.TrimSpace(description)
 
-	// Create todo with appropriate constructor based on what we have
-	if completed {
-		if len(projects) > 0 || len(contexts) > 0 {
-			return todo.NewCompletedWithTagsAndDates(description, priority, completionDate, creationDate, projects, contexts)
-		}
-		return todo.NewCompletedWithDates(description, priority, completionDate, creationDate)
-	}
-
-	if len(projects) > 0 || len(contexts) > 0 {
-		if creationDate != nil {
-			return todo.NewWithTagsAndDates(description, priority, creationDate, projects, contexts)
-		}
-		return todo.NewWithTags(description, priority, projects, contexts)
-	}
-
-	if creationDate != nil {
-		return todo.NewWithCreationDate(description, priority, creationDate)
-	}
-
-	return todo.New(description, priority)
+	// Use the comprehensive constructor with all extracted fields
+	return todo.NewFull(description, priority, completed, completionDate, creationDate, dueDate, projects, contexts)
 }
 
 // extractTags extracts all matching tags using the given pattern
@@ -168,71 +163,61 @@ func parsePriority(p string) todo.Priority {
 	}
 }
 
-// parseDescriptionAndTags extracts clean description, projects, and contexts from user input
-func parseDescriptionAndTags(description string) (cleanDesc string, projects, contexts []string) {
+// parseDescriptionAndTags extracts clean description, projects, contexts, and due date from user input
+func parseDescriptionAndTags(description string) (cleanDesc string, projects, contexts []string, dueDate *time.Time) {
 	// Extract projects and contexts from description
 	projects = extractTags(description, projectPattern)
 	contexts = extractTags(description, contextPattern)
 
-	// Remove tags from description to get clean text
+	// Extract due date (case-insensitive)
+	if dueDatePattern.MatchString(description) {
+		matches := dueDatePattern.FindStringSubmatch(description)
+		if len(matches) > 1 {
+			if parsedDate, err := time.Parse("2006-01-02", matches[1]); err == nil {
+				dueDate = &parsedDate
+			}
+		}
+	}
+
+	// Remove tags and due date from description to get clean text
 	cleanDesc = projectPattern.ReplaceAllString(description, "")
 	cleanDesc = contextPattern.ReplaceAllString(cleanDesc, "")
+	cleanDesc = dueDatePattern.ReplaceAllString(cleanDesc, "")
 
 	// Clean up extra whitespace
 	cleanDesc = strings.Join(strings.Fields(cleanDesc), " ")
 	cleanDesc = strings.TrimSpace(cleanDesc)
 
-	return cleanDesc, projects, contexts
+	return cleanDesc, projects, contexts, dueDate
 }
 
 // ParseNew creates a new todo from user input.
-// It parses the description to extract tags and creates the appropriate todo with creation date.
+// It parses the description to extract tags and due date, and creates the appropriate todo with creation date.
 // This is the primary way to create todos from user input in the application.
 func ParseNew(description string, priority todo.Priority, creationDate time.Time) todo.Todo {
-	cleanDesc, projects, contexts := parseDescriptionAndTags(description)
+	cleanDesc, projects, contexts, dueDate := parseDescriptionAndTags(description)
 
-	// Create todo with appropriate constructor based on what we have
-	if len(projects) > 0 || len(contexts) > 0 {
-		return todo.NewWithTagsAndDates(cleanDesc, priority, &creationDate, projects, contexts)
-	}
-
-	return todo.NewWithCreationDate(cleanDesc, priority, &creationDate)
+	// Use comprehensive constructor with all extracted fields
+	return todo.NewFull(cleanDesc, priority, false, nil, &creationDate, dueDate, projects, contexts)
 }
 
 // ParseEdit updates a todo from user input while preserving dates and completion status.
-// It parses the new description to extract tags and creates an updated todo that preserves
+// It parses the new description to extract tags and due date, and creates an updated todo that preserves
 // the original creation date, completion date, and completion status.
+// Note: The due date from the new description REPLACES the original due date (it's not preserved from original).
 func ParseEdit(original todo.Todo, newDescription string, priority todo.Priority) todo.Todo {
-	cleanDesc, projects, contexts := parseDescriptionAndTags(newDescription)
+	cleanDesc, projects, contexts, dueDate := parseDescriptionAndTags(newDescription)
 
 	// Preserve original dates and completion status
 	creationDate := original.CreationDate()
 	completionDate := original.CompletionDate()
 	isCompleted := original.IsCompleted()
 
-	// Create updated todo with appropriate constructor
-	if isCompleted {
-		if len(projects) > 0 || len(contexts) > 0 {
-			return todo.NewCompletedWithTagsAndDates(cleanDesc, priority, completionDate, creationDate, projects, contexts)
-		}
-		return todo.NewCompletedWithDates(cleanDesc, priority, completionDate, creationDate)
-	}
-
-	if len(projects) > 0 || len(contexts) > 0 {
-		if creationDate != nil {
-			return todo.NewWithTagsAndDates(cleanDesc, priority, creationDate, projects, contexts)
-		}
-		return todo.NewWithTags(cleanDesc, priority, projects, contexts)
-	}
-
-	if creationDate != nil {
-		return todo.NewWithCreationDate(cleanDesc, priority, creationDate)
-	}
-
-	return todo.New(cleanDesc, priority)
+	// Use comprehensive constructor with all fields
+	return todo.NewFull(cleanDesc, priority, isCompleted, completionDate, creationDate, dueDate, projects, contexts)
 }
 
-// FormatForInput formats a todo for user input by combining description and tags.
+// FormatForInput formats a todo for user input by combining description, tags, and due date.
 // This is the inverse of parsing - it converts a structured todo back to input format.
 func FormatForInput(t todo.Todo) string {
 	var result strings.Builder
@@ -246,6 +231,11 @@ func FormatForInput(t todo.Todo) string {
 	for _, context := range t.Contexts() {
 		result.WriteString(" @")
 		result.WriteString(context)
+	}
+
+	if dueDate := t.DueDate(); dueDate != nil {
+		result.WriteString(" due:")
+		result.WriteString(dueDate.Format("2006-01-02"))
 	}
 
 	return result.String()

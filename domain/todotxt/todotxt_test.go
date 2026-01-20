@@ -527,6 +527,204 @@ func TestParseNew(t *testing.T) {
 	})
 }
 
+func TestParse_DueDates(t *testing.T) {
+	t.Run("parses due date from description", func(t *testing.T) {
+		is := is.New(t)
+		input := strings.NewReader("(A) Submit report due:2026-01-25")
+
+		todos, err := todotxt.Unmarshal(input)
+
+		is.NoErr(err)
+		is.Equal(len(todos), 1)
+		is.Equal(todos[0].Description(), "Submit report") // due date stripped
+		is.True(todos[0].DueDate() != nil)                // has due date
+		expectedDate := time.Date(2026, 1, 25, 0, 0, 0, 0, time.UTC)
+		is.Equal(todos[0].DueDate().Format("2006-01-02"), expectedDate.Format("2006-01-02"))
+	})
+
+	t.Run("parses due date case-insensitive", func(t *testing.T) {
+		testCases := []string{
+			"(A) Task due:2026-01-25",
+			"(A) Task Due:2026-01-25",
+			"(A) Task DUE:2026-01-25",
+			"(A) Task dUe:2026-01-25",
+		}
+
+		for _, input := range testCases {
+			is := is.New(t)
+			todos, err := todotxt.Unmarshal(strings.NewReader(input))
+
+			is.NoErr(err)
+			is.True(todos[0].DueDate() != nil) // should parse case-insensitive
+		}
+	})
+
+	t.Run("uses first due date when multiple present", func(t *testing.T) {
+		is := is.New(t)
+		input := strings.NewReader("(A) Task due:2026-01-20 due:2026-01-25")
+
+		todos, err := todotxt.Unmarshal(input)
+
+		is.NoErr(err)
+		is.True(todos[0].DueDate() != nil)
+		expectedDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
+		is.Equal(todos[0].DueDate().Format("2006-01-02"), expectedDate.Format("2006-01-02"))
+	})
+
+	t.Run("ignores invalid due date format", func(t *testing.T) {
+		is := is.New(t)
+		input := strings.NewReader("(A) Task due:invalid-date")
+
+		todos, err := todotxt.Unmarshal(input)
+
+		is.NoErr(err)
+		is.True(todos[0].DueDate() == nil) // invalid date ignored
+	})
+
+	t.Run("parses due date with tags", func(t *testing.T) {
+		is := is.New(t)
+		input := strings.NewReader("(A) Task +project @context due:2026-01-25")
+
+		todos, err := todotxt.Unmarshal(input)
+
+		is.NoErr(err)
+		is.Equal(todos[0].Description(), "Task") // tags and due date stripped
+		is.Equal(len(todos[0].Projects()), 1)
+		is.Equal(todos[0].Projects()[0], "project")
+		is.Equal(len(todos[0].Contexts()), 1)
+		is.Equal(todos[0].Contexts()[0], "context")
+		is.True(todos[0].DueDate() != nil)
+		expectedDate := time.Date(2026, 1, 25, 0, 0, 0, 0, time.UTC)
+		is.Equal(todos[0].DueDate().Format("2006-01-02"), expectedDate.Format("2006-01-02"))
+	})
+
+	t.Run("todos without due date have nil DueDate", func(t *testing.T) {
+		is := is.New(t)
+		input := strings.NewReader("(B) Regular task")
+
+		todos, err := todotxt.Unmarshal(input)
+
+		is.NoErr(err)
+		is.True(todos[0].DueDate() == nil) // no due date
+	})
+
+	t.Run("completed todo preserves due date", func(t *testing.T) {
+		is := is.New(t)
+		input := strings.NewReader("x 2026-01-20 2026-01-15 (A) Completed task due:2026-01-19")
+
+		todos, err := todotxt.Unmarshal(input)
+
+		is.NoErr(err)
+		is.True(todos[0].IsCompleted())
+		is.True(todos[0].DueDate() != nil)
+		expectedDate := time.Date(2026, 1, 19, 0, 0, 0, 0, time.UTC)
+		is.Equal(todos[0].DueDate().Format("2006-01-02"), expectedDate.Format("2006-01-02"))
+	})
+}
+
+func TestString_DueDates(t *testing.T) {
+	t.Run("reconstructs due date in String output", func(t *testing.T) {
+		is := is.New(t)
+		input := "(A) Submit report due:2026-01-25\n"
+
+		todos, err := todotxt.Unmarshal(strings.NewReader(input))
+		is.NoErr(err)
+
+		output := todos[0].String()
+		is.True(strings.Contains(output, "due:2026-01-25")) // due date reconstructed
+	})
+
+	t.Run("round-trip preserves due date", func(t *testing.T) {
+		is := is.New(t)
+		original := "(A) Task +project @context due:2026-01-25\n"
+
+		// Parse
+		todos, err := todotxt.Unmarshal(strings.NewReader(original))
+		is.NoErr(err)
+
+		// Reconstruct
+		reconstructed := todos[0].String()
+
+		// Parse again
+		todos2, err := todotxt.Unmarshal(strings.NewReader(reconstructed))
+		is.NoErr(err)
+
+		// Verify same due date
+		is.True(todos[0].DueDate() != nil)
+		is.True(todos2[0].DueDate() != nil)
+		is.Equal(todos[0].DueDate().Format("2006-01-02"), todos2[0].DueDate().Format("2006-01-02"))
+	})
+}
+
+func TestParseNew_DueDates(t *testing.T) {
+	t.Run("extracts due date from user input", func(t *testing.T) {
+		is := is.New(t)
+		creationDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
+
+		result := todotxt.ParseNew("Submit report due:2026-01-25", todo.PriorityA, creationDate)
+
+		is.Equal(result.Description(), "Submit report") // due date stripped
+		is.True(result.DueDate() != nil)
+		expectedDate := time.Date(2026, 1, 25, 0, 0, 0, 0, time.UTC)
+		is.Equal(result.DueDate().Format("2006-01-02"), expectedDate.Format("2006-01-02"))
+	})
+
+	t.Run("extracts due date with tags", func(t *testing.T) {
+		is := is.New(t)
+		creationDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
+
+		result := todotxt.ParseNew("Task +project @context due:2026-01-25", todo.PriorityA, creationDate)
+
+		is.Equal(result.Description(), "Task")
+		is.Equal(len(result.Projects()), 1)
+		is.Equal(len(result.Contexts()), 1)
+		is.True(result.DueDate() != nil)
+	})
+}
+
+func TestParseEdit_DueDates(t *testing.T) {
+	t.Run("updates due date from edited description", func(t *testing.T) {
+		is := is.New(t)
+		creationDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
+		original := todo.NewWithCreationDate("Original task", todo.PriorityA, &creationDate)
+
+		edited := todotxt.ParseEdit(original, "Updated task due:2026-01-30", todo.PriorityA)
+
+		is.Equal(edited.Description(), "Updated task")
+		is.True(edited.DueDate() != nil)
+		expectedDate := time.Date(2026, 1, 30, 0, 0, 0, 0, time.UTC)
+		is.Equal(edited.DueDate().Format("2006-01-02"), expectedDate.Format("2006-01-02"))
+		is.Equal(edited.CreationDate(), original.CreationDate()) // creation date preserved
+	})
+
+	t.Run("removes due date if not in edited description", func(t *testing.T) {
+		is := is.New(t)
+		creationDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
+		dueDate := time.Date(2026, 1, 30, 0, 0, 0, 0, time.UTC)
+		original := todo.NewFull("Original task", todo.PriorityA, false, nil, &creationDate, &dueDate, nil, nil)
+
+		edited := todotxt.ParseEdit(original, "Updated task without due date", todo.PriorityA)
+
+		is.Equal(edited.Description(), "Updated task without due date")
+		is.True(edited.DueDate() == nil) // due date removed
+	})
+}
+
+func TestFormatForInput_DueDates(t *testing.T) {
+	t.Run("includes due date in formatted input", func(t *testing.T) {
+		is := is.New(t)
+		dueDate := time.Date(2026, 1, 25, 0, 0, 0, 0, time.UTC)
+		td := todo.NewFull("Task", todo.PriorityA, false, nil, nil, &dueDate, []string{"project"}, []string{"context"})
+
+		formatted := todotxt.FormatForInput(td)
+
+		is.True(strings.Contains(formatted, "Task"))
+		is.True(strings.Contains(formatted, "+project"))
+		is.True(strings.Contains(formatted, "@context"))
+		is.True(strings.Contains(formatted, "due:2026-01-25"))
+	})
+}
+
 func assertTodo(is *is.I, got todo.Todo, wantDesc string, wantPriority todo.Priority, wantCompleted bool) {
 	is.Helper()
 

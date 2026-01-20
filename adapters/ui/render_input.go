@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
@@ -86,6 +87,21 @@ func RenderFocusedQuadrantWithInput(
 					todoLine += dateInfo
 				}
 			}
+
+			// Append due date if present (for both completed and active)
+			dueDateText, isOverdue := formatDueDateWithOverdue(t.DueDate(), time.Now())
+			if dueDateText != "" {
+				if isOverdue {
+					// Red with ! prefix for overdue
+					overdueStyle := lipgloss.NewStyle().Foreground(overdueColor)
+					todoLine += overdueStyle.Render(fmt.Sprintf(" ! due: %s", dueDateText))
+				} else {
+					// Cyan for upcoming due dates
+					dueDateStyle := lipgloss.NewStyle().Foreground(dueDateColor)
+					todoLine += dueDateStyle.Render(fmt.Sprintf(" due: %s", dueDateText))
+				}
+			}
+
 			lines = append(lines, todoLine)
 		}
 	}

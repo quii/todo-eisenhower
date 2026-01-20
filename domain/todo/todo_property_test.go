@@ -89,6 +89,7 @@ func TestPropertyParsePreservesProperties(t *testing.T) {
 		// Compare dates
 		is.True(datesEqual(second.CreationDate(), first.CreationDate()))
 		is.True(datesEqual(second.CompletionDate(), first.CompletionDate()))
+		is.True(datesEqual(second.DueDate(), first.DueDate()))
 	}
 }
 
@@ -128,6 +129,15 @@ func generateRandomTodo(rng *rand.Rand) todo.Todo {
 		completionDate = &d
 	}
 
+	// Random due date (or nil) - can be past, present, or future
+	var dueDate *time.Time
+	if rng.Intn(2) == 1 {
+		d := time.Now().AddDate(0, 0, rng.Intn(60)-30) // +/- 30 days
+		// Truncate to day precision to match todo.txt format
+		d = time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, time.UTC)
+		dueDate = &d
+	}
+
 	// Random projects (0-3 tags)
 	var projects []string
 	numProjects := rng.Intn(4)
@@ -142,21 +152,8 @@ func generateRandomTodo(rng *rand.Rand) todo.Todo {
 		contexts = append(contexts, "context"+randomAlphanumeric(rng, 3))
 	}
 
-	// Create todo based on what we have
-	if completed {
-		if len(projects) > 0 || len(contexts) > 0 {
-			return todo.NewCompletedWithTagsAndDates(description, priority, completionDate, creationDate, projects, contexts)
-		}
-		return todo.NewCompletedWithDates(description, priority, completionDate, creationDate)
-	}
-
-	if len(projects) > 0 || len(contexts) > 0 {
-		return todo.NewWithTagsAndDates(description, priority, creationDate, projects, contexts)
-	}
-	if creationDate != nil {
-		return todo.NewWithCreationDate(description, priority, creationDate)
-	}
-	return todo.New(description, priority)
+	// Use NewFull constructor to include all fields including due date
+	return todo.NewFull(description, priority, completed, completionDate, creationDate, dueDate, projects, contexts)
 }
 
 // randomAlphanumeric generates a random alphanumeric string

@@ -29,6 +29,12 @@ var tagColors = []string{
 	"#FFD6A5", // Light orange
 }
 
+// Due date colors
+var (
+	dueDateColor = lipgloss.Color("#00CED1") // DarkCyan - for upcoming due dates
+	overdueColor = lipgloss.Color("#FF0000") // Red - for overdue dates
+)
+
 // HashColor generates a consistent color for a given tag name
 func HashColor(tag string) lipgloss.Color {
 	h := fnv.New32a()
