@@ -115,7 +115,24 @@ eisenhower
 
 # Run with a specific file
 eisenhower /path/to/your/todo.txt
+
+# Read from stdin (read-only mode) - combine multiple files
+cat work.txt personal.txt | eisenhower
+
+# Filter by project before viewing
+grep '+WebApp' todo.txt | eisenhower
+
+# View only high priority tasks
+grep '(A)' todo.txt | eisenhower
+
+# View archive file
+eisenhower < done.txt
+
+# Complex filtering with awk
+awk '/+Project/ && !/(D)/' todo.txt | eisenhower
 ```
+
+When reading from stdin (piped input), eisenhower enters read-only mode. All viewing and navigation features work normally (1-4 keys, filtering, inventory), but editing operations are disabled.
 
 ### Keyboard Controls
 
@@ -195,11 +212,11 @@ See [CLAUDE.md](./CLAUDE.md) for detailed development conventions and architectu
 - [x] **Story 021**: Filter todos by project or context tag (press 'f')
 - [x] **Story 022**: Due date support with visual indicators (due:YYYY-MM-DD format)
 - [x] **Story 023**: Archive completed todos to done.txt (press 'd')
+- [x] **Story 024**: Stdin read-only mode for Unix composability (pipe todos for viewing)
 
 ### Future Ideas 🚀
 - Search functionality (fuzzy search across descriptions)
 - Recurring tasks
-- Multiple file support (manage different todo.txt files)
 - Undo/redo functionality
 - Bulk operations (archive all completed, delete all in quadrant)
 - Custom sorting options

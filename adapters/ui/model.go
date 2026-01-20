@@ -39,6 +39,7 @@ type Model struct {
 	activeFilter       string     // currently applied filter (e.g., "+WebApp" or "@computer")
 	moveMode           bool       // true when in move mode (selecting quadrant to move to)
 	deleteMode         bool       // true when in delete confirmation mode
+	readOnly           bool       // true when viewing from stdin (no edits allowed)
 	input              textinput.Model
 	allProjects        []string
 	allContexts        []string
@@ -76,6 +77,12 @@ func NewModel(m matrix.Matrix, filePath string) Model {
 // SetRepository sets the repository for loading/saving todos
 func (m Model) SetRepository(r usecases.TodoRepository) Model {
 	m.repo = r
+	return m
+}
+
+// SetReadOnly sets the read-only mode (for viewing stdin)
+func (m Model) SetReadOnly(readOnly bool) Model {
+	m.readOnly = readOnly
 	return m
 }
 
@@ -223,13 +230,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Return to overview (with filter persisting if active)
 			m.viewMode = Overview
 		case "m":
-			// Enter move mode (only in focus mode with todos)
-			if m.viewMode != Overview && len(m.currentQuadrantTodos()) > 0 {
+			// Enter move mode (only in focus mode with todos and not read-only)
+			if m.viewMode != Overview && len(m.currentQuadrantTodos()) > 0 && !m.readOnly {
 				m.moveMode = true
 			}
 		case "backspace":
-			// Enter delete mode (only in focus mode with todos)
-			if m.viewMode != Overview && len(m.currentQuadrantTodos()) > 0 {
+			// Enter delete mode (only in focus mode with todos and not read-only)
+			if m.viewMode != Overview && len(m.currentQuadrantTodos()) > 0 && !m.readOnly {
 				m.deleteMode = true
 			}
 		case "i":
@@ -252,16 +259,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.viewMode = Overview
 			}
 		case "a":
-			// Enter input mode only if in focus mode
-			if m.viewMode != Overview {
+			// Enter input mode only if in focus mode and not read-only
+			if m.viewMode != Overview && !m.readOnly {
 				m.inputMode = true
 				m.editMode = false
 				m.input.SetValue("")
 				m.input.Focus()
 			}
 		case "e":
-			// Enter edit mode only if in focus mode with a selected todo
-			if m.viewMode != Overview {
+			// Enter edit mode only if in focus mode with a selected todo and not read-only
+			if m.viewMode != Overview && !m.readOnly {
 				todos := m.currentQuadrantTodos()
 				if len(todos) > 0 && m.selectedTodoIndex < len(todos) {
 					m.inputMode = true
@@ -287,8 +294,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.viewMode = Overview
 			}
 		case "d":
-			// Archive completed todo (only in focus mode)
-			if m.viewMode != Overview {
+			// Archive completed todo (only in focus mode and not read-only)
+			if m.viewMode != Overview && !m.readOnly {
 				m = m.archiveTodo()
 			}
 		case "down", "s", "j":
@@ -320,8 +327,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, cmd
 			}
 		case " ":
-			// Toggle completion in focus mode (space bar)
-			if m.viewMode != Overview {
+			// Toggle completion in focus mode (space bar) and not read-only
+			if m.viewMode != Overview && !m.readOnly {
 				m = m.toggleCompletion()
 			}
 		}
@@ -785,6 +792,12 @@ func (m Model) rebuildTable() Model {
 func (m Model) View() string {
 	var content string
 
+	// Modify file path display for read-only mode
+	displayPath := m.filePath
+	if m.readOnly {
+		displayPath += " (read-only)"
+	}
+
 	// Render based on current view mode
 	switch m.viewMode {
 	case FocusDoFirst:
@@ -793,7 +806,7 @@ func (m Model) View() string {
 				m.matrix.DoFirst(),
 				"Do First",
 				lipgloss.Color("#FF6B6B"),
-				m.filePath,
+				displayPath,
 				m.input,
 				m.allProjects,
 				m.allContexts,
@@ -809,10 +822,11 @@ func (m Model) View() string {
 				m.matrix.DoFirst(),
 				"Do First",
 				lipgloss.Color("#FF6B6B"),
-				m.filePath,
+				displayPath,
 				m.todoTable,
 				m.width,
 				m.height,
+				m.readOnly,
 			)
 		}
 	case FocusSchedule:
@@ -821,7 +835,7 @@ func (m Model) View() string {
 				m.matrix.Schedule(),
 				"Schedule",
 				lipgloss.Color("#4ECDC4"),
-				m.filePath,
+				displayPath,
 				m.input,
 				m.allProjects,
 				m.allContexts,
@@ -837,10 +851,11 @@ func (m Model) View() string {
 				m.matrix.Schedule(),
 				"Schedule",
 				lipgloss.Color("#4ECDC4"),
-				m.filePath,
+				displayPath,
 				m.todoTable,
 				m.width,
 				m.height,
+				m.readOnly,
 			)
 		}
 	case FocusDelegate:
@@ -849,7 +864,7 @@ func (m Model) View() string {
 				m.matrix.Delegate(),
 				"Delegate",
 				lipgloss.Color("#FFE66D"),
-				m.filePath,
+				displayPath,
 				m.input,
 				m.allProjects,
 				m.allContexts,
@@ -865,10 +880,11 @@ func (m Model) View() string {
 				m.matrix.Delegate(),
 				"Delegate",
 				lipgloss.Color("#FFE66D"),
-				m.filePath,
+				displayPath,
 				m.todoTable,
 				m.width,
 				m.height,
+				m.readOnly,
 			)
 		}
 	case FocusEliminate:
@@ -877,7 +893,7 @@ func (m Model) View() string {
 				m.matrix.Eliminate(),
 				"Eliminate",
 				lipgloss.Color("#95E1D3"),
-				m.filePath,
+				displayPath,
 				m.input,
 				m.allProjects,
 				m.allContexts,
@@ -893,10 +909,11 @@ func (m Model) View() string {
 				m.matrix.Eliminate(),
 				"Eliminate",
 				lipgloss.Color("#95E1D3"),
-				m.filePath,
+				displayPath,
 				m.todoTable,
 				m.width,
 				m.height,
+				m.readOnly,
 			)
 		}
 	case Inventory:
@@ -905,7 +922,7 @@ func (m Model) View() string {
 		// If in filter input mode, show filter input
 		if m.inputMode && m.filterMode {
 			content = RenderFilterInput(
-				m.filePath,
+				displayPath,
 				m.input,
 				m.showSuggestions,
 				m.suggestions,
@@ -924,7 +941,7 @@ func (m Model) View() string {
 
 		// Pass terminal dimensions to RenderMatrix for responsive sizing
 		// Pass the active filter for help text display only
-		content = RenderMatrixWithFilterHint(displayMatrix, m.filePath, m.width, m.height, m.activeFilter)
+		content = RenderMatrixWithFilterHint(displayMatrix, displayPath, m.width, m.height, m.activeFilter, m.readOnly)
 
 		// Center the content in the terminal if we have dimensions
 		if m.width > 0 && m.height > 0 {

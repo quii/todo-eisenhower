@@ -8,18 +8,49 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/quii/todo-eisenhower/adapters/file"
+	"github.com/quii/todo-eisenhower/adapters/memory"
 	"github.com/quii/todo-eisenhower/adapters/ui"
+	"github.com/quii/todo-eisenhower/domain/todotxt"
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
 func main() {
-	filePath, err := getFilePath()
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		os.Exit(1)
-	}
+	// Check if stdin is being piped
+	stat, _ := os.Stdin.Stat()
+	isStdinPiped := (stat.Mode() & os.ModeCharDevice) == 0
 
-	repo := file.NewRepository(filePath)
+	var repo usecases.TodoRepository
+	var filePath string
+	var readOnly bool
+
+	if isStdinPiped {
+		// Read from stdin in read-only mode
+		todos, err := todotxt.Unmarshal(os.Stdin)
+		if err != nil {
+			fmt.Printf("Error parsing stdin: %v\n", err)
+			os.Exit(1)
+		}
+
+		repo = memory.NewRepository()
+		if err := repo.SaveAll(todos); err != nil {
+			fmt.Printf("Error loading todos from stdin: %v\n", err)
+			os.Exit(1)
+		}
+
+		filePath = "(stdin)"
+		readOnly = true
+	} else {
+		// Normal file mode
+		var err error
+		filePath, err = getFilePath()
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			os.Exit(1)
+		}
+
+		repo = file.NewRepository(filePath)
+		readOnly = false
+	}
 
 	m, err := usecases.LoadMatrix(repo)
 	if err != nil {
@@ -28,6 +59,9 @@ func main() {
 	}
 
 	model := ui.NewModel(m, filePath).SetRepository(repo)
+	if readOnly {
+		model = model.SetReadOnly(true)
+	}
 
 	p := tea.NewProgram(model, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {

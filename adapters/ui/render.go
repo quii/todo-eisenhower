@@ -82,12 +82,12 @@ var (
 // terminalWidth and terminalHeight are optional (0 = use defaults)
 // Note: Filtering should be applied at the domain level before calling this function
 func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeight int) string {
-	return RenderMatrixWithFilterHint(m, filePath, terminalWidth, terminalHeight, "")
+	return RenderMatrixWithFilterHint(m, filePath, terminalWidth, terminalHeight, "", false)
 }
 
 // RenderMatrixWithFilterHint renders the matrix with a filter hint for help text
 // The activeFilter parameter is only used for display (help text), not for actual filtering
-func RenderMatrixWithFilterHint(m matrix.Matrix, filePath string, terminalWidth, terminalHeight int, activeFilter string) string {
+func RenderMatrixWithFilterHint(m matrix.Matrix, filePath string, terminalWidth, terminalHeight int, activeFilter string, readOnly bool) string {
 	// Calculate quadrant dimensions based on terminal size
 	quadrantWidth, quadrantHeight := calculateQuadrantDimensions(terminalWidth, terminalHeight)
 	// For overview mode, always show top 5 todos per quadrant (cleaner, more consistent)
@@ -152,6 +152,7 @@ func RenderMatrixWithFilterHint(m matrix.Matrix, filePath string, terminalWidth,
 	output.WriteString("\n\n")
 
 	// Add help text with filter instructions
+	// Note: Overview mode help text doesn't include editing commands, so it's the same for read-only and normal mode
 	var helpText string
 	if activeFilter != "" {
 		helpText = renderHelp("Press 1/2/3/4 to focus on a quadrant", "Press c to clear filter", "Press i for inventory", "Press q to quit")
@@ -448,6 +449,7 @@ func RenderFocusedQuadrantWithTable(
 	filePath string,
 	todoTable table.Model,
 	terminalWidth, terminalHeight int,
+	readOnly bool,
 ) string {
 	var output strings.Builder
 
@@ -489,7 +491,14 @@ func RenderFocusedQuadrantWithTable(
 	output.WriteString("\n\n")
 
 	// Render help text at bottom
-	helpText := renderHelp("Press a to add", "d to archive completed", "Press 1-4 to jump", "m to move", "Press ESC to return")
+	var helpText string
+	if readOnly {
+		// Read-only mode: only show viewing/navigation commands
+		helpText = renderHelp("Press 1-4 to jump", "Press ESC to return", "Press q to quit")
+	} else {
+		// Normal mode: show all commands including editing
+		helpText = renderHelp("Press a to add", "d to archive completed", "Press 1-4 to jump", "m to move", "Press ESC to return")
+	}
 	centeredHelp := lipgloss.NewStyle().
 		Align(lipgloss.Center).
 		Width(terminalWidth).
