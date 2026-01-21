@@ -12,10 +12,19 @@ import (
 	"github.com/quii/todo-eisenhower/usecases"
 )
 
+// WIPThreshold is the number of items that indicates high work-in-progress
+const WIPThreshold = 5
+
 // TagInventory represents the count of incomplete todos for a tag
 type TagInventory struct {
 	Tag   string
 	Count int
+}
+
+// IsHighWIP returns true if the count exceeds the WIP threshold,
+// indicating too much work in progress for this tag
+func (ti TagInventory) IsHighWIP() bool {
+	return ti.Count > WIPThreshold
 }
 
 // countTagInventory counts incomplete todos by project and context tags
@@ -74,6 +83,11 @@ func renderTagInventory(m matrix.Matrix, width int) string {
 	countStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#888888"))
 
+	// High WIP warning style for tags exceeding WIP threshold
+	highWIPCountStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FF6B6B")).
+		Bold(true)
+
 	var output strings.Builder
 
 	// Render projects line
@@ -83,12 +97,23 @@ func renderTagInventory(m matrix.Matrix, width int) string {
 	} else {
 		projectInventory := sortTagsByCount(projectCounts)
 		for i, item := range projectInventory {
+			// Add warning indicator for high WIP
+			if item.IsHighWIP() {
+				output.WriteString(highWIPCountStyle.Render("!!! "))
+			}
+
 			tagWithPrefix := "+" + item.Tag
 			color := HashColor(item.Tag)
 			tagStyle := lipgloss.NewStyle().Foreground(color)
 
 			output.WriteString(tagStyle.Render(tagWithPrefix))
-			output.WriteString(countStyle.Render(fmt.Sprintf(" (%d)", item.Count)))
+
+			// Use warning style if WIP exceeds threshold
+			if item.IsHighWIP() {
+				output.WriteString(highWIPCountStyle.Render(fmt.Sprintf(" (%d)", item.Count)))
+			} else {
+				output.WriteString(countStyle.Render(fmt.Sprintf(" (%d)", item.Count)))
+			}
 
 			if i < len(projectInventory)-1 {
 				output.WriteString("  ")
@@ -104,12 +129,23 @@ func renderTagInventory(m matrix.Matrix, width int) string {
 	} else {
 		contextInventory := sortTagsByCount(contextCounts)
 		for i, item := range contextInventory {
+			// Add warning indicator for high WIP
+			if item.IsHighWIP() {
+				output.WriteString(highWIPCountStyle.Render("!!! "))
+			}
+
 			tagWithPrefix := "@" + item.Tag
 			color := HashColor(item.Tag)
 			tagStyle := lipgloss.NewStyle().Foreground(color)
 
 			output.WriteString(tagStyle.Render(tagWithPrefix))
-			output.WriteString(countStyle.Render(fmt.Sprintf(" (%d)", item.Count)))
+
+			// Use warning style if WIP exceeds threshold
+			if item.IsHighWIP() {
+				output.WriteString(highWIPCountStyle.Render(fmt.Sprintf(" (%d)", item.Count)))
+			} else {
+				output.WriteString(countStyle.Render(fmt.Sprintf(" (%d)", item.Count)))
+			}
 
 			if i < len(contextInventory)-1 {
 				output.WriteString("  ")
