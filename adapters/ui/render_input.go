@@ -192,7 +192,7 @@ func renderAutocomplete(suggestions []string, selectedIndex int, trigger, partia
 		noMatchStyle := lipgloss.NewStyle().
 			Foreground(TextSecondary).
 			Italic(true)
-		return noMatchStyle.Render("  (no matches - press Space to create new tag)")
+		return noMatchStyle.Render("  (no matches - press Enter to save)")
 	}
 
 	var lines []string

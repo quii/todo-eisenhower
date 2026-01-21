@@ -174,8 +174,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Handle regular input mode keys
 			switch msg.String() {
 			case "enter":
-				// Only save/apply if suggestions are not visible
-				if !m.showSuggestions {
+				// Save/apply if suggestions are not visible OR if there are no matches
+				// This allows users to type new tags and hit Enter directly
+				if !m.showSuggestions || len(m.suggestions) == 0 {
 					if m.filterMode {
 						m = m.applyFilter()
 					} else {

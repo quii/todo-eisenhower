@@ -427,8 +427,8 @@ func TestStory009_NoMatchesMessage(t *testing.T) {
 
 	view := model.View()
 
-	// Should show no matches message
-	is.True(strings.Contains(stripANSI(view), "no matches") && strings.Contains(stripANSI(view), "Space"))  // expected autocomplete to show 'no matches' message
+	// Should show no matches message with Enter instruction
+	is.True(strings.Contains(stripANSI(view), "no matches") && strings.Contains(stripANSI(view), "Enter"))  // expected autocomplete to show 'no matches' message
 }
 
 func TestStory009_CaseInsensitiveMatching(t *testing.T) {
