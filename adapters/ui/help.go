@@ -10,14 +10,14 @@ import (
 // renderHelp renders help text with colored key bindings
 func renderHelp(parts ...string) string {
 	keyStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#00D9FF")). // Bright cyan
+		Foreground(lipgloss.Color("#00D9FF")). // Bright cyan (works in both modes)
 		Bold(true)
 
 	textStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#888888"))
+		Foreground(TextSecondary)
 
 	separatorStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#666666"))
+		Foreground(TextMuted)
 
 	var result strings.Builder
 	for i, part := range parts {

@@ -31,7 +31,7 @@ func RenderFilterInput(
 	// Title
 	title := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("#FFFFFF")).
+		Foreground(TextPrimary).
 		Align(lipgloss.Center).
 		Width(terminalWidth).
 		Render("Filter Todos")
@@ -40,7 +40,7 @@ func RenderFilterInput(
 
 	// Instructions
 	instructions := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#888888")).
+		Foreground(TextSecondary).
 		Italic(true).
 		Align(lipgloss.Center).
 		Width(terminalWidth).
@@ -51,7 +51,7 @@ func RenderFilterInput(
 	// Input prompt
 	promptText := "Filter by: "
 	inputPrompt := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FFFFFF")).
+		Foreground(TextPrimary).
 		Render(promptText)
 
 	// Center the input section
@@ -94,7 +94,7 @@ func renderFilterAutocomplete(suggestions []string, selectedIndex, width int) st
 		}
 
 		// Determine color based on prefix
-		var color lipgloss.Color
+		var color lipgloss.TerminalColor
 		var prefix byte
 		if suggestion != "" {
 			prefix = suggestion[0]
@@ -104,14 +104,14 @@ func renderFilterAutocomplete(suggestions []string, selectedIndex, width int) st
 		case '+', '@':
 			color = HashColor(suggestion[1:])
 		default:
-			color = lipgloss.Color("#FFFFFF")
+			color = TextPrimary
 		}
 
 		if i == selectedIndex {
 			// Highlighted suggestion
 			suggestionStyle := lipgloss.NewStyle().
 				Foreground(color).
-				Background(lipgloss.Color("#444444")).
+				Background(SelectionBg).
 				Bold(true).
 				Padding(0, 1)
 			lines = append(lines, suggestionStyle.Render(suggestion))
@@ -127,7 +127,7 @@ func renderFilterAutocomplete(suggestions []string, selectedIndex, width int) st
 	// Box style
 	boxStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#666666")).
+		BorderForeground(BorderAccent).
 		Padding(0, 1).
 		Align(lipgloss.Center)
 

@@ -120,7 +120,7 @@ func RenderFocusedQuadrantWithInput(
 		promptText = "Edit Todo: "
 	}
 	inputPrompt := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FFFFFF")).
+		Foreground(TextPrimary).
 		Render(promptText)
 	output.WriteString(inputPrompt)
 	output.WriteString(input.View())
@@ -158,7 +158,7 @@ func RenderFocusedQuadrantWithInput(
 // renderTagReference renders a line showing available tags
 func renderTagReference(label string, tags []string, width int) string {
 	labelStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#888888")).
+		Foreground(TextSecondary).
 		Italic(true)
 
 	var content string
@@ -190,7 +190,7 @@ func renderAutocomplete(suggestions []string, selectedIndex int, trigger, partia
 	if len(suggestions) == 0 {
 		// Show "no matches" message
 		noMatchStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#888888")).
+			Foreground(TextSecondary).
 			Italic(true)
 		return noMatchStyle.Render("  (no matches - press Space to create new tag)")
 	}
@@ -212,7 +212,7 @@ func renderAutocomplete(suggestions []string, selectedIndex int, trigger, partia
 			// Highlighted suggestion
 			suggestionStyle := lipgloss.NewStyle().
 				Foreground(color).
-				Background(lipgloss.Color("#444444")).
+				Background(SelectionBg).
 				Bold(true).
 				Padding(0, 1)
 			lines = append(lines, suggestionStyle.Render(tagWithPrefix))
@@ -228,7 +228,7 @@ func renderAutocomplete(suggestions []string, selectedIndex int, trigger, partia
 	// Box style
 	boxStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#666666")).
+		BorderForeground(BorderAccent).
 		Padding(0, 1)
 
 	content := strings.Join(lines, "\n")

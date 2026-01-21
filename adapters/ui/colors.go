@@ -29,8 +29,51 @@ var tagColors = []string{
 	"#FFD6A5", // Light orange
 }
 
-// Due date colors
+// Adaptive color palette - automatically adjusts for light/dark backgrounds
 var (
+	// Text colors
+	TextPrimary = lipgloss.AdaptiveColor{
+		Light: "#000000", // Black text on light background
+		Dark:  "#FFFFFF", // White text on dark background
+	}
+	TextSecondary = lipgloss.AdaptiveColor{
+		Light: "#666666", // Dark gray on light background
+		Dark:  "#888888", // Light gray on dark background
+	}
+	TextMuted = lipgloss.AdaptiveColor{
+		Light: "#999999", // Medium gray on light background
+		Dark:  "#666666", // Darker gray on dark background
+	}
+
+	// Border and UI element colors
+	BorderColor = lipgloss.AdaptiveColor{
+		Light: "#CCCCCC", // Light gray border on light background
+		Dark:  "#444444", // Dark gray border on dark background
+	}
+	BorderAccent = lipgloss.AdaptiveColor{
+		Light: "#999999", // Darker border on light background
+		Dark:  "#666666", // Lighter border on dark background
+	}
+
+	// Background colors for selections and highlights
+	SelectionBg = lipgloss.AdaptiveColor{
+		Light: "#E0E0E0", // Light gray selection on light background
+		Dark:  "#444444", // Dark gray selection on dark background
+	}
+
+	// Completed todo color
+	CompletedColor = lipgloss.AdaptiveColor{
+		Light: "#999999", // Medium gray on light background
+		Dark:  "#808080", // Light gray on dark background
+	}
+
+	// Empty state color
+	EmptyColor = lipgloss.AdaptiveColor{
+		Light: "#AAAAAA", // Medium gray on light background
+		Dark:  "#666666", // Darker gray on dark background
+	}
+
+	// Due date colors (these are bright enough to work in both modes)
 	dueDateColor = lipgloss.Color("#00CED1") // DarkCyan - for upcoming due dates
 	overdueColor = lipgloss.Color("#FF0000") // Red - for overdue dates
 )
@@ -72,9 +115,10 @@ func GradientBackground(text string, startColor, endColor lipgloss.Color) string
 		c, _ := colorful.MakeColor(colors[i])
 		bgColor := lipgloss.Color(c.Hex())
 		
+		// Use adaptive text color: black on light backgrounds, white on dark
 		style := lipgloss.NewStyle().
 			Background(bgColor).
-			Foreground(lipgloss.Color("#FFFFFF"))
+			Foreground(lipgloss.AdaptiveColor{Light: "#000000", Dark: "#FFFFFF"})
 		result.WriteString(style.Render(string(ch)))
 	}
 	

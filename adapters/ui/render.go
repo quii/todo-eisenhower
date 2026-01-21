@@ -64,18 +64,18 @@ var (
 			Padding(0)
 
 	activeTodoStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FAFAFA"))
+			Foreground(TextPrimary)
 
 	completedTodoStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#808080")).
+				Foreground(CompletedColor).
 				Strikethrough(true)
 
 	emptyStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#666666")).
+			Foreground(EmptyColor).
 			Italic(true)
 
 	dividerStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#555555"))
+			Foreground(BorderColor)
 )
 
 // RenderMatrix renders the Eisenhower matrix as a string with optional file path header
@@ -237,7 +237,7 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 			// Highlight selected todo
 			if i == selectedIndex {
 				selectedStyle := lipgloss.NewStyle().
-					Background(lipgloss.Color("#444444")).
+					Background(SelectionBg).
 					Bold(true)
 				todoLine = selectedStyle.Render(todoLine)
 			}
@@ -486,6 +486,14 @@ func RenderFocusedQuadrantWithTable(
 	} else {
 		// Render the table
 		output.WriteString(todoTable.View())
+		output.WriteString("\n\n")
+
+		// Render detail pane for selected todo
+		selectedIndex := todoTable.Cursor()
+		if selectedIndex >= 0 && selectedIndex < len(todos) {
+			detailPane := renderTodoDetailPane(todos[selectedIndex], terminalWidth)
+			output.WriteString(detailPane)
+		}
 	}
 
 	output.WriteString("\n\n")
@@ -536,6 +544,7 @@ func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight, selectedIn
 	rows := make([]table.Row, len(todos))
 	for i, t := range todos {
 		// Task: description is already clean (tags extracted by parser)
+		// Table will truncate if too long; full description shown in detail pane
 		taskDesc := t.Description()
 
 		// Projects: comma-separated list
@@ -602,13 +611,13 @@ func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight, selectedIn
 	s := table.DefaultStyles()
 	s.Header = s.Header.
 		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("240")).
+		BorderForeground(BorderColor).
 		BorderBottom(true).
 		Bold(false)
 	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
-		Bold(false)
+		Foreground(TextPrimary).
+		Background(SelectionBg).
+		Bold(true)
 
 	// Style completed rows with green foreground
 	// Note: The bubbles table doesn't directly support per-row styling,
@@ -624,6 +633,96 @@ func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight, selectedIn
 	}
 
 	return t
+}
+
+// renderTodoDetailPane renders a detail pane showing full information for a todo
+func renderTodoDetailPane(t todo.Todo, terminalWidth int) string {
+	var output strings.Builder
+
+	// Style definitions with adaptive colors
+	labelStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: "#666666", Dark: "#888888"}).
+		Bold(true)
+
+	valueStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: "#000000", Dark: "#FFFFFF"})
+
+	// Border style for the detail pane
+	borderStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.AdaptiveColor{Light: "#AAAAAA", Dark: "#555555"}).
+		Padding(0, 1).
+		Width(terminalWidth - 4)
+
+	var details strings.Builder
+
+	// Full description
+	details.WriteString(labelStyle.Render("Description: "))
+	details.WriteString(valueStyle.Render(t.Description()))
+	details.WriteString("\n")
+
+	// Projects
+	if len(t.Projects()) > 0 {
+		details.WriteString(labelStyle.Render("Projects: "))
+		for i, p := range t.Projects() {
+			color := HashColor(p)
+			projectStyle := lipgloss.NewStyle().Foreground(color)
+			details.WriteString(projectStyle.Render("+" + p))
+			if i < len(t.Projects())-1 {
+				details.WriteString(", ")
+			}
+		}
+		details.WriteString("\n")
+	}
+
+	// Contexts
+	if len(t.Contexts()) > 0 {
+		details.WriteString(labelStyle.Render("Contexts: "))
+		for i, c := range t.Contexts() {
+			color := HashColor(c)
+			contextStyle := lipgloss.NewStyle().Foreground(color)
+			details.WriteString(contextStyle.Render("@" + c))
+			if i < len(t.Contexts())-1 {
+				details.WriteString(", ")
+			}
+		}
+		details.WriteString("\n")
+	}
+
+	// Created date
+	if created := formatDate(t.CreationDate()); created != "" {
+		details.WriteString(labelStyle.Render("Created: "))
+		details.WriteString(valueStyle.Render(created))
+		details.WriteString("\n")
+	}
+
+	// Completion date
+	if t.IsCompleted() {
+		if completed := formatDate(t.CompletionDate()); completed != "" {
+			details.WriteString(labelStyle.Render("Completed: "))
+			details.WriteString(valueStyle.Render(completed))
+			details.WriteString("\n")
+		}
+	}
+
+	// Due date
+	if t.DueDate() != nil {
+		dueDateText, isOverdue := formatDueDateWithOverdue(t.DueDate(), time.Now())
+		details.WriteString(labelStyle.Render("Due: "))
+		if isOverdue {
+			overdueStyle := lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#FF6B6B")).
+				Bold(true)
+			details.WriteString(overdueStyle.Render(dueDateText + " (OVERDUE)"))
+		} else {
+			dueDateStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#00CED1"))
+			details.WriteString(dueDateStyle.Render(dueDateText))
+		}
+		details.WriteString("\n")
+	}
+
+	output.WriteString(borderStyle.Render(details.String()))
+	return output.String()
 }
 
 // RenderMoveOverlay renders an overlay for move mode

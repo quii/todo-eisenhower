@@ -77,11 +77,11 @@ func renderTagInventory(m matrix.Matrix, width int) string {
 	projectCounts, contextCounts := countTagInventory(m)
 
 	labelStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#888888")).
+		Foreground(TextSecondary).
 		Italic(true)
 
 	countStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#888888"))
+		Foreground(TextSecondary)
 
 	// High WIP warning style for tags exceeding WIP threshold
 	highWIPCountStyle := lipgloss.NewStyle().
