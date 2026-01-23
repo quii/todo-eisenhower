@@ -1,0 +1,121 @@
+package ui
+
+import (
+	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+)
+
+// parseDateShortcut converts date shortcuts to YYYY-MM-DD format
+// Supports: today, tomorrow, +3d, +2w, friday, jan25, 2026-01-20, etc.
+func parseDateShortcut(shortcut string, now time.Time) (string, error) {
+	if shortcut == "" {
+		return "", fmt.Errorf("empty shortcut")
+	}
+
+	shortcut = strings.ToLower(strings.TrimSpace(shortcut))
+
+	// If already in YYYY-MM-DD format, return as-is
+	if matched, _ := regexp.MatchString(`^\d{4}-\d{2}-\d{2}$`, shortcut); matched {
+		return shortcut, nil
+	}
+
+	// Absolute shortcuts
+	switch shortcut {
+	case "today", "tod":
+		return now.Format("2006-01-02"), nil
+	case "tomorrow", "tom":
+		return now.AddDate(0, 0, 1).Format("2006-01-02"), nil
+	}
+
+	// Relative days: +3d, +7d
+	if matched, _ := regexp.MatchString(`^\+\d+d$`, shortcut); matched {
+		days, _ := strconv.Atoi(shortcut[1 : len(shortcut)-1])
+		return now.AddDate(0, 0, days).Format("2006-01-02"), nil
+	}
+
+	// Relative weeks: +2w, +1w
+	if matched, _ := regexp.MatchString(`^\+\d+w$`, shortcut); matched {
+		weeks, _ := strconv.Atoi(shortcut[1 : len(shortcut)-1])
+		return now.AddDate(0, 0, weeks*7).Format("2006-01-02"), nil
+	}
+
+	// Weekday names (next occurrence)
+	weekdays := map[string]time.Weekday{
+		"monday":    time.Monday,
+		"mon":       time.Monday,
+		"tuesday":   time.Tuesday,
+		"tue":       time.Tuesday,
+		"wednesday": time.Wednesday,
+		"wed":       time.Wednesday,
+		"thursday":  time.Thursday,
+		"thu":       time.Thursday,
+		"friday":    time.Friday,
+		"fri":       time.Friday,
+		"saturday":  time.Saturday,
+		"sat":       time.Saturday,
+		"sunday":    time.Sunday,
+		"sun":       time.Sunday,
+	}
+
+	if targetDay, ok := weekdays[shortcut]; ok {
+		return nextWeekday(now, targetDay).Format("2006-01-02"), nil
+	}
+
+	// Month abbreviations: jan25, feb14, dec31
+	monthPattern := regexp.MustCompile(`^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(\d{1,2})$`)
+	if matches := monthPattern.FindStringSubmatch(shortcut); matches != nil {
+		monthAbbr := matches[1]
+		day, _ := strconv.Atoi(matches[2])
+
+		months := map[string]time.Month{
+			"jan": time.January, "feb": time.February, "mar": time.March,
+			"apr": time.April, "may": time.May, "jun": time.June,
+			"jul": time.July, "aug": time.August, "sep": time.September,
+			"oct": time.October, "nov": time.November, "dec": time.December,
+		}
+
+		month := months[monthAbbr]
+		year := now.Year()
+
+		// Use current year
+		date := time.Date(year, month, day, 0, 0, 0, 0, now.Location())
+		return date.Format("2006-01-02"), nil
+	}
+
+	return "", fmt.Errorf("unrecognized date shortcut: %s", shortcut)
+}
+
+// nextWeekday returns the next occurrence of the given weekday
+// If today is the target weekday, it returns next week's occurrence
+func nextWeekday(from time.Time, targetDay time.Weekday) time.Time {
+	daysUntil := int(targetDay - from.Weekday())
+	if daysUntil <= 0 {
+		daysUntil += 7 // Next week
+	}
+	return from.AddDate(0, 0, daysUntil)
+}
+
+// expandDateShortcuts finds due:shortcut patterns and expands them to due:YYYY-MM-DD
+func expandDateShortcuts(input string, now time.Time) string {
+	// Pattern to match due:shortcut (stops at space or end of string)
+	pattern := regexp.MustCompile(`due:(\S+)`)
+
+	// Find first match only (in case of multiple due: tags)
+	match := pattern.FindStringSubmatch(input)
+	if match == nil {
+		return input // No due: found
+	}
+
+	shortcut := match[1]
+	expanded, err := parseDateShortcut(shortcut, now)
+	if err != nil {
+		// If parsing fails, leave as-is
+		return input
+	}
+
+	// Replace only the first occurrence
+	return strings.Replace(input, "due:"+shortcut, "due:"+expanded, 1)
+}

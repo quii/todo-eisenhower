@@ -70,3 +70,78 @@ func completeTag(inputValue, completedTag string) string {
 	prefix := inputValue[:triggerPos+1]
 	return prefix + completedTag + " "
 }
+
+// detectDueTrigger detects if the cursor is after "due:"
+// Returns the partial shortcut text and whether the trigger was found
+func detectDueTrigger(inputValue string) (partialShortcut string, found bool) {
+	// Find the last occurrence of "due:" (case-insensitive)
+	lowerInput := strings.ToLower(inputValue)
+	duePos := strings.LastIndex(lowerInput, "due:")
+
+	if duePos == -1 {
+		return "", false
+	}
+
+	// Extract text after "due:"
+	afterDue := inputValue[duePos+4:]
+
+	// If there's a space after the trigger, no autocomplete
+	if strings.Contains(afterDue, " ") {
+		return "", false
+	}
+
+	return afterDue, true
+}
+
+// getDateShortcuts returns the list of available date shortcuts
+func getDateShortcuts() []string {
+	return []string{
+		"today",
+		"tomorrow",
+		"+1d",
+		"+3d",
+		"+7d",
+		"+1w",
+		"+2w",
+		"monday",
+		"tuesday",
+		"wednesday",
+		"thursday",
+		"friday",
+		"saturday",
+		"sunday",
+	}
+}
+
+// filterDateShortcuts filters date shortcuts by prefix (case-insensitive)
+func filterDateShortcuts(prefix string) []string {
+	shortcuts := getDateShortcuts()
+
+	if prefix == "" {
+		return shortcuts
+	}
+
+	lowerPrefix := strings.ToLower(prefix)
+	var matches []string
+	for _, shortcut := range shortcuts {
+		if strings.HasPrefix(strings.ToLower(shortcut), lowerPrefix) {
+			matches = append(matches, shortcut)
+		}
+	}
+	return matches
+}
+
+// completeDateShortcut replaces the partial shortcut with the completed one
+func completeDateShortcut(inputValue, completedShortcut string) string {
+	// Find the last "due:" position (case-insensitive)
+	lowerInput := strings.ToLower(inputValue)
+	duePos := strings.LastIndex(lowerInput, "due:")
+
+	if duePos == -1 {
+		return inputValue
+	}
+
+	// Replace from "due:" to end with completed shortcut + space
+	prefix := inputValue[:duePos+4]
+	return prefix + completedShortcut + " "
+}

@@ -2,6 +2,7 @@ package ui
 
 import (
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/bubbles/table"
@@ -367,6 +368,9 @@ func (m Model) saveTodo() Model {
 		return m
 	}
 
+	// Expand date shortcuts (due:tomorrow -> due:YYYY-MM-DD)
+	description = expandDateShortcuts(description, time.Now())
+
 	if m.repo == nil {
 		return m // No-op if no writer configured
 	}
@@ -497,6 +501,14 @@ func (m Model) updateSuggestions() Model {
 		return m.updateFilterSuggestions(inputValue)
 	}
 
+	// Check for due: trigger first (takes precedence over tags)
+	if partialShortcut, found := detectDueTrigger(inputValue); found {
+		m.suggestions = filterDateShortcuts(partialShortcut)
+		m.showSuggestions = len(m.suggestions) > 0 || partialShortcut != ""
+		m.selectedSuggestion = 0
+		return m
+	}
+
 	// Detect if we're at a tag trigger
 	trigger, partialTag, found := detectTrigger(inputValue)
 	if !found {
@@ -569,6 +581,7 @@ func (m Model) completeSuggestion() Model {
 	}
 
 	selectedTag := m.suggestions[m.selectedSuggestion]
+	inputValue := m.input.Value()
 
 	var completedValue string
 	if m.filterMode {
@@ -576,8 +589,13 @@ func (m Model) completeSuggestion() Model {
 		// Just use the suggestion directly with a space
 		completedValue = selectedTag + " "
 	} else {
-		// In add/edit mode, use normal tag completion
-		completedValue = completeTag(m.input.Value(), selectedTag)
+		// Check if we're completing a date shortcut
+		if _, found := detectDueTrigger(inputValue); found {
+			completedValue = completeDateShortcut(inputValue, selectedTag)
+		} else {
+			// In add/edit mode, use normal tag completion
+			completedValue = completeTag(inputValue, selectedTag)
+		}
 	}
 
 	m.input.SetValue(completedValue)

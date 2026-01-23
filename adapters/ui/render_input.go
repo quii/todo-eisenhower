@@ -128,8 +128,14 @@ func RenderFocusedQuadrantWithInput(
 
 	// Render autocomplete suggestions if visible, otherwise show tag reference
 	if showSuggestions {
-		trigger, partialTag, _ := detectTrigger(input.Value())
-		autocompleteBox := renderAutocomplete(suggestions, selectedSuggestion, trigger, partialTag, terminalWidth)
+		// Check if we're autocompleting a date shortcut or a tag
+		var autocompleteBox string
+		if partialShortcut, found := detectDueTrigger(input.Value()); found {
+			autocompleteBox = renderAutocomplete(suggestions, selectedSuggestion, "due:", partialShortcut, terminalWidth)
+		} else {
+			trigger, partialTag, _ := detectTrigger(input.Value())
+			autocompleteBox = renderAutocomplete(suggestions, selectedSuggestion, trigger, partialTag, terminalWidth)
+		}
 		output.WriteString("\n")
 		output.WriteString(autocompleteBox)
 		output.WriteString("\n\n")
@@ -202,8 +208,14 @@ func renderAutocomplete(suggestions []string, selectedIndex int, trigger, partia
 			break
 		}
 
-		// Use the trigger character passed in (+ or @)
-		tagWithPrefix := trigger + suggestion
+		// For date shortcuts (due:), show just the shortcut
+		// For tags (+ or @), show with the trigger prefix
+		var displayText string
+		if trigger == "due:" {
+			displayText = suggestion
+		} else {
+			displayText = trigger + suggestion
+		}
 
 		// Color the tag
 		color := HashColor(suggestion)
@@ -215,13 +227,13 @@ func renderAutocomplete(suggestions []string, selectedIndex int, trigger, partia
 				Background(SelectionBg).
 				Bold(true).
 				Padding(0, 1)
-			lines = append(lines, suggestionStyle.Render(tagWithPrefix))
+			lines = append(lines, suggestionStyle.Render(displayText))
 		} else {
 			// Regular suggestion
 			suggestionStyle := lipgloss.NewStyle().
 				Foreground(color).
 				Padding(0, 1)
-			lines = append(lines, suggestionStyle.Render(tagWithPrefix))
+			lines = append(lines, suggestionStyle.Render(displayText))
 		}
 	}
 
