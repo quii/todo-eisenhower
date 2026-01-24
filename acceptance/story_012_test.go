@@ -334,5 +334,5 @@ func TestStory012_NumberKeysStillFocusInOverview(t *testing.T) {
 	is.True(strings.Contains(stripANSI(view), "Do First"))  // expected to focus on DO FIRST quadrant
 
 	// Should show focus mode help text
-	is.True(strings.Contains(stripANSI(view), "Press a to add"))  // expected focus mode help text
+	is.True(strings.Contains(stripANSI(view), "a to add"))  // expected focus mode help text
 }

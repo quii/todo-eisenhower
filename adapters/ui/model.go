@@ -41,6 +41,7 @@ type Model struct {
 	moveMode           bool       // true when in move mode (selecting quadrant to move to)
 	deleteMode         bool       // true when in delete confirmation mode
 	readOnly           bool       // true when viewing from stdin (no edits allowed)
+	urlSelectionMode   bool       // true when selecting from multiple URLs
 	input              textinput.Model
 	allProjects        []string
 	allContexts        []string
@@ -49,6 +50,8 @@ type Model struct {
 	suggestions        []string
 	selectedSuggestion int
 	selectedTodoIndex  int // index of selected todo in current quadrant
+	urls               []string // URLs in currently selected task
+	selectedURLIndex   int // selected URL index when in urlSelectionMode
 	todoTable          table.Model // table for displaying todos
 	inventoryViewport  viewport.Model // viewport for scrollable inventory dashboard
 }
@@ -139,6 +142,34 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 			// Ignore all other keys in move mode
+			return m, nil
+		}
+
+		// Handle URL selection mode separately
+		if m.urlSelectionMode {
+			switch msg.String() {
+			case "down", "j":
+				m.selectedURLIndex = (m.selectedURLIndex + 1) % len(m.urls)
+				return m, nil
+			case "up", "k":
+				m.selectedURLIndex = (m.selectedURLIndex - 1 + len(m.urls)) % len(m.urls)
+				return m, nil
+			case "enter":
+				// Open selected URL
+				if m.selectedURLIndex < len(m.urls) {
+					_ = openURL(m.urls[m.selectedURLIndex])
+				}
+				m.urlSelectionMode = false
+				m.urls = nil
+				m.selectedURLIndex = 0
+				return m, nil
+			case "esc":
+				m.urlSelectionMode = false
+				m.urls = nil
+				m.selectedURLIndex = 0
+				return m, nil
+			}
+			// Ignore all other keys in URL selection mode
 			return m, nil
 		}
 
@@ -279,6 +310,29 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					currentTodo := todos[m.selectedTodoIndex]
 					m.input.SetValue(todotxt.FormatForInput(currentTodo))
 					m.input.Focus()
+				}
+			}
+		case "o":
+			// Open URLs from selected todo (only in focus mode with a selected todo)
+			if m.viewMode != Overview {
+				todos := m.currentQuadrantTodos()
+				if len(todos) > 0 && m.selectedTodoIndex < len(todos) {
+					currentTodo := todos[m.selectedTodoIndex]
+					urls := extractURLs(currentTodo.Description())
+
+					switch len(urls) {
+					case 0:
+						// No URLs found - could show a brief message
+						// For now, just do nothing
+					case 1:
+						// Single URL: open immediately
+						_ = openURL(urls[0])
+					default:
+						// Multiple URLs: enter selection mode
+						m.urlSelectionMode = true
+						m.urls = urls
+						m.selectedURLIndex = 0
+					}
 				}
 			}
 		case "f":
@@ -978,6 +1032,11 @@ func (m Model) View() string {
 	// If in delete mode, overlay the delete confirmation dialog
 	if m.deleteMode {
 		return RenderDeleteOverlay(m.width, m.height)
+	}
+
+	// If in URL selection mode, overlay the URL selection dialog
+	if m.urlSelectionMode {
+		return RenderURLSelectionOverlay(m.urls, m.selectedURLIndex, m.width, m.height)
 	}
 
 	// Focus mode content is already full-width and properly aligned

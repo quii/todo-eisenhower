@@ -251,7 +251,7 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 	output.WriteString("\n\n")
 
 	// Render help text at bottom
-	helpText := renderHelp("↑↓/w/s navigate", "Space to toggle", "Press a to add", "Press 1-4 to jump", "m to move", "Press ESC to return")
+	helpText := renderHelp("↑↓/w/s navigate", "Space to toggle", "a to add", "o to open URL", "Press 1-4 to jump", "m to move", "ESC to return")
 	centeredHelp := lipgloss.NewStyle().
 		Align(lipgloss.Center).
 		Width(terminalWidth).
@@ -505,7 +505,7 @@ func RenderFocusedQuadrantWithTable(
 		helpText = renderHelp("Press 1-4 to jump", "Press ESC to return", "Press q to quit")
 	} else {
 		// Normal mode: show all commands including editing
-		helpText = renderHelp("Press a to add", "d to archive completed", "Press 1-4 to jump", "m to move", "Press ESC to return")
+		helpText = renderHelp("a to add", "o to open URL", "d to archive", "1-4 to jump", "m to move", "ESC to return")
 	}
 	centeredHelp := lipgloss.NewStyle().
 		Align(lipgloss.Center).
@@ -748,6 +748,67 @@ func RenderMoveOverlay(terminalWidth, terminalHeight int) string {
 		BorderForeground(lipgloss.Color("#7B68EE")).
 		Padding(1, 2).
 		Width(30)
+
+	box := boxStyle.Render(content)
+
+	// Center the box in the terminal
+	return lipgloss.Place(
+		terminalWidth,
+		terminalHeight,
+		lipgloss.Center,
+		lipgloss.Center,
+		box,
+	)
+}
+
+// RenderURLSelectionOverlay renders the URL selection dialog overlay
+func RenderURLSelectionOverlay(urls []string, selectedIndex, terminalWidth, terminalHeight int) string {
+	var output strings.Builder
+
+	// Build overlay content
+	titleStyle := lipgloss.NewStyle().Bold(true)
+	output.WriteString(titleStyle.Render("Select URL to open:"))
+	output.WriteString("\n\n")
+
+	// Render each URL with selection indicator
+	for i, url := range urls {
+		var line string
+		if i == selectedIndex {
+			// Highlight selected URL
+			line = lipgloss.NewStyle().
+				Background(SelectionBg).
+				Foreground(TextPrimary).
+				Padding(0, 1).
+				Render("> " + url)
+		} else {
+			line = "  " + url
+		}
+		output.WriteString(line)
+		output.WriteString("\n")
+	}
+
+	output.WriteString("\n")
+	output.WriteString(lipgloss.NewStyle().
+		Foreground(TextSecondary).
+		Italic(true).
+		Render("Press Enter to open • ESC to cancel"))
+
+	content := output.String()
+
+	// Create bordered box with adaptive width
+	boxWidth := 60
+	// Adjust width based on longest URL
+	for _, url := range urls {
+		if len(url)+4 > boxWidth {
+			boxWidth = min(len(url)+4, terminalWidth-10)
+		}
+	}
+
+	boxStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(BorderAccent).
+		Padding(1, 2).
+		Width(boxWidth)
 
 	box := boxStyle.Render(content)
 
