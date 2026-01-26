@@ -28,6 +28,9 @@ func parseDateShortcut(shortcut string, now time.Time) (string, error) {
 		return now.Format("2006-01-02"), nil
 	case "tomorrow", "tom":
 		return now.AddDate(0, 0, 1).Format("2006-01-02"), nil
+	case "endofweek":
+		// End of current week (Sunday)
+		return endOfWeek(now).Format("2006-01-02"), nil
 	case "endofmonth":
 		// Last day of current month
 		year, month, _ := now.Date()
@@ -108,6 +111,17 @@ func nextWeekday(from time.Time, targetDay time.Weekday) time.Time {
 	daysUntil := int(targetDay - from.Weekday())
 	if daysUntil <= 0 {
 		daysUntil += 7 // Next week
+	}
+	return from.AddDate(0, 0, daysUntil)
+}
+
+// endOfWeek returns the end of the current week (Sunday)
+// If today is Sunday, returns today
+func endOfWeek(from time.Time) time.Time {
+	// Calculate days until Sunday
+	daysUntil := int(time.Sunday - from.Weekday())
+	if daysUntil < 0 {
+		daysUntil += 7
 	}
 	return from.AddDate(0, 0, daysUntil)
 }

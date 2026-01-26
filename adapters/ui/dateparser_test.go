@@ -44,6 +44,12 @@ func TestParseDateShortcut(t *testing.T) {
 			expected: "2026-01-21",
 			wantErr:  false,
 		},
+		{
+			name:     "endofweek (Tuesday to Sunday)",
+			shortcut: "endofweek",
+			expected: "2026-01-25",
+			wantErr:  false,
+		},
 
 		// Relative days
 		{
@@ -204,6 +210,38 @@ func TestEndOfPeriodShortcuts(t *testing.T) {
 		shortcut  string
 		expected  string
 	}{
+		// End of Week tests - various days
+		{
+			name:     "endofweek on Monday",
+			refDate:  time.Date(2026, 1, 19, 0, 0, 0, 0, time.UTC), // Monday
+			shortcut: "endofweek",
+			expected: "2026-01-25",
+		},
+		{
+			name:     "endofweek on Tuesday",
+			refDate:  time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC), // Tuesday
+			shortcut: "endofweek",
+			expected: "2026-01-25",
+		},
+		{
+			name:     "endofweek on Saturday",
+			refDate:  time.Date(2026, 1, 24, 0, 0, 0, 0, time.UTC), // Saturday
+			shortcut: "endofweek",
+			expected: "2026-01-25",
+		},
+		{
+			name:     "endofweek on Sunday",
+			refDate:  time.Date(2026, 1, 25, 0, 0, 0, 0, time.UTC), // Sunday
+			shortcut: "endofweek",
+			expected: "2026-01-25",
+		},
+		{
+			name:     "endofweek on Sunday goes to same day",
+			refDate:  time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC), // Sunday
+			shortcut: "endofweek",
+			expected: "2026-02-01",
+		},
+
 		// End of Month tests - various months
 		{
 			name:     "endofmonth in January",
