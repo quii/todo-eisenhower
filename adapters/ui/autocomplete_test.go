@@ -75,7 +75,7 @@ func TestFilterDateShortcuts(t *testing.T) {
 		{
 			name:          "empty prefix returns all shortcuts",
 			prefix:        "",
-			expectedCount: 14, // today, tomorrow, +1d, +3d, +7d, +1w, +2w, 7 weekdays
+			expectedCount: 17, // today, tomorrow, endofmonth, endofquarter, endofyear, +1d, +3d, +7d, +1w, +2w, 7 weekdays
 			expectedFirst: "today",
 		},
 		{
@@ -101,6 +101,18 @@ func TestFilterDateShortcuts(t *testing.T) {
 			prefix:        "fri",
 			expectedCount: 1,
 			expectedFirst: "friday",
+		},
+		{
+			name:          "prefix 'end' filters to endofmonth, endofquarter, endofyear",
+			prefix:        "end",
+			expectedCount: 3,
+			expectedFirst: "endofmonth",
+		},
+		{
+			name:          "prefix 'endof' filters to all three end shortcuts",
+			prefix:        "endof",
+			expectedCount: 3,
+			expectedFirst: "endofmonth",
 		},
 		{
 			name:          "no matches returns empty",

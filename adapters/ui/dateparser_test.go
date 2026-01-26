@@ -131,6 +131,26 @@ func TestParseDateShortcut(t *testing.T) {
 			wantErr:  false,
 		},
 
+		// End of period shortcuts (reference time: 2026-01-20, Tuesday in Q1)
+		{
+			name:     "endofmonth (end of January)",
+			shortcut: "endofmonth",
+			expected: "2026-01-31",
+			wantErr:  false,
+		},
+		{
+			name:     "endofquarter (end of Q1 - March 31)",
+			shortcut: "endofquarter",
+			expected: "2026-03-31",
+			wantErr:  false,
+		},
+		{
+			name:     "endofyear (December 31 of current year)",
+			shortcut: "endofyear",
+			expected: "2026-12-31",
+			wantErr:  false,
+		},
+
 		// Already in correct format - pass through
 		{
 			name:     "ISO format already",
@@ -165,6 +185,110 @@ func TestParseDateShortcut(t *testing.T) {
 				is.NoErr(err)
 				is.Equal(result, tt.expected)
 			}
+		})
+	}
+}
+
+func TestEndOfPeriodShortcuts(t *testing.T) {
+	is := is.New(t)
+
+	tests := []struct {
+		name      string
+		refDate   time.Time
+		shortcut  string
+		expected  string
+	}{
+		// End of Month tests - various months
+		{
+			name:     "endofmonth in January",
+			refDate:  time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofmonth",
+			expected: "2026-01-31",
+		},
+		{
+			name:     "endofmonth in February (non-leap year)",
+			refDate:  time.Date(2026, 2, 10, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofmonth",
+			expected: "2026-02-28",
+		},
+		{
+			name:     "endofmonth in February (leap year)",
+			refDate:  time.Date(2024, 2, 10, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofmonth",
+			expected: "2024-02-29",
+		},
+		{
+			name:     "endofmonth on last day of month",
+			refDate:  time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofmonth",
+			expected: "2026-01-31",
+		},
+
+		// End of Quarter tests - all four quarters
+		{
+			name:     "endofquarter in Q1 (January)",
+			refDate:  time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofquarter",
+			expected: "2026-03-31",
+		},
+		{
+			name:     "endofquarter in Q1 (March)",
+			refDate:  time.Date(2026, 3, 15, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofquarter",
+			expected: "2026-03-31",
+		},
+		{
+			name:     "endofquarter in Q2 (April)",
+			refDate:  time.Date(2026, 4, 15, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofquarter",
+			expected: "2026-06-30",
+		},
+		{
+			name:     "endofquarter in Q3 (July)",
+			refDate:  time.Date(2026, 7, 15, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofquarter",
+			expected: "2026-09-30",
+		},
+		{
+			name:     "endofquarter in Q4 (October)",
+			refDate:  time.Date(2026, 10, 15, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofquarter",
+			expected: "2026-12-31",
+		},
+		{
+			name:     "endofquarter on last day of quarter",
+			refDate:  time.Date(2026, 3, 31, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofquarter",
+			expected: "2026-03-31",
+		},
+
+		// End of Year tests
+		{
+			name:     "endofyear in January",
+			refDate:  time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofyear",
+			expected: "2026-12-31",
+		},
+		{
+			name:     "endofyear in December",
+			refDate:  time.Date(2026, 12, 15, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofyear",
+			expected: "2026-12-31",
+		},
+		{
+			name:     "endofyear on last day of year",
+			refDate:  time.Date(2026, 12, 31, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofyear",
+			expected: "2026-12-31",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			is := is.New(t)
+			result, err := parseDateShortcut(tt.shortcut, tt.refDate)
+			is.NoErr(err)
+			is.Equal(result, tt.expected)
 		})
 	}
 }
