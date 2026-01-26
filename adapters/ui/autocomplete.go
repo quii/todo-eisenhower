@@ -100,6 +100,7 @@ func getDateShortcuts() []string {
 		"tomorrow",
 		"endofmonth",
 		"endofquarter",
+		"endofnextquarter",
 		"endofyear",
 		"+1d",
 		"+3d",

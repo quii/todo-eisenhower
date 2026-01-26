@@ -145,6 +145,12 @@ func TestParseDateShortcut(t *testing.T) {
 			wantErr:  false,
 		},
 		{
+			name:     "endofnextquarter (from Q1 to Q2)",
+			shortcut: "endofnextquarter",
+			expected: "2026-06-30",
+			wantErr:  false,
+		},
+		{
 			name:     "endofyear (December 31 of current year)",
 			shortcut: "endofyear",
 			expected: "2026-12-31",
@@ -260,6 +266,50 @@ func TestEndOfPeriodShortcuts(t *testing.T) {
 			refDate:  time.Date(2026, 3, 31, 0, 0, 0, 0, time.UTC),
 			shortcut: "endofquarter",
 			expected: "2026-03-31",
+		},
+
+		// End of Next Quarter tests - all transitions including year rollover
+		{
+			name:     "endofnextquarter from Q1 (January) to Q2",
+			refDate:  time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofnextquarter",
+			expected: "2026-06-30",
+		},
+		{
+			name:     "endofnextquarter from Q1 (March) to Q2",
+			refDate:  time.Date(2026, 3, 15, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofnextquarter",
+			expected: "2026-06-30",
+		},
+		{
+			name:     "endofnextquarter from Q2 (April) to Q3",
+			refDate:  time.Date(2026, 4, 15, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofnextquarter",
+			expected: "2026-09-30",
+		},
+		{
+			name:     "endofnextquarter from Q3 (July) to Q4",
+			refDate:  time.Date(2026, 7, 15, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofnextquarter",
+			expected: "2026-12-31",
+		},
+		{
+			name:     "endofnextquarter from Q4 (October) to Q1 of next year",
+			refDate:  time.Date(2026, 10, 15, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofnextquarter",
+			expected: "2027-03-31",
+		},
+		{
+			name:     "endofnextquarter from Q4 (December) to Q1 of next year",
+			refDate:  time.Date(2026, 12, 15, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofnextquarter",
+			expected: "2027-03-31",
+		},
+		{
+			name:     "endofnextquarter from last day of Q1",
+			refDate:  time.Date(2026, 3, 31, 0, 0, 0, 0, time.UTC),
+			shortcut: "endofnextquarter",
+			expected: "2026-06-30",
 		},
 
 		// End of Year tests

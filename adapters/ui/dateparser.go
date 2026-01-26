@@ -36,6 +36,9 @@ func parseDateShortcut(shortcut string, now time.Time) (string, error) {
 	case "endofquarter":
 		// Last day of current calendar quarter
 		return endOfQuarter(now).Format("2006-01-02"), nil
+	case "endofnextquarter":
+		// Last day of next calendar quarter
+		return endOfNextQuarter(now).Format("2006-01-02"), nil
 	case "endofyear":
 		// December 31st of current year
 		return time.Date(now.Year(), 12, 31, 0, 0, 0, 0, now.Location()).Format("2006-01-02"), nil
@@ -130,6 +133,34 @@ func endOfQuarter(from time.Time) time.Time {
 
 	// Last day of the end month
 	return time.Date(year, endMonth+1, 0, 0, 0, 0, 0, from.Location())
+}
+
+// endOfNextQuarter returns the last day of the next calendar quarter
+// Handles year rollover (Q4 → Q1 of next year)
+func endOfNextQuarter(from time.Time) time.Time {
+	year := from.Year()
+	month := from.Month()
+
+	var endMonth time.Month
+	var endYear int
+
+	switch {
+	case month <= 3: // Q1 → Q2
+		endMonth = 6
+		endYear = year
+	case month <= 6: // Q2 → Q3
+		endMonth = 9
+		endYear = year
+	case month <= 9: // Q3 → Q4
+		endMonth = 12
+		endYear = year
+	default: // Q4 → Q1 of next year
+		endMonth = 3
+		endYear = year + 1
+	}
+
+	// Last day of the end month
+	return time.Date(endYear, endMonth+1, 0, 0, 0, 0, 0, from.Location())
 }
 
 // expandDateShortcuts finds due:shortcut patterns and expands them to due:YYYY-MM-DD
