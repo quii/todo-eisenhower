@@ -197,10 +197,10 @@ func TestStory007_ReturnToOverviewWithESC(t *testing.T) {
 	is.True(strings.Contains(overviewView, "Eliminate")) // overview should contain ELIMINATE
 
 	// Should show overview help text (without ESC)
-	is.True(strings.Contains(overviewView, "Press 1/2/3/4 to focus on a quadrant")) // overview should show help text
+	is.True(strings.Contains(overviewView, "1-4 to focus")) // overview should show help text
 
 	// Should NOT show ESC instruction in overview
-	is.True(!strings.Contains(overviewView, "Press ESC to return")) // overview should not show ESC instruction
+	is.True(!strings.Contains(overviewView, "ESC to return")) // overview should not show ESC instruction
 }
 
 func TestStory007_JumpBetweenQuadrantsInFocusMode(t *testing.T) {

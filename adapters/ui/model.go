@@ -42,6 +42,7 @@ type Model struct {
 	deleteMode         bool       // true when in delete confirmation mode
 	readOnly           bool       // true when viewing from stdin (no edits allowed)
 	urlSelectionMode   bool       // true when selecting from multiple URLs
+	hideCompleted      bool       // true when hiding completed items from view
 	input              textinput.Model
 	allProjects        []string
 	allContexts        []string
@@ -302,12 +303,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "e":
 			// Enter edit mode only if in focus mode with a selected todo and not read-only
 			if m.viewMode != Overview && !m.readOnly {
-				todos := m.currentQuadrantTodos()
-				if len(todos) > 0 && m.selectedTodoIndex < len(todos) {
+				// Get the selected todo (handles hideCompleted case)
+				currentTodo, _, ok := m.getSelectedTodo()
+				if ok {
 					m.inputMode = true
 					m.editMode = true
 					// Pre-fill with current todo's description and tags
-					currentTodo := todos[m.selectedTodoIndex]
 					m.input.SetValue(todotxt.FormatForInput(currentTodo))
 					m.input.Focus()
 				}
@@ -315,9 +316,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "o":
 			// Open URLs from selected todo (only in focus mode with a selected todo)
 			if m.viewMode != Overview {
-				todos := m.currentQuadrantTodos()
-				if len(todos) > 0 && m.selectedTodoIndex < len(todos) {
-					currentTodo := todos[m.selectedTodoIndex]
+				// Get the selected todo (handles hideCompleted case)
+				currentTodo, _, ok := m.getSelectedTodo()
+				if ok {
 					urls := extractURLs(currentTodo.Description())
 
 					switch len(urls) {
@@ -353,6 +354,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Archive completed todo (only in focus mode and not read-only)
 			if m.viewMode != Overview && !m.readOnly {
 				m = m.archiveTodo()
+			}
+		case "h":
+			// Toggle hide/show completed items
+			m.hideCompleted = !m.hideCompleted
+			// Rebuild table if in focus mode to reflect the change
+			if m.viewMode != Overview && m.viewMode != Inventory {
+				m = m.rebuildTable()
 			}
 		case "down", "s", "j":
 			// Scroll down in inventory mode
@@ -433,9 +441,18 @@ func (m Model) saveTodo() Model {
 	var err error
 
 	if m.editMode {
+		// Get the actual index in the full list
+		_, actualIndex, ok := m.getSelectedTodo()
+		if !ok {
+			// Invalid selection, just cancel edit
+			m.inputMode = false
+			m.editMode = false
+			m.input.SetValue("")
+			return m
+		}
 		// Use EditTodo usecase
 		quadrant := m.currentQuadrantType()
-		updatedMatrix, err = usecases.EditTodo(m.repo, m.matrix, quadrant, m.selectedTodoIndex, description)
+		updatedMatrix, err = usecases.EditTodo(m.repo, m.matrix, quadrant, actualIndex, description)
 	} else {
 		// Determine priority from current quadrant
 		priority := m.currentQuadrantPriority()
@@ -725,9 +742,15 @@ func (m Model) toggleCompletion() Model {
 		return m // No-op if no writer configured
 	}
 
+	// Get the actual index in the full list
+	_, actualIndex, ok := m.getSelectedTodo()
+	if !ok {
+		return m
+	}
+
 	// Use the ToggleCompletion usecase
 	quadrant := m.currentQuadrantType()
-	updatedMatrix, err := usecases.ToggleCompletion(m.repo, m.matrix, quadrant, m.selectedTodoIndex)
+	updatedMatrix, err := usecases.ToggleCompletion(m.repo, m.matrix, quadrant, actualIndex)
 	if err != nil {
 		// TODO: Show error to user in future story
 		return m
@@ -747,9 +770,15 @@ func (m Model) changeTodoPriority(newPriority todo.Priority) Model {
 		return m // No-op if no repository configured
 	}
 
+	// Get the actual index in the full list
+	_, actualIndex, ok := m.getSelectedTodo()
+	if !ok {
+		return m
+	}
+
 	// Use the ChangePriority usecase
 	quadrant := m.currentQuadrantType()
-	updatedMatrix, err := usecases.ChangePriority(m.repo, m.matrix, quadrant, m.selectedTodoIndex, newPriority)
+	updatedMatrix, err := usecases.ChangePriority(m.repo, m.matrix, quadrant, actualIndex, newPriority)
 	if err != nil {
 		// TODO: Show error to user in future story
 		return m
@@ -761,6 +790,9 @@ func (m Model) changeTodoPriority(newPriority todo.Priority) Model {
 	// - If the current quadrant is now empty, return to overview
 	// - Otherwise, adjust selection index if needed
 	todos := m.currentQuadrantTodos()
+	if m.hideCompleted {
+		todos = filterActive(todos)
+	}
 	if len(todos) == 0 {
 		m.viewMode = Overview
 	} else {
@@ -780,9 +812,15 @@ func (m Model) archiveTodo() Model {
 		return m // No-op if no repository configured
 	}
 
+	// Get the actual index in the full list
+	_, actualIndex, ok := m.getSelectedTodo()
+	if !ok {
+		return m
+	}
+
 	// Use the ArchiveTodo usecase
 	quadrant := m.currentQuadrantType()
-	updatedMatrix, err := usecases.ArchiveTodo(m.repo, m.matrix, quadrant, m.selectedTodoIndex)
+	updatedMatrix, err := usecases.ArchiveTodo(m.repo, m.matrix, quadrant, actualIndex)
 	if err != nil {
 		// TODO: Show error to user in future story
 		return m
@@ -795,6 +833,9 @@ func (m Model) archiveTodo() Model {
 	// - Otherwise, keep selection on same index (which now points to next todo)
 	//   or adjust if index is out of bounds
 	todos := m.currentQuadrantTodos()
+	if m.hideCompleted {
+		todos = filterActive(todos)
+	}
 	if len(todos) == 0 {
 		m.viewMode = Overview
 	} else {
@@ -815,13 +856,11 @@ func (m Model) deleteTodo() Model {
 		return m // No-op if no writer configured
 	}
 
-	// Get the todo to delete
-	todos := m.currentQuadrantTodos()
-	if m.selectedTodoIndex < 0 || m.selectedTodoIndex >= len(todos) {
+	// Get the todo to delete using the helper to handle hideCompleted case
+	todoToDelete, _, ok := m.getSelectedTodo()
+	if !ok {
 		return m // Invalid index
 	}
-
-	todoToDelete := todos[m.selectedTodoIndex]
 
 	// Use the DeleteTodo usecase
 	updatedMatrix, err := usecases.DeleteTodo(m.repo, m.matrix, todoToDelete)
@@ -835,7 +874,10 @@ func (m Model) deleteTodo() Model {
 	// After deleting a todo:
 	// - If the current quadrant is now empty, return to overview
 	// - Otherwise, adjust selection index if needed
-	todos = m.currentQuadrantTodos()
+	todos := m.currentQuadrantTodos()
+	if m.hideCompleted {
+		todos = filterActive(todos)
+	}
 	if len(todos) == 0 {
 		m.viewMode = Overview
 	} else {
@@ -850,6 +892,40 @@ func (m Model) deleteTodo() Model {
 	return m
 }
 
+// getSelectedTodo returns the currently selected todo and its index in the full list
+// Handles the case where hideCompleted is true and we need to map table index to full list index
+func (m Model) getSelectedTodo() (selectedTodo todo.Todo, actualIndex int, ok bool) {
+	todos := m.currentQuadrantTodos()
+
+	// Get the list that's actually displayed (filtered or full)
+	displayedTodos := todos
+	if m.hideCompleted {
+		displayedTodos = filterActive(todos)
+	}
+
+	// Check if selectedTodoIndex is valid in the displayed list
+	if m.selectedTodoIndex < 0 || m.selectedTodoIndex >= len(displayedTodos) {
+		return todo.Todo{}, -1, false
+	}
+
+	selectedTodo = displayedTodos[m.selectedTodoIndex]
+
+	// If not filtering, the index is direct
+	if !m.hideCompleted {
+		return selectedTodo, m.selectedTodoIndex, true
+	}
+
+	// Find the selected todo's position in the full list
+	for i, t := range todos {
+		if t.Description() == selectedTodo.Description() &&
+		   t.CreationDate() == selectedTodo.CreationDate() {
+			return selectedTodo, i, true
+		}
+	}
+
+	return todo.Todo{}, -1, false
+}
+
 // rebuildTable rebuilds the todo table based on current quadrant
 func (m Model) rebuildTable() Model {
 	if m.viewMode == Overview {
@@ -857,6 +933,12 @@ func (m Model) rebuildTable() Model {
 	}
 
 	todos := m.currentQuadrantTodos()
+
+	// Filter out completed todos if hideCompleted is true
+	if m.hideCompleted {
+		todos = filterActive(todos)
+	}
+
 	m.todoTable = buildTodoTable(todos, m.width, m.height, m.selectedTodoIndex)
 	return m
 }
@@ -1014,7 +1096,7 @@ func (m Model) View() string {
 
 		// Pass terminal dimensions to RenderMatrix for responsive sizing
 		// Pass the active filter for help text display only
-		content = RenderMatrixWithFilterHint(displayMatrix, displayPath, m.width, m.height, m.activeFilter, m.readOnly)
+		content = RenderMatrixWithFilterHint(displayMatrix, displayPath, m.width, m.height, m.activeFilter, m.readOnly, m.hideCompleted)
 
 		// Center the content in the terminal if we have dimensions
 		if m.width > 0 && m.height > 0 {

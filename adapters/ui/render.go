@@ -24,6 +24,17 @@ var (
 	contextTagPattern = regexp.MustCompile(`@(\w+)`)
 )
 
+// filterActive returns only active (not completed) todos
+func filterActive(todos []todo.Todo) []todo.Todo {
+	var active []todo.Todo
+	for _, t := range todos {
+		if !t.IsCompleted() {
+			active = append(active, t)
+		}
+	}
+	return active
+}
+
 // buildDescriptionWithTags reconstructs the full description with tags for display
 func buildDescriptionWithTags(t todo.Todo) string {
 	var b strings.Builder
@@ -82,12 +93,12 @@ var (
 // terminalWidth and terminalHeight are optional (0 = use defaults)
 // Note: Filtering should be applied at the domain level before calling this function
 func RenderMatrix(m matrix.Matrix, filePath string, terminalWidth, terminalHeight int) string {
-	return RenderMatrixWithFilterHint(m, filePath, terminalWidth, terminalHeight, "", false)
+	return RenderMatrixWithFilterHint(m, filePath, terminalWidth, terminalHeight, "", false, false)
 }
 
 // RenderMatrixWithFilterHint renders the matrix with a filter hint for help text
 // The activeFilter parameter is only used for display (help text), not for actual filtering
-func RenderMatrixWithFilterHint(m matrix.Matrix, filePath string, terminalWidth, terminalHeight int, activeFilter string, readOnly bool) string {
+func RenderMatrixWithFilterHint(m matrix.Matrix, filePath string, terminalWidth, terminalHeight int, activeFilter string, readOnly, hideCompleted bool) string {
 	// Calculate quadrant dimensions based on terminal size
 	quadrantWidth, quadrantHeight := calculateQuadrantDimensions(terminalWidth, terminalHeight)
 	// For overview mode, always show top 5 todos per quadrant (cleaner, more consistent)
@@ -107,6 +118,14 @@ func RenderMatrixWithFilterHint(m matrix.Matrix, filePath string, terminalWidth,
 	scheduleTodos := m.Schedule()
 	delegateTodos := m.Delegate()
 	eliminateTodos := m.Eliminate()
+
+	// Filter out completed todos if hideCompleted is true
+	if hideCompleted {
+		doFirstTodos = filterActive(doFirstTodos)
+		scheduleTodos = filterActive(scheduleTodos)
+		delegateTodos = filterActive(delegateTodos)
+		eliminateTodos = filterActive(eliminateTodos)
+	}
 
 	// Render quadrant contents
 	doFirst := renderQuadrantContent("Do First", urgentImportantColor, doFirstTodos, quadrantWidth, quadrantHeight, displayLimit, 1)
@@ -155,9 +174,9 @@ func RenderMatrixWithFilterHint(m matrix.Matrix, filePath string, terminalWidth,
 	// Note: Overview mode help text doesn't include editing commands, so it's the same for read-only and normal mode
 	var helpText string
 	if activeFilter != "" {
-		helpText = renderHelp("Press 1/2/3/4 to focus on a quadrant", "Press c to clear filter", "Press i for inventory", "Press q to quit")
+		helpText = renderHelp("1-4 to focus", "c to clear filter", "h to hide/show completed", "i for inventory", "q to quit")
 	} else {
-		helpText = renderHelp("Press 1/2/3/4 to focus on a quadrant", "Press f to filter", "Press i for inventory", "Press q to quit")
+		helpText = renderHelp("1-4 to focus", "f to filter", "h to hide/show completed", "i for inventory", "q to quit")
 	}
 	output.WriteString(helpText)
 
@@ -502,10 +521,10 @@ func RenderFocusedQuadrantWithTable(
 	var helpText string
 	if readOnly {
 		// Read-only mode: only show viewing/navigation commands
-		helpText = renderHelp("Press 1-4 to jump", "Press ESC to return", "Press q to quit")
+		helpText = renderHelp("h to hide/show completed", "1-4 to jump", "ESC to return", "q to quit")
 	} else {
 		// Normal mode: show all commands including editing
-		helpText = renderHelp("a to add", "o to open URL", "d to archive", "1-4 to jump", "m to move", "ESC to return")
+		helpText = renderHelp("a to add", "o to open URL", "h to hide/show completed", "d to archive", "1-4 to jump", "m to move", "ESC to return")
 	}
 	centeredHelp := lipgloss.NewStyle().
 		Align(lipgloss.Center).
