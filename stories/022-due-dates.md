@@ -12,81 +12,85 @@ remain the source of truth for urgency/importance).
 
 ## Acceptance Criteria
 
-### Scenario: Display due date in overview mode
-Given I have a todo "(A) Submit report due:2026-01-25"
-And today is 2026-01-20
-When I view the overview matrix
-Then I should see "Submit report due: Jan 25" in the Do First quadrant
-And the due date should be displayed in a distinct color (not red)
+```gherkin
+Feature: Due Date Support
 
-### Scenario: Display due date in focused quadrant mode
-Given I have multiple todos with due dates in the Do First quadrant
-When I press '1' to focus on Do First
-Then I should see a table with columns: [Description] [Due Date] [Created]
-And due dates should be formatted as "Jan 25" or "2026-01-25"
-And due dates should be displayed in a distinct color
+  Scenario: Display due date in overview mode
+    Given I have a todo "(A) Submit report due:2026-01-25"
+    And today is 2026-01-20
+    When I view the overview matrix
+    Then I should see "Submit report due: Jan 25" in the Do First quadrant
+    And the due date should be displayed in a distinct color (not red)
 
-### Scenario: Display overdue items
-Given I have a todo "(A) Overdue task due:2026-01-15"
-And today is 2026-01-20
-When I view the overview matrix
-Then I should see "Overdue task ! due: Jan 15"
-And the exclamation mark and due date should be in red
-And the text should clearly indicate this is overdue
+  Scenario: Display due date in focused quadrant mode
+    Given I have multiple todos with due dates in the Do First quadrant
+    When I press '1' to focus on Do First
+    Then I should see a table with columns: [Description] [Due Date] [Created]
+    And due dates should be formatted as "Jan 25" or "2026-01-25"
+    And due dates should be displayed in a distinct color
 
-### Scenario: Display overdue items in focused mode
-Given I have a todo "(A) Overdue task due:2026-01-15"
-And today is 2026-01-20
-When I press '1' to focus on Do First
-Then the due date column should show "! Jan 15" in red
-Or "! 2026-01-15" in red
+  Scenario: Display overdue items
+    Given I have a todo "(A) Overdue task due:2026-01-15"
+    And today is 2026-01-20
+    When I view the overview matrix
+    Then I should see "Overdue task ! due: Jan 15"
+    And the exclamation mark and due date should be in red
+    And the text should clearly indicate this is overdue
 
-### Scenario: Todos without due dates are unaffected
-Given I have a todo "(B) Regular task"
-When I view the matrix
-Then I should see "Regular task" without any due date information
-And it should look the same as before this feature
+  Scenario: Display overdue items in focused mode
+    Given I have a todo "(A) Overdue task due:2026-01-15"
+    And today is 2026-01-20
+    When I press '1' to focus on Do First
+    Then the due date column should show "! Jan 15" in red
+    Or "! 2026-01-15" in red
 
-### Scenario: Due date exactly today
-Given I have a todo "(A) Task due:2026-01-20"
-And today is 2026-01-20
-Then the due date should be displayed in a distinct color (not red)
-Because it's not overdue yet
+  Scenario: Todos without due dates are unaffected
+    Given I have a todo "(B) Regular task"
+    When I view the matrix
+    Then I should see "Regular task" without any due date information
+    And it should look the same as before this feature
 
-### Scenario: Due dates don't affect sorting
-Given I have three todos:
-  | Description | Priority | Due Date   |
-  | Task A      | A        | 2026-01-15 |
-  | Task B      | A        | 2026-01-25 |
-  | Task C      | A        | 2026-01-20 |
-When I view the Do First quadrant
-Then todos should appear in the order they were added
-And NOT sorted by due date
+  Scenario: Due date exactly today
+    Given I have a todo "(A) Task due:2026-01-20"
+    And today is 2026-01-20
+    Then the due date should be displayed in a distinct color (not red)
+    Because it's not overdue yet
 
-### Scenario: Due dates are informational only
-Given I have a todo "(D) Low priority due:2026-01-15"
-And the task is overdue
-When I view the matrix
-Then the task should still be in the Eliminate quadrant
-Because priority is the source of truth for quadrant placement
+  Scenario: Due dates don't affect sorting
+    Given I have three todos:
+      | Description | Priority | Due Date   |
+      | Task A      | A        | 2026-01-15 |
+      | Task B      | A        | 2026-01-25 |
+      | Task C      | A        | 2026-01-20 |
+    When I view the Do First quadrant
+    Then todos should appear in the order they were added
+    And NOT sorted by due date
 
-### Scenario: Due dates work with all todo features
-Given I have a todo "(A) Task +project @context due:2026-01-25"
-When I view the matrix
-Then I should see the description, colorized tags, AND the due date
-And all features should work together (edit, complete, move, filter)
+  Scenario: Due dates are informational only
+    Given I have a todo "(D) Low priority due:2026-01-15"
+    And the task is overdue
+    When I view the matrix
+    Then the task should still be in the Eliminate quadrant
+    Because priority is the source of truth for quadrant placement
 
-### Scenario: Invalid due dates are ignored
-Given I have a todo "(A) Task due:invalid-date"
-When I view the matrix
-Then the invalid due date should not be displayed
-Or should be displayed as-is without special formatting
+  Scenario: Due dates work with all todo features
+    Given I have a todo "(A) Task +project @context due:2026-01-25"
+    When I view the matrix
+    Then I should see the description, colorized tags, AND the due date
+    And all features should work together (edit, complete, move, filter)
 
-### Scenario: Multiple due date tags (edge case)
-Given I have a todo "(A) Task due:2026-01-20 due:2026-01-25"
-When I view the matrix
-Then only the first due date should be used (2026-01-20)
-Or both should be displayed as-is without special formatting
+  Scenario: Invalid due dates are ignored
+    Given I have a todo "(A) Task due:invalid-date"
+    When I view the matrix
+    Then the invalid due date should not be displayed
+    Or should be displayed as-is without special formatting
+
+  Scenario: Multiple due date tags (edge case)
+    Given I have a todo "(A) Task due:2026-01-20 due:2026-01-25"
+    When I view the matrix
+    Then only the first due date should be used (2026-01-20)
+    Or both should be displayed as-is without special formatting
+```
 
 ## Technical Notes
 

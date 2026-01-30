@@ -17,72 +17,76 @@ When reading from stdin, the tool enters read-only mode (no edits possible).
 
 ## Acceptance Criteria
 
-### Scenario: Auto-detect piped input
-Given I have two todo files "work.txt" and "personal.txt"
-When I run `cat work.txt personal.txt | eisenhower`
-Then eisenhower should start in read-only mode
-And display the combined matrix of both files
+```gherkin
+Feature: Stdin Read-Only Mode
 
-### Scenario: Read-only mode indicator
-Given I am viewing todos from stdin
-When the UI renders
-Then the header should show "(read-only)" indicator
-And it should be clear that editing is disabled
+  Scenario: Auto-detect piped input
+    Given I have two todo files "work.txt" and "personal.txt"
+    When I run `cat work.txt personal.txt | eisenhower`
+    Then eisenhower should start in read-only mode
+    And display the combined matrix of both files
 
-### Scenario: Viewing operations still work
-Given I am in read-only mode from stdin
-When I press navigation keys (1, 2, 3, 4, ESC)
-And I press 'i' for inventory
-And I press 'f' for filtering
-Then all viewing/navigation features should work normally
+  Scenario: Read-only mode indicator
+    Given I am viewing todos from stdin
+    When the UI renders
+    Then the header should show "(read-only)" indicator
+    And it should be clear that editing is disabled
 
-### Scenario: Editing operations are disabled
-Given I am in read-only mode from stdin
-And I am in focus mode on a quadrant
-When I try to press editing keys:
-  | Key | Operation |
-  | a   | Add todo  |
-  | e   | Edit todo |
-  | d   | Archive   |
-  | x   | Delete    |
-  | m   | Move      |
-  | Space | Toggle complete |
-Then nothing should happen
-Or a message should indicate "Read-only mode (viewing stdin)"
+  Scenario: Viewing operations still work
+    Given I am in read-only mode from stdin
+    When I press navigation keys (1, 2, 3, 4, ESC)
+    And I press 'i' for inventory
+    And I press 'f' for filtering
+    Then all viewing/navigation features should work normally
 
-### Scenario: Quit works normally
-Given I am in read-only mode from stdin
-When I press 'q'
-Then the program should exit cleanly
+  Scenario: Editing operations are disabled
+    Given I am in read-only mode from stdin
+    And I am in focus mode on a quadrant
+    When I try to press editing keys:
+      | Key | Operation |
+      | a   | Add todo  |
+      | e   | Edit todo |
+      | d   | Archive   |
+      | x   | Delete    |
+      | m   | Move      |
+      | Space | Toggle complete |
+    Then nothing should happen
+    Or a message should indicate "Read-only mode (viewing stdin)"
 
-### Scenario: Normal file mode when file argument provided
-Given I have a file "todo.txt"
-When I run `eisenhower todo.txt`
-Then eisenhower should start in normal edit mode
-And editing operations should work
+  Scenario: Quit works normally
+    Given I am in read-only mode from stdin
+    When I press 'q'
+    Then the program should exit cleanly
 
-### Scenario: Default file mode when no arguments or pipe
-Given I run `eisenhower` with no arguments and no pipe
-When the program starts
-Then it should use the default file ~/todo.txt
-And start in normal edit mode
+  Scenario: Normal file mode when file argument provided
+    Given I have a file "todo.txt"
+    When I run `eisenhower todo.txt`
+    Then eisenhower should start in normal edit mode
+    And editing operations should work
 
-### Scenario: Combine with grep for filtering
-Given I have a todo file with various projects
-When I run `grep '+WebApp' todo.txt | eisenhower`
-Then I should see only todos with the +WebApp project
-And the display should be read-only
+  Scenario: Default file mode when no arguments or pipe
+    Given I run `eisenhower` with no arguments and no pipe
+    When the program starts
+    Then it should use the default file ~/todo.txt
+    And start in normal edit mode
 
-### Scenario: View archive file
-Given I have completed todos in done.txt
-When I run `eisenhower < done.txt`
-Then I should see the archived todos in the matrix
-And the display should be read-only
+  Scenario: Combine with grep for filtering
+    Given I have a todo file with various projects
+    When I run `grep '+WebApp' todo.txt | eisenhower`
+    Then I should see only todos with the +WebApp project
+    And the display should be read-only
 
-### Scenario: Explicit stdin with dash (optional)
-Given I run `cat file.txt | eisenhower -`
-Then it should behave the same as `cat file.txt | eisenhower`
-And enter read-only mode
+  Scenario: View archive file
+    Given I have completed todos in done.txt
+    When I run `eisenhower < done.txt`
+    Then I should see the archived todos in the matrix
+    And the display should be read-only
+
+  Scenario: Explicit stdin with dash (optional)
+    Given I run `cat file.txt | eisenhower -`
+    Then it should behave the same as `cat file.txt | eisenhower`
+    And enter read-only mode
+```
 
 ## Technical Notes
 
