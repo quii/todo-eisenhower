@@ -12,6 +12,18 @@ import (
 	"github.com/quii/todo-eisenhower/domain/todo"
 )
 
+// DateFormat is the standard date format used in todo.txt files (ISO 8601)
+const DateFormat = "2006-01-02"
+
+// parseDate parses a date string in DateFormat and returns a pointer to the time.
+// Returns nil if the string cannot be parsed.
+func parseDate(s string) *time.Time {
+	if t, err := time.Parse(DateFormat, s); err == nil {
+		return &t
+	}
+	return nil
+}
+
 var (
 	completedPrefix       = regexp.MustCompile(`^x\s+`)
 	priorityPattern       = regexp.MustCompile(`^\(([A-E])\)\s+`)
@@ -71,11 +83,8 @@ func parseLine(line string) todo.Todo {
 
 	// Extract and remove completion date if present at the beginning (format: x DATE ...)
 	if completed && datePattern.MatchString(description) {
-		// Extract the date string
 		dateStr := strings.TrimSpace(datePattern.FindString(description))
-		if parsedDate, err := time.Parse("2006-01-02", dateStr); err == nil {
-			completionDate = &parsedDate
-		}
+		completionDate = parseDate(dateStr)
 		description = datePattern.ReplaceAllString(description, "")
 	}
 
@@ -83,9 +92,7 @@ func parseLine(line string) todo.Todo {
 	// Format: x COMP_DATE CREATION_DATE (A) Description
 	if completed && datePattern.MatchString(description) {
 		dateStr := strings.TrimSpace(datePattern.FindString(description))
-		if parsedDate, err := time.Parse("2006-01-02", dateStr); err == nil {
-			creationDate = &parsedDate
-		}
+		creationDate = parseDate(dateStr)
 		description = datePattern.ReplaceAllString(description, "")
 	}
 
@@ -102,9 +109,7 @@ func parseLine(line string) todo.Todo {
 	// Format: (A) CREATION_DATE Description (for active todos or if not parsed yet)
 	if creationDate == nil && datePattern.MatchString(description) {
 		dateStr := strings.TrimSpace(datePattern.FindString(description))
-		if parsedDate, err := time.Parse("2006-01-02", dateStr); err == nil {
-			creationDate = &parsedDate
-		}
+		creationDate = parseDate(dateStr)
 		description = datePattern.ReplaceAllString(description, "")
 	}
 
@@ -119,9 +124,7 @@ func parseLine(line string) todo.Todo {
 	if dueDatePattern.MatchString(description) {
 		matches := dueDatePattern.FindStringSubmatch(description)
 		if len(matches) > 1 {
-			if parsedDate, err := time.Parse("2006-01-02", matches[1]); err == nil {
-				dueDate = &parsedDate
-			}
+			dueDate = parseDate(matches[1])
 		}
 	}
 
@@ -130,9 +133,7 @@ func parseLine(line string) todo.Todo {
 	if prioritisedDatePattern.MatchString(description) {
 		matches := prioritisedDatePattern.FindStringSubmatch(description)
 		if len(matches) > 1 {
-			if parsedDate, err := time.Parse("2006-01-02", matches[1]); err == nil {
-				prioritisedDate = &parsedDate
-			}
+			prioritisedDate = parseDate(matches[1])
 		}
 	}
 
@@ -188,9 +189,7 @@ func parseDescriptionAndTags(description string) (cleanDesc string, projects, co
 	if dueDatePattern.MatchString(description) {
 		matches := dueDatePattern.FindStringSubmatch(description)
 		if len(matches) > 1 {
-			if parsedDate, err := time.Parse("2006-01-02", matches[1]); err == nil {
-				dueDate = &parsedDate
-			}
+			dueDate = parseDate(matches[1])
 		}
 	}
 
@@ -199,9 +198,7 @@ func parseDescriptionAndTags(description string) (cleanDesc string, projects, co
 	if prioritisedDatePattern.MatchString(description) {
 		matches := prioritisedDatePattern.FindStringSubmatch(description)
 		if len(matches) > 1 {
-			if parsedDate, err := time.Parse("2006-01-02", matches[1]); err == nil {
-				prioritisedDate = &parsedDate
-			}
+			prioritisedDate = parseDate(matches[1])
 		}
 	}
 
@@ -271,7 +268,7 @@ func FormatForInput(t todo.Todo) string {
 
 	if dueDate := t.DueDate(); dueDate != nil {
 		result.WriteString(" due:")
-		result.WriteString(dueDate.Format("2006-01-02"))
+		result.WriteString(dueDate.Format(DateFormat))
 	}
 
 	return result.String()

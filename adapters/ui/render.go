@@ -779,9 +779,27 @@ func renderTodoDetailPane(t todo.Todo, terminalWidth int) string {
 	return output.String()
 }
 
+// renderCenteredOverlay renders content in a centered, bordered box overlay
+func renderCenteredOverlay(content string, width int, borderColor lipgloss.TerminalColor, terminalWidth, terminalHeight int) string {
+	boxStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(borderColor).
+		Padding(1, 2).
+		Width(width)
+
+	box := boxStyle.Render(content)
+
+	return lipgloss.Place(
+		terminalWidth,
+		terminalHeight,
+		lipgloss.Center,
+		lipgloss.Center,
+		box,
+	)
+}
+
 // RenderMoveOverlay renders an overlay for move mode
 func RenderMoveOverlay(terminalWidth, terminalHeight int) string {
-	// Build overlay content
 	content := lipgloss.NewStyle().
 		Bold(true).
 		Render("Move to quadrant:") + "\n\n"
@@ -797,39 +815,20 @@ func RenderMoveOverlay(terminalWidth, terminalHeight int) string {
 		Italic(true).
 		Render("Press ESC to cancel")
 
-	// Create bordered box
-	boxStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#7B68EE")).
-		Padding(1, 2).
-		Width(30)
-
-	box := boxStyle.Render(content)
-
-	// Center the box in the terminal
-	return lipgloss.Place(
-		terminalWidth,
-		terminalHeight,
-		lipgloss.Center,
-		lipgloss.Center,
-		box,
-	)
+	return renderCenteredOverlay(content, 30, lipgloss.Color("#7B68EE"), terminalWidth, terminalHeight)
 }
 
 // RenderURLSelectionOverlay renders the URL selection dialog overlay
 func RenderURLSelectionOverlay(urls []string, selectedIndex, terminalWidth, terminalHeight int) string {
 	var output strings.Builder
 
-	// Build overlay content
 	titleStyle := lipgloss.NewStyle().Bold(true)
 	output.WriteString(titleStyle.Render("Select URL to open:"))
 	output.WriteString("\n\n")
 
-	// Render each URL with selection indicator
 	for i, url := range urls {
 		var line string
 		if i == selectedIndex {
-			// Highlight selected URL
 			line = lipgloss.NewStyle().
 				Background(SelectionBg).
 				Foreground(TextPrimary).
@@ -848,31 +847,13 @@ func RenderURLSelectionOverlay(urls []string, selectedIndex, terminalWidth, term
 		Italic(true).
 		Render("Press Enter to open • ESC to cancel"))
 
-	content := output.String()
-
-	// Create bordered box with adaptive width
+	// Calculate adaptive width based on longest URL
 	boxWidth := 60
-	// Adjust width based on longest URL
 	for _, url := range urls {
 		if len(url)+4 > boxWidth {
 			boxWidth = min(len(url)+4, terminalWidth-10)
 		}
 	}
 
-	boxStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(BorderAccent).
-		Padding(1, 2).
-		Width(boxWidth)
-
-	box := boxStyle.Render(content)
-
-	// Center the box in the terminal
-	return lipgloss.Place(
-		terminalWidth,
-		terminalHeight,
-		lipgloss.Center,
-		lipgloss.Center,
-		box,
-	)
+	return renderCenteredOverlay(output.String(), boxWidth, BorderAccent, terminalWidth, terminalHeight)
 }

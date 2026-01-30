@@ -13,7 +13,7 @@ import (
 // - Moving FROM Priority A: removes prioritised date
 func ChangePriority(repo TodoRepository, m matrix.Matrix, quadrant matrix.QuadrantType, index int, newPriority todo.Priority) (matrix.Matrix, error) {
 	// Get the todo at this index to check priorities
-	todos := getTodosForQuadrant(m, quadrant)
+	todos := m.GetTodosForQuadrant(quadrant)
 	if index < 0 || index >= len(todos) {
 		return m, nil
 	}
@@ -38,23 +38,6 @@ func ChangePriority(repo TodoRepository, m matrix.Matrix, quadrant matrix.Quadra
 	}
 
 	return updatedMatrix, nil
-}
-
-func getTodosForQuadrant(m matrix.Matrix, quadrant matrix.QuadrantType) []todo.Todo {
-	switch quadrant {
-	case matrix.DoFirstQuadrant:
-		return m.DoFirst()
-	case matrix.ScheduleQuadrant:
-		return m.Schedule()
-	case matrix.DelegateQuadrant:
-		return m.Delegate()
-	case matrix.EliminateQuadrant:
-		return m.Eliminate()
-	case matrix.BacklogQuadrant:
-		return m.Backlog()
-	default:
-		return []todo.Todo{}
-	}
 }
 
 func needsPrioritisedDateUpdate(oldPriority, newPriority todo.Priority) bool {

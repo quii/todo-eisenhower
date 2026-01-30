@@ -72,6 +72,37 @@ func sortTagsByCount(tagCounts map[string]int) []TagInventory {
 	return inventory
 }
 
+// renderTagLine renders a single line of tag inventory with the given prefix and counts
+func renderTagLine(prefix string, tagCounts map[string]int, labelStyle, countStyle, highWIPCountStyle lipgloss.Style) string {
+	if len(tagCounts) == 0 {
+		return labelStyle.Render("(none)")
+	}
+
+	var output strings.Builder
+	inventory := sortTagsByCount(tagCounts)
+	for i, item := range inventory {
+		if item.IsHighWIP() {
+			output.WriteString(highWIPCountStyle.Render("!!! "))
+		}
+
+		tagWithPrefix := prefix + item.Tag
+		color := HashColor(item.Tag)
+		tagStyle := lipgloss.NewStyle().Foreground(color)
+		output.WriteString(tagStyle.Render(tagWithPrefix))
+
+		if item.IsHighWIP() {
+			output.WriteString(highWIPCountStyle.Render(fmt.Sprintf(" (%d)", item.Count)))
+		} else {
+			output.WriteString(countStyle.Render(fmt.Sprintf(" (%d)", item.Count)))
+		}
+
+		if i < len(inventory)-1 {
+			output.WriteString("  ")
+		}
+	}
+	return output.String()
+}
+
 // renderTagInventory renders the tag inventory display for overview mode
 func renderTagInventory(m matrix.Matrix, width int) string {
 	projectCounts, contextCounts := countTagInventory(m)
@@ -83,75 +114,18 @@ func renderTagInventory(m matrix.Matrix, width int) string {
 	countStyle := lipgloss.NewStyle().
 		Foreground(TextSecondary)
 
-	// High WIP warning style for tags exceeding WIP threshold
 	highWIPCountStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#FF6B6B")).
 		Bold(true)
 
 	var output strings.Builder
 
-	// Render projects line
 	output.WriteString(labelStyle.Render("Projects (+): "))
-	if len(projectCounts) == 0 {
-		output.WriteString(labelStyle.Render("(none)"))
-	} else {
-		projectInventory := sortTagsByCount(projectCounts)
-		for i, item := range projectInventory {
-			// Add warning indicator for high WIP
-			if item.IsHighWIP() {
-				output.WriteString(highWIPCountStyle.Render("!!! "))
-			}
-
-			tagWithPrefix := "+" + item.Tag
-			color := HashColor(item.Tag)
-			tagStyle := lipgloss.NewStyle().Foreground(color)
-
-			output.WriteString(tagStyle.Render(tagWithPrefix))
-
-			// Use warning style if WIP exceeds threshold
-			if item.IsHighWIP() {
-				output.WriteString(highWIPCountStyle.Render(fmt.Sprintf(" (%d)", item.Count)))
-			} else {
-				output.WriteString(countStyle.Render(fmt.Sprintf(" (%d)", item.Count)))
-			}
-
-			if i < len(projectInventory)-1 {
-				output.WriteString("  ")
-			}
-		}
-	}
+	output.WriteString(renderTagLine("+", projectCounts, labelStyle, countStyle, highWIPCountStyle))
 	output.WriteString("\n")
 
-	// Render contexts line
 	output.WriteString(labelStyle.Render("Contexts (@): "))
-	if len(contextCounts) == 0 {
-		output.WriteString(labelStyle.Render("(none)"))
-	} else {
-		contextInventory := sortTagsByCount(contextCounts)
-		for i, item := range contextInventory {
-			// Add warning indicator for high WIP
-			if item.IsHighWIP() {
-				output.WriteString(highWIPCountStyle.Render("!!! "))
-			}
-
-			tagWithPrefix := "@" + item.Tag
-			color := HashColor(item.Tag)
-			tagStyle := lipgloss.NewStyle().Foreground(color)
-
-			output.WriteString(tagStyle.Render(tagWithPrefix))
-
-			// Use warning style if WIP exceeds threshold
-			if item.IsHighWIP() {
-				output.WriteString(highWIPCountStyle.Render(fmt.Sprintf(" (%d)", item.Count)))
-			} else {
-				output.WriteString(countStyle.Render(fmt.Sprintf(" (%d)", item.Count)))
-			}
-
-			if i < len(contextInventory)-1 {
-				output.WriteString("  ")
-			}
-		}
-	}
+	output.WriteString(renderTagLine("@", contextCounts, labelStyle, countStyle, highWIPCountStyle))
 
 	return output.String()
 }

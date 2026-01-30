@@ -28,6 +28,54 @@ const (
 	Inventory
 )
 
+// QuadrantMeta contains metadata for a quadrant (title, color, priority, type, getter)
+type QuadrantMeta struct {
+	Title    string
+	Color    lipgloss.Color
+	Priority todo.Priority
+	Type     matrix.QuadrantType
+	GetTodos func(matrix.Matrix) []todo.Todo
+}
+
+// quadrantMeta maps ViewMode to QuadrantMeta for focused quadrant views
+var quadrantMeta = map[ViewMode]QuadrantMeta{
+	FocusDoFirst: {
+		Title:    "Do First",
+		Color:    lipgloss.Color("#FF6B6B"),
+		Priority: todo.PriorityA,
+		Type:     matrix.DoFirstQuadrant,
+		GetTodos: func(m matrix.Matrix) []todo.Todo { return m.DoFirst() },
+	},
+	FocusSchedule: {
+		Title:    "Schedule",
+		Color:    lipgloss.Color("#4ECDC4"),
+		Priority: todo.PriorityB,
+		Type:     matrix.ScheduleQuadrant,
+		GetTodos: func(m matrix.Matrix) []todo.Todo { return m.Schedule() },
+	},
+	FocusDelegate: {
+		Title:    "Delegate",
+		Color:    lipgloss.Color("#FFE66D"),
+		Priority: todo.PriorityC,
+		Type:     matrix.DelegateQuadrant,
+		GetTodos: func(m matrix.Matrix) []todo.Todo { return m.Delegate() },
+	},
+	FocusEliminate: {
+		Title:    "Eliminate",
+		Color:    lipgloss.Color("#95E1D3"),
+		Priority: todo.PriorityD,
+		Type:     matrix.EliminateQuadrant,
+		GetTodos: func(m matrix.Matrix) []todo.Todo { return m.Eliminate() },
+	},
+	FocusBacklog: {
+		Title:    "Backlog",
+		Color:    lipgloss.Color("#888888"),
+		Priority: todo.PriorityE,
+		Type:     matrix.BacklogQuadrant,
+		GetTodos: func(m matrix.Matrix) []todo.Todo { return m.Backlog() },
+	},
+}
+
 // Model represents the Bubble Tea model for the Eisenhower matrix UI
 type Model struct {
 	matrix             matrix.Matrix
@@ -697,20 +745,10 @@ func (m Model) completeSuggestion() Model {
 
 // currentQuadrantPriority returns the priority for the current focused quadrant
 func (m Model) currentQuadrantPriority() todo.Priority {
-	switch m.viewMode {
-	case FocusDoFirst:
-		return todo.PriorityA
-	case FocusSchedule:
-		return todo.PriorityB
-	case FocusDelegate:
-		return todo.PriorityC
-	case FocusEliminate:
-		return todo.PriorityD
-	case FocusBacklog:
-		return todo.PriorityE
-	default:
-		return todo.PriorityNone
+	if meta, ok := quadrantMeta[m.viewMode]; ok {
+		return meta.Priority
 	}
+	return todo.PriorityNone
 }
 
 // currentQuadrantTodos returns the todos for the current focused quadrant
@@ -722,39 +760,19 @@ func (m Model) currentQuadrantTodos() []todo.Todo {
 		displayMatrix = m.matrix.FilterByTag(m.activeFilter)
 	}
 
-	// Get todos from the (possibly filtered) matrix
-	switch m.viewMode {
-	case FocusDoFirst:
-		return displayMatrix.DoFirst()
-	case FocusSchedule:
-		return displayMatrix.Schedule()
-	case FocusDelegate:
-		return displayMatrix.Delegate()
-	case FocusEliminate:
-		return displayMatrix.Eliminate()
-	case FocusBacklog:
-		return displayMatrix.Backlog()
-	default:
-		return []todo.Todo{}
+	// Get todos from the (possibly filtered) matrix using metadata
+	if meta, ok := quadrantMeta[m.viewMode]; ok {
+		return meta.GetTodos(displayMatrix)
 	}
+	return []todo.Todo{}
 }
 
 // currentQuadrantType returns the quadrant type for the current view mode
 func (m Model) currentQuadrantType() matrix.QuadrantType {
-	switch m.viewMode {
-	case FocusDoFirst:
-		return matrix.DoFirstQuadrant
-	case FocusSchedule:
-		return matrix.ScheduleQuadrant
-	case FocusDelegate:
-		return matrix.DelegateQuadrant
-	case FocusEliminate:
-		return matrix.EliminateQuadrant
-	case FocusBacklog:
-		return matrix.BacklogQuadrant
-	default:
-		return matrix.DoFirstQuadrant
+	if meta, ok := quadrantMeta[m.viewMode]; ok {
+		return meta.Type
 	}
+	return matrix.DoFirstQuadrant
 }
 
 // toggleCompletion toggles the completion status of the selected todo
@@ -806,26 +824,7 @@ func (m Model) changeTodoPriority(newPriority todo.Priority) Model {
 	}
 
 	m.matrix = updatedMatrix
-
-	// After moving a todo, adjust the view:
-	// - If the current quadrant is now empty, return to overview
-	// - Otherwise, adjust selection index if needed
-	todos := m.currentQuadrantTodos()
-	if m.hideCompleted {
-		todos = filterActive(todos)
-	}
-	if len(todos) == 0 {
-		m.viewMode = Overview
-	} else {
-		if m.selectedTodoIndex >= len(todos) {
-			// If selected index is now out of bounds, select the last todo
-			m.selectedTodoIndex = len(todos) - 1
-		}
-		// Rebuild table to reflect the change
-		m = m.rebuildTable()
-	}
-
-	return m
+	return m.adjustAfterQuadrantChange()
 }
 
 func (m Model) archiveTodo() Model {
@@ -848,27 +847,7 @@ func (m Model) archiveTodo() Model {
 	}
 
 	m.matrix = updatedMatrix
-
-	// After archiving a todo, adjust the view:
-	// - If the current quadrant is now empty, return to overview
-	// - Otherwise, keep selection on same index (which now points to next todo)
-	//   or adjust if index is out of bounds
-	todos := m.currentQuadrantTodos()
-	if m.hideCompleted {
-		todos = filterActive(todos)
-	}
-	if len(todos) == 0 {
-		m.viewMode = Overview
-	} else {
-		if m.selectedTodoIndex >= len(todos) {
-			// If selected index is now out of bounds, select the last todo
-			m.selectedTodoIndex = len(todos) - 1
-		}
-		// Rebuild table to reflect the change
-		m = m.rebuildTable()
-	}
-
-	return m
+	return m.adjustAfterQuadrantChange()
 }
 
 // archiveAllCompleted archives all completed todos
@@ -900,18 +879,7 @@ func (m Model) archiveAllCompleted() Model {
 
 	// After archiving, adjust the view if in focus mode
 	if m.viewMode != Overview && m.viewMode != Inventory {
-		todos := m.currentQuadrantTodos()
-		if m.hideCompleted {
-			todos = filterActive(todos)
-		}
-		if len(todos) == 0 {
-			m.viewMode = Overview
-		} else {
-			if m.selectedTodoIndex >= len(todos) {
-				m.selectedTodoIndex = len(todos) - 1
-			}
-			m = m.rebuildTable()
-		}
+		return m.adjustAfterQuadrantChange()
 	}
 
 	return m
@@ -937,26 +905,7 @@ func (m Model) deleteTodo() Model {
 	}
 
 	m.matrix = updatedMatrix
-
-	// After deleting a todo:
-	// - If the current quadrant is now empty, return to overview
-	// - Otherwise, adjust selection index if needed
-	todos := m.currentQuadrantTodos()
-	if m.hideCompleted {
-		todos = filterActive(todos)
-	}
-	if len(todos) == 0 {
-		m.viewMode = Overview
-	} else {
-		if m.selectedTodoIndex >= len(todos) {
-			// If selected index is now out of bounds, select the last todo
-			m.selectedTodoIndex = len(todos) - 1
-		}
-		// Rebuild table to reflect the change
-		m = m.rebuildTable()
-	}
-
-	return m
+	return m.adjustAfterQuadrantChange()
 }
 
 // getSelectedTodo returns the currently selected todo and its index in the full list
@@ -993,6 +942,23 @@ func (m Model) getSelectedTodo() (selectedTodo todo.Todo, actualIndex int, ok bo
 	return todo.Todo{}, -1, false
 }
 
+// adjustAfterQuadrantChange adjusts the view after a todo is moved, archived, or deleted.
+// If the quadrant is now empty, returns to overview. Otherwise adjusts selection and rebuilds table.
+func (m Model) adjustAfterQuadrantChange() Model {
+	todos := m.currentQuadrantTodos()
+	if m.hideCompleted {
+		todos = filterActive(todos)
+	}
+	if len(todos) == 0 {
+		m.viewMode = Overview
+		return m
+	}
+	if m.selectedTodoIndex >= len(todos) {
+		m.selectedTodoIndex = len(todos) - 1
+	}
+	return m.rebuildTable()
+}
+
 // rebuildTable rebuilds the todo table based on current quadrant
 func (m Model) rebuildTable() Model {
 	if m.viewMode == Overview {
@@ -1022,12 +988,14 @@ func (m Model) View() string {
 
 	// Render based on current view mode
 	switch m.viewMode {
-	case FocusDoFirst:
+	case FocusDoFirst, FocusSchedule, FocusDelegate, FocusEliminate, FocusBacklog:
+		meta := quadrantMeta[m.viewMode]
+		todos := meta.GetTodos(m.matrix)
 		if m.inputMode {
 			content = RenderFocusedQuadrantWithInput(
-				m.matrix.DoFirst(),
-				"Do First",
-				lipgloss.Color("#FF6B6B"),
+				todos,
+				meta.Title,
+				meta.Color,
 				displayPath,
 				m.input,
 				m.allProjects,
@@ -1041,125 +1009,9 @@ func (m Model) View() string {
 			)
 		} else {
 			content = RenderFocusedQuadrantWithTable(
-				m.matrix.DoFirst(),
-				"Do First",
-				lipgloss.Color("#FF6B6B"),
-				displayPath,
-				m.todoTable,
-				m.width,
-				m.height,
-				m.readOnly,
-			)
-		}
-	case FocusSchedule:
-		if m.inputMode {
-			content = RenderFocusedQuadrantWithInput(
-				m.matrix.Schedule(),
-				"Schedule",
-				lipgloss.Color("#4ECDC4"),
-				displayPath,
-				m.input,
-				m.allProjects,
-				m.allContexts,
-				m.showSuggestions,
-				m.suggestions,
-				m.selectedSuggestion,
-				m.width,
-				m.height,
-				m.editMode,
-			)
-		} else {
-			content = RenderFocusedQuadrantWithTable(
-				m.matrix.Schedule(),
-				"Schedule",
-				lipgloss.Color("#4ECDC4"),
-				displayPath,
-				m.todoTable,
-				m.width,
-				m.height,
-				m.readOnly,
-			)
-		}
-	case FocusDelegate:
-		if m.inputMode {
-			content = RenderFocusedQuadrantWithInput(
-				m.matrix.Delegate(),
-				"Delegate",
-				lipgloss.Color("#FFE66D"),
-				displayPath,
-				m.input,
-				m.allProjects,
-				m.allContexts,
-				m.showSuggestions,
-				m.suggestions,
-				m.selectedSuggestion,
-				m.width,
-				m.height,
-				m.editMode,
-			)
-		} else {
-			content = RenderFocusedQuadrantWithTable(
-				m.matrix.Delegate(),
-				"Delegate",
-				lipgloss.Color("#FFE66D"),
-				displayPath,
-				m.todoTable,
-				m.width,
-				m.height,
-				m.readOnly,
-			)
-		}
-	case FocusEliminate:
-		if m.inputMode {
-			content = RenderFocusedQuadrantWithInput(
-				m.matrix.Eliminate(),
-				"Eliminate",
-				lipgloss.Color("#95E1D3"),
-				displayPath,
-				m.input,
-				m.allProjects,
-				m.allContexts,
-				m.showSuggestions,
-				m.suggestions,
-				m.selectedSuggestion,
-				m.width,
-				m.height,
-				m.editMode,
-			)
-		} else {
-			content = RenderFocusedQuadrantWithTable(
-				m.matrix.Eliminate(),
-				"Eliminate",
-				lipgloss.Color("#95E1D3"),
-				displayPath,
-				m.todoTable,
-				m.width,
-				m.height,
-				m.readOnly,
-			)
-		}
-	case FocusBacklog:
-		if m.inputMode {
-			content = RenderFocusedQuadrantWithInput(
-				m.matrix.Backlog(),
-				"Backlog",
-				lipgloss.Color("#888888"),
-				displayPath,
-				m.input,
-				m.allProjects,
-				m.allContexts,
-				m.showSuggestions,
-				m.suggestions,
-				m.selectedSuggestion,
-				m.width,
-				m.height,
-				m.editMode,
-			)
-		} else {
-			content = RenderFocusedQuadrantWithTable(
-				m.matrix.Backlog(),
-				"Backlog",
-				lipgloss.Color("#888888"),
+				todos,
+				meta.Title,
+				meta.Color,
 				displayPath,
 				m.todoTable,
 				m.width,

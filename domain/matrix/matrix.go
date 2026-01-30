@@ -100,7 +100,7 @@ const (
 
 // UpdateTodoAtIndex updates the todo at the given index in the specified quadrant
 func (m Matrix) UpdateTodoAtIndex(quadrant QuadrantType, index int, newTodo todo.Todo) Matrix {
-	todos := m.getTodosForQuadrant(quadrant)
+	todos := m.GetTodosForQuadrant(quadrant)
 
 	if index < 0 || index >= len(todos) {
 		return m
@@ -112,7 +112,7 @@ func (m Matrix) UpdateTodoAtIndex(quadrant QuadrantType, index int, newTodo todo
 
 // EditTodo edits the todo at the given index in the specified quadrant with a new description
 func (m Matrix) EditTodo(quadrant QuadrantType, index int, newDescription string) Matrix {
-	todos := m.getTodosForQuadrant(quadrant)
+	todos := m.GetTodosForQuadrant(quadrant)
 
 	if index < 0 || index >= len(todos) {
 		return m
@@ -130,7 +130,7 @@ func (m Matrix) EditTodo(quadrant QuadrantType, index int, newDescription string
 func (m Matrix) RemoveTodo(todoToRemove todo.Todo) Matrix {
 	quadrants := []QuadrantType{DoFirstQuadrant, ScheduleQuadrant, DelegateQuadrant, EliminateQuadrant, BacklogQuadrant}
 	for _, q := range quadrants {
-		todos := m.getTodosForQuadrant(q)
+		todos := m.GetTodosForQuadrant(q)
 		m = m.setTodosForQuadrant(q, removeFromSlice(todos, todoToRemove))
 	}
 	return m
@@ -153,7 +153,7 @@ func (m Matrix) AllTodos() []todo.Todo {
 	all := make([]todo.Todo, 0)
 	quadrants := []QuadrantType{DoFirstQuadrant, ScheduleQuadrant, DelegateQuadrant, EliminateQuadrant}
 	for _, q := range quadrants {
-		all = append(all, m.getTodosForQuadrant(q)...)
+		all = append(all, m.GetTodosForQuadrant(q)...)
 	}
 	return all
 }
@@ -163,7 +163,7 @@ func (m Matrix) AllTodosIncludingBacklog() []todo.Todo {
 	all := make([]todo.Todo, 0)
 	quadrants := []QuadrantType{DoFirstQuadrant, ScheduleQuadrant, DelegateQuadrant, EliminateQuadrant, BacklogQuadrant}
 	for _, q := range quadrants {
-		all = append(all, m.getTodosForQuadrant(q)...)
+		all = append(all, m.GetTodosForQuadrant(q)...)
 	}
 	return all
 }
@@ -251,7 +251,7 @@ func equalsFold(a, b string) bool {
 // Returns the updated matrix and true if successful, or the original matrix and false if invalid.
 // The now parameter allows deterministic testing and follows dependency inversion.
 func (m Matrix) ToggleCompletionAt(quadrant QuadrantType, index int, now time.Time) (Matrix, bool) {
-	todos := m.getTodosForQuadrant(quadrant)
+	todos := m.GetTodosForQuadrant(quadrant)
 
 	// Validate index
 	if index < 0 || index >= len(todos) {
@@ -270,7 +270,7 @@ func (m Matrix) ToggleCompletionAt(quadrant QuadrantType, index int, now time.Ti
 // Returns the updated matrix and true if successful, or the original matrix and false if invalid/unchanged.
 // Note: Changing priority may move the todo to a different quadrant.
 func (m Matrix) ChangePriorityAt(quadrant QuadrantType, index int, newPriority todo.Priority) (Matrix, bool) {
-	todos := m.getTodosForQuadrant(quadrant)
+	todos := m.GetTodosForQuadrant(quadrant)
 
 	// Validate index
 	if index < 0 || index >= len(todos) {
@@ -294,7 +294,7 @@ func (m Matrix) ChangePriorityAt(quadrant QuadrantType, index int, newPriority t
 // Returns the archived todo, updated matrix, and true if successful.
 // Returns the original matrix and false if the index is invalid or the todo is not completed.
 func (m Matrix) ArchiveTodoAt(quadrant QuadrantType, index int) (todo.Todo, Matrix, bool) {
-	todos := m.getTodosForQuadrant(quadrant)
+	todos := m.GetTodosForQuadrant(quadrant)
 
 	// Validate index
 	if index < 0 || index >= len(todos) {
@@ -315,7 +315,7 @@ func (m Matrix) ArchiveTodoAt(quadrant QuadrantType, index int) (todo.Todo, Matr
 // ArchiveCompletedInQuadrant archives all completed todos in the specified quadrant.
 // Returns the archived todos and the updated matrix.
 func (m Matrix) ArchiveCompletedInQuadrant(quadrant QuadrantType) ([]todo.Todo, Matrix) {
-	todos := m.getTodosForQuadrant(quadrant)
+	todos := m.GetTodosForQuadrant(quadrant)
 	archived := make([]todo.Todo, 0)
 	remaining := make([]todo.Todo, 0)
 
@@ -345,8 +345,8 @@ func (m Matrix) ArchiveAllCompleted() ([]todo.Todo, Matrix) {
 	return allArchived, m
 }
 
-// getTodosForQuadrant is a helper that returns the todos for a given quadrant
-func (m Matrix) getTodosForQuadrant(quadrant QuadrantType) []todo.Todo {
+// GetTodosForQuadrant returns the todos for a given quadrant
+func (m Matrix) GetTodosForQuadrant(quadrant QuadrantType) []todo.Todo {
 	switch quadrant {
 	case DoFirstQuadrant:
 		return m.doFirst
