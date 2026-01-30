@@ -355,6 +355,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.viewMode != Overview && !m.readOnly {
 				m = m.archiveTodo()
 			}
+		case "D":
+			// Bulk archive completed todos (Shift+D)
+			if !m.readOnly {
+				m = m.archiveAllCompleted()
+			}
 		case "h":
 			// Toggle hide/show completed items
 			m.hideCompleted = !m.hideCompleted
@@ -845,6 +850,52 @@ func (m Model) archiveTodo() Model {
 		}
 		// Rebuild table to reflect the change
 		m = m.rebuildTable()
+	}
+
+	return m
+}
+
+// archiveAllCompleted archives all completed todos
+// In overview mode: archives across all quadrants
+// In focus mode: archives only in the current quadrant
+func (m Model) archiveAllCompleted() Model {
+	if m.repo == nil {
+		return m // No-op if no repository configured
+	}
+
+	var updatedMatrix matrix.Matrix
+	var err error
+
+	if m.viewMode == Overview || m.viewMode == Inventory {
+		// Archive all completed todos across all quadrants
+		updatedMatrix, err = usecases.ArchiveAllCompleted(m.repo, m.matrix)
+	} else {
+		// Archive completed todos only in the current quadrant
+		quadrant := m.currentQuadrantType()
+		updatedMatrix, err = usecases.ArchiveCompletedInQuadrant(m.repo, m.matrix, quadrant)
+	}
+
+	if err != nil {
+		// TODO: Show error to user in future story
+		return m
+	}
+
+	m.matrix = updatedMatrix
+
+	// After archiving, adjust the view if in focus mode
+	if m.viewMode != Overview && m.viewMode != Inventory {
+		todos := m.currentQuadrantTodos()
+		if m.hideCompleted {
+			todos = filterActive(todos)
+		}
+		if len(todos) == 0 {
+			m.viewMode = Overview
+		} else {
+			if m.selectedTodoIndex >= len(todos) {
+				m.selectedTodoIndex = len(todos) - 1
+			}
+			m = m.rebuildTable()
+		}
 	}
 
 	return m

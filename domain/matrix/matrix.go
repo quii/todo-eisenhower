@@ -290,6 +290,39 @@ func (m Matrix) ArchiveTodoAt(quadrant QuadrantType, index int) (todo.Todo, Matr
 	return selectedTodo, m.RemoveTodo(selectedTodo), true
 }
 
+// ArchiveCompletedInQuadrant archives all completed todos in the specified quadrant.
+// Returns the archived todos and the updated matrix.
+func (m Matrix) ArchiveCompletedInQuadrant(quadrant QuadrantType) ([]todo.Todo, Matrix) {
+	todos := m.getTodosForQuadrant(quadrant)
+	archived := make([]todo.Todo, 0)
+	remaining := make([]todo.Todo, 0)
+
+	for _, t := range todos {
+		if t.IsCompleted() {
+			archived = append(archived, t)
+		} else {
+			remaining = append(remaining, t)
+		}
+	}
+
+	return archived, m.setTodosForQuadrant(quadrant, remaining)
+}
+
+// ArchiveAllCompleted archives all completed todos across all quadrants.
+// Returns the archived todos and the updated matrix.
+func (m Matrix) ArchiveAllCompleted() ([]todo.Todo, Matrix) {
+	allArchived := make([]todo.Todo, 0)
+	quadrants := []QuadrantType{DoFirstQuadrant, ScheduleQuadrant, DelegateQuadrant, EliminateQuadrant}
+
+	for _, q := range quadrants {
+		archived, updated := m.ArchiveCompletedInQuadrant(q)
+		allArchived = append(allArchived, archived...)
+		m = updated
+	}
+
+	return allArchived, m
+}
+
 // getTodosForQuadrant is a helper that returns the todos for a given quadrant
 func (m Matrix) getTodosForQuadrant(quadrant QuadrantType) []todo.Todo {
 	switch quadrant {

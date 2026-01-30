@@ -196,6 +196,125 @@ func TestMatrix_ArchiveTodoAt(t *testing.T) {
 	})
 }
 
+func TestMatrix_ArchiveCompletedInQuadrant(t *testing.T) {
+	t.Run("archives all completed todos in quadrant", func(t *testing.T) {
+		is := is.New(t)
+
+		active1 := todo.New("Active 1", todo.PriorityA)
+		active2 := todo.New("Active 2", todo.PriorityA)
+		completed1 := todo.New("Completed 1", todo.PriorityA).ToggleCompletion(time.Now())
+		completed2 := todo.New("Completed 2", todo.PriorityA).ToggleCompletion(time.Now())
+		completed3 := todo.New("Completed 3", todo.PriorityA).ToggleCompletion(time.Now())
+
+		m := matrix.New([]todo.Todo{active1, active2, completed1, completed2, completed3})
+
+		archived, updated := m.ArchiveCompletedInQuadrant(matrix.DoFirstQuadrant)
+
+		is.Equal(len(archived), 3)           // should archive 3 completed todos
+		is.Equal(len(updated.DoFirst()), 2)  // should have 2 active todos remaining
+		is.True(!updated.DoFirst()[0].IsCompleted()) // remaining todos are active
+		is.True(!updated.DoFirst()[1].IsCompleted())
+	})
+
+	t.Run("returns empty slice when no completed todos in quadrant", func(t *testing.T) {
+		is := is.New(t)
+
+		active1 := todo.New("Active 1", todo.PriorityA)
+		active2 := todo.New("Active 2", todo.PriorityA)
+
+		m := matrix.New([]todo.Todo{active1, active2})
+
+		archived, updated := m.ArchiveCompletedInQuadrant(matrix.DoFirstQuadrant)
+
+		is.Equal(len(archived), 0)           // nothing to archive
+		is.Equal(len(updated.DoFirst()), 2)  // matrix unchanged
+	})
+
+	t.Run("returns empty slice for empty quadrant", func(t *testing.T) {
+		is := is.New(t)
+
+		m := matrix.New([]todo.Todo{})
+
+		archived, updated := m.ArchiveCompletedInQuadrant(matrix.DoFirstQuadrant)
+
+		is.Equal(len(archived), 0)          // nothing to archive
+		is.Equal(len(updated.DoFirst()), 0) // still empty
+	})
+
+	t.Run("only archives from specified quadrant", func(t *testing.T) {
+		is := is.New(t)
+
+		doFirstCompleted := todo.New("DoFirst Completed", todo.PriorityA).ToggleCompletion(time.Now())
+		scheduleCompleted := todo.New("Schedule Completed", todo.PriorityB).ToggleCompletion(time.Now())
+
+		m := matrix.New([]todo.Todo{doFirstCompleted, scheduleCompleted})
+
+		archived, updated := m.ArchiveCompletedInQuadrant(matrix.DoFirstQuadrant)
+
+		is.Equal(len(archived), 1)                              // only DoFirst completed
+		is.Equal(archived[0].Description(), "DoFirst Completed")
+		is.Equal(len(updated.DoFirst()), 0)                     // DoFirst is empty
+		is.Equal(len(updated.Schedule()), 1)                    // Schedule unchanged
+		is.True(updated.Schedule()[0].IsCompleted())            // Schedule todo still there
+	})
+}
+
+func TestMatrix_ArchiveAllCompleted(t *testing.T) {
+	t.Run("archives all completed todos across all quadrants", func(t *testing.T) {
+		is := is.New(t)
+
+		doFirstActive := todo.New("DoFirst Active", todo.PriorityA)
+		doFirstCompleted1 := todo.New("DoFirst Completed 1", todo.PriorityA).ToggleCompletion(time.Now())
+		doFirstCompleted2 := todo.New("DoFirst Completed 2", todo.PriorityA).ToggleCompletion(time.Now())
+		scheduleCompleted := todo.New("Schedule Completed", todo.PriorityB).ToggleCompletion(time.Now())
+		delegateActive := todo.New("Delegate Active", todo.PriorityC)
+		delegateCompleted1 := todo.New("Delegate Completed 1", todo.PriorityC).ToggleCompletion(time.Now())
+		delegateCompleted2 := todo.New("Delegate Completed 2", todo.PriorityC).ToggleCompletion(time.Now())
+		delegateCompleted3 := todo.New("Delegate Completed 3", todo.PriorityC).ToggleCompletion(time.Now())
+		// Eliminate has no completed todos
+
+		m := matrix.New([]todo.Todo{
+			doFirstActive, doFirstCompleted1, doFirstCompleted2,
+			scheduleCompleted,
+			delegateActive, delegateCompleted1, delegateCompleted2, delegateCompleted3,
+		})
+
+		archived, updated := m.ArchiveAllCompleted()
+
+		is.Equal(len(archived), 6)            // 2 + 1 + 3 = 6 completed todos
+		is.Equal(len(updated.DoFirst()), 1)   // 1 active remains
+		is.Equal(len(updated.Schedule()), 0)  // all were completed
+		is.Equal(len(updated.Delegate()), 1)  // 1 active remains
+		is.Equal(len(updated.Eliminate()), 0) // was empty
+	})
+
+	t.Run("returns empty slice when no completed todos anywhere", func(t *testing.T) {
+		is := is.New(t)
+
+		active1 := todo.New("Active 1", todo.PriorityA)
+		active2 := todo.New("Active 2", todo.PriorityB)
+		active3 := todo.New("Active 3", todo.PriorityC)
+
+		m := matrix.New([]todo.Todo{active1, active2, active3})
+
+		archived, updated := m.ArchiveAllCompleted()
+
+		is.Equal(len(archived), 0)           // nothing to archive
+		is.Equal(len(updated.AllTodos()), 3) // all todos still present
+	})
+
+	t.Run("returns empty slice for empty matrix", func(t *testing.T) {
+		is := is.New(t)
+
+		m := matrix.New([]todo.Todo{})
+
+		archived, updated := m.ArchiveAllCompleted()
+
+		is.Equal(len(archived), 0)           // nothing to archive
+		is.Equal(len(updated.AllTodos()), 0) // still empty
+	})
+}
+
 func TestMatrix_FilterByTag(t *testing.T) {
 	t.Run("filters by project tag", func(t *testing.T) {
 		is := is.New(t)
