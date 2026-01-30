@@ -1,3 +1,13 @@
+---
+allowed-tools:
+  - Bash(git status*)
+  - Bash(git fetch*)
+  - Bash(git tag*)
+  - Bash(git rev-list*)
+  - Bash(git push origin main --tags)
+  - Bash(./check.sh*)
+---
+
 # Release
 
 A skill for creating and pushing releases with semantic versioning.
