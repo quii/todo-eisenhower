@@ -153,7 +153,8 @@ func generateRandomTodo(rng *rand.Rand) todo.Todo {
 	}
 
 	// Use NewFull constructor to include all fields including due date
-	return todo.NewFull(description, priority, completed, completionDate, creationDate, dueDate, projects, contexts)
+	// prioritisedDate is nil for property tests (managed by usecases in real usage)
+	return todo.NewFull(description, priority, completed, completionDate, creationDate, dueDate, nil, projects, contexts)
 }
 
 // randomAlphanumeric generates a random alphanumeric string

@@ -21,7 +21,7 @@ func TestStory022_DisplayDueDateInOverview(t *testing.T) {
 
 	repository := memory.NewRepository()
 	dueDate := time.Date(2026, 1, 25, 0, 0, 0, 0, time.UTC)
-	taskWithDueDate := todo.NewFull("Submit report", todo.PriorityA, false, nil, nil, &dueDate, nil, nil)
+	taskWithDueDate := todo.NewFull("Submit report", todo.PriorityA, false, nil, nil, &dueDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{taskWithDueDate})
 	is.NoErr(err)
@@ -46,7 +46,7 @@ func TestStory022_DisplayOverdueInOverview(t *testing.T) {
 
 	repository := memory.NewRepository()
 	overdueDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
-	overdueTask := todo.NewFull("Overdue task", todo.PriorityA, false, nil, nil, &overdueDate, nil, nil)
+	overdueTask := todo.NewFull("Overdue task", todo.PriorityA, false, nil, nil, &overdueDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{overdueTask})
 	is.NoErr(err)
@@ -72,7 +72,7 @@ func TestStory022_DisplayDueDateInFocusedTable(t *testing.T) {
 
 	repository := memory.NewRepository()
 	dueDate := time.Date(2026, 1, 25, 0, 0, 0, 0, time.UTC)
-	taskWithDueDate := todo.NewFull("Submit report", todo.PriorityA, false, nil, nil, &dueDate, nil, nil)
+	taskWithDueDate := todo.NewFull("Submit report", todo.PriorityA, false, nil, nil, &dueDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{taskWithDueDate})
 	is.NoErr(err)
@@ -101,7 +101,7 @@ func TestStory022_DisplayOverdueInFocusedTable(t *testing.T) {
 
 	repository := memory.NewRepository()
 	overdueDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
-	overdueTask := todo.NewFull("Overdue task", todo.PriorityA, false, nil, nil, &overdueDate, nil, nil)
+	overdueTask := todo.NewFull("Overdue task", todo.PriorityA, false, nil, nil, &overdueDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{overdueTask})
 	is.NoErr(err)
@@ -154,7 +154,7 @@ func TestStory022_DueDateExactlyTodayNotOverdue(t *testing.T) {
 	repository := memory.NewRepository()
 	today := time.Now()
 	todayDate := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, time.UTC)
-	taskDueToday := todo.NewFull("Task due today", todo.PriorityA, false, nil, nil, &todayDate, nil, nil)
+	taskDueToday := todo.NewFull("Task due today", todo.PriorityA, false, nil, nil, &todayDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{taskDueToday})
 	is.NoErr(err)
@@ -182,7 +182,7 @@ func TestStory022_DueDatesInformationalOnly(t *testing.T) {
 	repository := memory.NewRepository()
 	// Low priority task with overdue date - should still be in Eliminate quadrant
 	overdueDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
-	lowPriorityOverdue := todo.NewFull("Low priority task", todo.PriorityD, false, nil, nil, &overdueDate, nil, nil)
+	lowPriorityOverdue := todo.NewFull("Low priority task", todo.PriorityD, false, nil, nil, &overdueDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{lowPriorityOverdue})
 	is.NoErr(err)
@@ -210,6 +210,7 @@ func TestStory022_DueDatesWorkWithTags(t *testing.T) {
 		nil,
 		nil,
 		&dueDate,
+		nil,
 		[]string{"project"},
 		[]string{"context"},
 	)
@@ -271,7 +272,7 @@ func TestStory022_DifferentYearFormatting(t *testing.T) {
 	repository := memory.NewRepository()
 	// Use a date from a different year (2025)
 	dueDate := time.Date(2025, 12, 25, 0, 0, 0, 0, time.UTC)
-	taskWithDifferentYearDueDate := todo.NewFull("Task from past year", todo.PriorityA, false, nil, nil, &dueDate, nil, nil)
+	taskWithDifferentYearDueDate := todo.NewFull("Task from past year", todo.PriorityA, false, nil, nil, &dueDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{taskWithDifferentYearDueDate})
 	is.NoErr(err)
@@ -295,7 +296,7 @@ func TestStory022_DueDateInFocusedInputMode(t *testing.T) {
 
 	repository := memory.NewRepository()
 	dueDate := time.Date(2026, 1, 25, 0, 0, 0, 0, time.UTC)
-	taskWithDueDate := todo.NewFull("Task with due date", todo.PriorityA, false, nil, nil, &dueDate, nil, nil)
+	taskWithDueDate := todo.NewFull("Task with due date", todo.PriorityA, false, nil, nil, &dueDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{taskWithDueDate})
 	is.NoErr(err)

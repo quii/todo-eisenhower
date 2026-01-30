@@ -253,6 +253,28 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 				}
 			}
 
+			// Append due date if present
+			dueDateText, isOverdue := formatDueDateWithOverdue(t.DueDate(), time.Now())
+			if dueDateText != "" {
+				if isOverdue {
+					// Red with ! prefix for overdue
+					overdueStyle := lipgloss.NewStyle().Foreground(overdueColor)
+					todoLine += overdueStyle.Render(fmt.Sprintf(" ! due: %s", dueDateText))
+				} else {
+					// Cyan for upcoming due dates
+					dueDateStyle := lipgloss.NewStyle().Foreground(dueDateColor)
+					todoLine += dueDateStyle.Render(fmt.Sprintf(" due: %s", dueDateText))
+				}
+			}
+
+			// Apply stale background if task is stale
+			if t.IsStale(time.Now()) {
+				staleStyle := lipgloss.NewStyle().
+					Background(StaleBgColor).
+					Width(terminalWidth - 4) // Account for padding
+				todoLine = staleStyle.Render(todoLine)
+			}
+
 			// Highlight selected todo
 			if i == selectedIndex {
 				selectedStyle := lipgloss.NewStyle().
@@ -428,7 +450,12 @@ func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo
 			if t.IsCompleted() {
 				todoLine = completedTodoStyle.Render("✓ ") + description
 			} else {
-				todoLine = activeTodoStyle.Render("• ") + description
+				// Add ! prefix for stale tasks in overview mode
+				prefix := "• "
+				if t.IsStale(time.Now()) {
+					prefix = "! "
+				}
+				todoLine = activeTodoStyle.Render(prefix) + description
 			}
 
 			// Append due date if present
@@ -565,6 +592,12 @@ func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight, selectedIn
 		// Task: description is already clean (tags extracted by parser)
 		// Table will truncate if too long; full description shown in detail pane
 		taskDesc := t.Description()
+
+		// Apply stale background if task is stale
+		if t.IsStale(time.Now()) {
+			staleStyle := lipgloss.NewStyle().Background(StaleBgColor)
+			taskDesc = staleStyle.Render(taskDesc)
+		}
 
 		// Projects: comma-separated list
 		projects := strings.Join(t.Projects(), ", ")

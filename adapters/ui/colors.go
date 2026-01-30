@@ -76,6 +76,12 @@ var (
 	// Due date colors (these are bright enough to work in both modes)
 	dueDateColor = lipgloss.Color("#00CED1") // DarkCyan - for upcoming due dates
 	overdueColor = lipgloss.Color("#FF0000") // Red - for overdue dates
+
+	// Stale task background color
+	StaleBgColor = lipgloss.AdaptiveColor{
+		Light: "#FFE0E0", // Light pink on light background
+		Dark:  "#3A1818", // Dark red/brown on dark background
+	}
 )
 
 // HashColor generates a consistent color for a given tag name

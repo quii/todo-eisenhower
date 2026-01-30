@@ -701,7 +701,7 @@ func TestParseEdit_DueDates(t *testing.T) {
 		is := is.New(t)
 		creationDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
 		dueDate := time.Date(2026, 1, 30, 0, 0, 0, 0, time.UTC)
-		original := todo.NewFull("Original task", todo.PriorityA, false, nil, &creationDate, &dueDate, nil, nil)
+		original := todo.NewFull("Original task", todo.PriorityA, false, nil, &creationDate, &dueDate, nil, nil, nil)
 
 		edited := todotxt.ParseEdit(original, "Updated task without due date", todo.PriorityA)
 
@@ -714,7 +714,7 @@ func TestFormatForInput_DueDates(t *testing.T) {
 	t.Run("includes due date in formatted input", func(t *testing.T) {
 		is := is.New(t)
 		dueDate := time.Date(2026, 1, 25, 0, 0, 0, 0, time.UTC)
-		td := todo.NewFull("Task", todo.PriorityA, false, nil, nil, &dueDate, []string{"project"}, []string{"context"})
+		td := todo.NewFull("Task", todo.PriorityA, false, nil, nil, &dueDate, nil, []string{"project"}, []string{"context"})
 
 		formatted := todotxt.FormatForInput(td)
 
