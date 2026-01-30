@@ -65,6 +65,17 @@ func TestParse(t *testing.T) {
 		assertTodo(is, todos[3], "Clean workspace", todo.PriorityD, false)
 	})
 
+	t.Run("parses priority E for backlog", func(t *testing.T) {
+		is := is.New(t)
+		input := strings.NewReader("(E) Backlog idea for later")
+
+		todos, err := todotxt.Unmarshal(input)
+
+		is.NoErr(err)
+		is.Equal(len(todos), 1)
+		assertTodo(is, todos[0], "Backlog idea for later", todo.PriorityE, false)
+	})
+
 	t.Run("parses empty input", func(t *testing.T) {
 		is := is.New(t)
 		input := strings.NewReader("")

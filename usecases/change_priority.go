@@ -50,6 +50,8 @@ func getTodosForQuadrant(m matrix.Matrix, quadrant matrix.QuadrantType) []todo.T
 		return m.Delegate()
 	case matrix.EliminateQuadrant:
 		return m.Eliminate()
+	case matrix.BacklogQuadrant:
+		return m.Backlog()
 	default:
 		return []todo.Todo{}
 	}
@@ -61,8 +63,8 @@ func needsPrioritisedDateUpdate(oldPriority, newPriority todo.Priority) bool {
 }
 
 func updatePrioritisedDate(m matrix.Matrix, originalTodo todo.Todo, oldPriority, newPriority todo.Priority) matrix.Matrix {
-	// Collect all todos from the matrix
-	allTodos := m.AllTodos()
+	// Collect all todos from the matrix (including backlog)
+	allTodos := m.AllTodosIncludingBacklog()
 
 	// Find and update the todo that matches original
 	var updatedTodos []todo.Todo

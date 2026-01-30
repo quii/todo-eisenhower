@@ -24,6 +24,7 @@ const (
 	FocusSchedule
 	FocusDelegate
 	FocusEliminate
+	FocusBacklog
 	Inventory
 )
 
@@ -136,6 +137,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			case "4":
 				m = m.changeTodoPriority(todo.PriorityD)
+				m.moveMode = false
+				return m, nil
+			case "5":
+				m = m.changeTodoPriority(todo.PriorityE)
 				m.moveMode = false
 				return m, nil
 			case "esc":
@@ -258,6 +263,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "4":
 			// Focus on ELIMINATE quadrant (from Overview or another quadrant)
 			m.viewMode = FocusEliminate
+			m.selectedTodoIndex = 0
+			m = m.rebuildTable()
+		case "5":
+			// Focus on BACKLOG (from Overview or another quadrant)
+			m.viewMode = FocusBacklog
 			m.selectedTodoIndex = 0
 			m = m.rebuildTable()
 		case "0":
@@ -696,6 +706,8 @@ func (m Model) currentQuadrantPriority() todo.Priority {
 		return todo.PriorityC
 	case FocusEliminate:
 		return todo.PriorityD
+	case FocusBacklog:
+		return todo.PriorityE
 	default:
 		return todo.PriorityNone
 	}
@@ -720,6 +732,8 @@ func (m Model) currentQuadrantTodos() []todo.Todo {
 		return displayMatrix.Delegate()
 	case FocusEliminate:
 		return displayMatrix.Eliminate()
+	case FocusBacklog:
+		return displayMatrix.Backlog()
 	default:
 		return []todo.Todo{}
 	}
@@ -736,6 +750,8 @@ func (m Model) currentQuadrantType() matrix.QuadrantType {
 		return matrix.DelegateQuadrant
 	case FocusEliminate:
 		return matrix.EliminateQuadrant
+	case FocusBacklog:
+		return matrix.BacklogQuadrant
 	default:
 		return matrix.DoFirstQuadrant
 	}
@@ -1115,6 +1131,35 @@ func (m Model) View() string {
 				m.matrix.Eliminate(),
 				"Eliminate",
 				lipgloss.Color("#95E1D3"),
+				displayPath,
+				m.todoTable,
+				m.width,
+				m.height,
+				m.readOnly,
+			)
+		}
+	case FocusBacklog:
+		if m.inputMode {
+			content = RenderFocusedQuadrantWithInput(
+				m.matrix.Backlog(),
+				"Backlog",
+				lipgloss.Color("#888888"),
+				displayPath,
+				m.input,
+				m.allProjects,
+				m.allContexts,
+				m.showSuggestions,
+				m.suggestions,
+				m.selectedSuggestion,
+				m.width,
+				m.height,
+				m.editMode,
+			)
+		} else {
+			content = RenderFocusedQuadrantWithTable(
+				m.matrix.Backlog(),
+				"Backlog",
+				lipgloss.Color("#888888"),
 				displayPath,
 				m.todoTable,
 				m.width,

@@ -173,10 +173,12 @@ func RenderMatrixWithFilterHint(m matrix.Matrix, filePath string, terminalWidth,
 	// Add help text with filter instructions
 	// Note: Overview mode help text doesn't include editing commands, so it's the same for read-only and normal mode
 	var helpText string
+	backlogCount := len(m.Backlog())
+	backlogHint := fmt.Sprintf("5: Backlog (%d)", backlogCount)
 	if activeFilter != "" {
-		helpText = renderHelp("1-4 to focus", "c to clear filter", "h to hide/show completed", "i for inventory", "q to quit")
+		helpText = renderHelp("1-4 to focus", backlogHint, "c to clear filter", "h to hide/show completed", "i for inventory", "q to quit")
 	} else {
-		helpText = renderHelp("1-4 to focus", "f to filter", "h to hide/show completed", "i for inventory", "q to quit")
+		helpText = renderHelp("1-4 to focus", backlogHint, "f to filter", "h to hide/show completed", "i for inventory", "q to quit")
 	}
 	output.WriteString(helpText)
 
@@ -787,7 +789,8 @@ func RenderMoveOverlay(terminalWidth, terminalHeight int) string {
 	content += "  1. Do First\n"
 	content += "  2. Schedule\n"
 	content += "  3. Delegate\n"
-	content += "  4. Eliminate\n\n"
+	content += "  4. Eliminate\n"
+	content += "  5. Backlog\n\n"
 
 	content += lipgloss.NewStyle().
 		Foreground(lipgloss.Color("240")).

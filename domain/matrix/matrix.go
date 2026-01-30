@@ -14,6 +14,7 @@ type Matrix struct {
 	schedule  []todo.Todo
 	delegate  []todo.Todo
 	eliminate []todo.Todo
+	backlog   []todo.Todo
 }
 
 // New creates a new Matrix and categorizes the given todos into quadrants
@@ -23,6 +24,7 @@ func New(todos []todo.Todo) Matrix {
 		schedule:  make([]todo.Todo, 0),
 		delegate:  make([]todo.Todo, 0),
 		eliminate: make([]todo.Todo, 0),
+		backlog:   make([]todo.Todo, 0),
 	}
 
 	for _, t := range todos {
@@ -33,6 +35,8 @@ func New(todos []todo.Todo) Matrix {
 			m.schedule = append(m.schedule, t)
 		case todo.PriorityC:
 			m.delegate = append(m.delegate, t)
+		case todo.PriorityE:
+			m.backlog = append(m.backlog, t)
 		case todo.PriorityD, todo.PriorityNone:
 			m.eliminate = append(m.eliminate, t)
 		}
@@ -61,6 +65,11 @@ func (m Matrix) Eliminate() []todo.Todo {
 	return m.eliminate
 }
 
+// Backlog returns todos in the "Backlog" (ideas not yet ready for prioritization)
+func (m Matrix) Backlog() []todo.Todo {
+	return m.backlog
+}
+
 // AddTodo adds a todo to the appropriate quadrant based on its priority
 func (m Matrix) AddTodo(t todo.Todo) Matrix {
 	switch t.Priority() {
@@ -70,6 +79,8 @@ func (m Matrix) AddTodo(t todo.Todo) Matrix {
 		m.schedule = append(m.schedule, t)
 	case todo.PriorityC:
 		m.delegate = append(m.delegate, t)
+	case todo.PriorityE:
+		m.backlog = append(m.backlog, t)
 	case todo.PriorityD, todo.PriorityNone:
 		m.eliminate = append(m.eliminate, t)
 	}
@@ -84,6 +95,7 @@ const (
 	ScheduleQuadrant
 	DelegateQuadrant
 	EliminateQuadrant
+	BacklogQuadrant
 )
 
 // UpdateTodoAtIndex updates the todo at the given index in the specified quadrant
@@ -116,7 +128,7 @@ func (m Matrix) EditTodo(quadrant QuadrantType, index int, newDescription string
 // RemoveTodo removes a todo from the matrix by comparing descriptions
 // Returns a new Matrix without the specified todo
 func (m Matrix) RemoveTodo(todoToRemove todo.Todo) Matrix {
-	quadrants := []QuadrantType{DoFirstQuadrant, ScheduleQuadrant, DelegateQuadrant, EliminateQuadrant}
+	quadrants := []QuadrantType{DoFirstQuadrant, ScheduleQuadrant, DelegateQuadrant, EliminateQuadrant, BacklogQuadrant}
 	for _, q := range quadrants {
 		todos := m.getTodosForQuadrant(q)
 		m = m.setTodosForQuadrant(q, removeFromSlice(todos, todoToRemove))
@@ -136,10 +148,20 @@ func removeFromSlice(todos []todo.Todo, todoToRemove todo.Todo) []todo.Todo {
 	return result
 }
 
-// AllTodos returns all todos from all quadrants
+// AllTodos returns all todos from the Eisenhower quadrants (excludes Backlog)
 func (m Matrix) AllTodos() []todo.Todo {
 	all := make([]todo.Todo, 0)
 	quadrants := []QuadrantType{DoFirstQuadrant, ScheduleQuadrant, DelegateQuadrant, EliminateQuadrant}
+	for _, q := range quadrants {
+		all = append(all, m.getTodosForQuadrant(q)...)
+	}
+	return all
+}
+
+// AllTodosIncludingBacklog returns all todos from all quadrants including Backlog
+func (m Matrix) AllTodosIncludingBacklog() []todo.Todo {
+	all := make([]todo.Todo, 0)
+	quadrants := []QuadrantType{DoFirstQuadrant, ScheduleQuadrant, DelegateQuadrant, EliminateQuadrant, BacklogQuadrant}
 	for _, q := range quadrants {
 		all = append(all, m.getTodosForQuadrant(q)...)
 	}
@@ -334,6 +356,8 @@ func (m Matrix) getTodosForQuadrant(quadrant QuadrantType) []todo.Todo {
 		return m.delegate
 	case EliminateQuadrant:
 		return m.eliminate
+	case BacklogQuadrant:
+		return m.backlog
 	default:
 		return []todo.Todo{}
 	}
@@ -350,6 +374,8 @@ func (m Matrix) setTodosForQuadrant(quadrant QuadrantType, todos []todo.Todo) Ma
 		m.delegate = todos
 	case EliminateQuadrant:
 		m.eliminate = todos
+	case BacklogQuadrant:
+		m.backlog = todos
 	}
 	return m
 }

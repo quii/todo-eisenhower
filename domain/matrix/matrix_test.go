@@ -315,6 +315,79 @@ func TestMatrix_ArchiveAllCompleted(t *testing.T) {
 	})
 }
 
+func TestMatrix_Backlog(t *testing.T) {
+	t.Run("categorizes priority E todos into Backlog", func(t *testing.T) {
+		is := is.New(t)
+		todos := []todo.Todo{
+			todo.New("Idea for later", todo.PriorityE),
+			todo.New("Another idea", todo.PriorityE),
+		}
+
+		m := matrix.New(todos)
+
+		backlog := m.Backlog()
+		is.Equal(len(backlog), 2)
+		assertContainsTodo(is, backlog, "Idea for later")
+		assertContainsTodo(is, backlog, "Another idea")
+	})
+
+	t.Run("backlog is separate from Eisenhower quadrants", func(t *testing.T) {
+		is := is.New(t)
+		todos := []todo.Todo{
+			todo.New("Do first task", todo.PriorityA),
+			todo.New("Backlog idea", todo.PriorityE),
+		}
+
+		m := matrix.New(todos)
+
+		is.Equal(len(m.DoFirst()), 1)
+		is.Equal(len(m.Backlog()), 1)
+		is.Equal(len(m.Eliminate()), 0) // Backlog should NOT go to Eliminate
+	})
+
+	t.Run("AllTodos excludes backlog", func(t *testing.T) {
+		is := is.New(t)
+		todos := []todo.Todo{
+			todo.New("Do first", todo.PriorityA),
+			todo.New("Schedule", todo.PriorityB),
+			todo.New("Backlog idea", todo.PriorityE),
+		}
+
+		m := matrix.New(todos)
+
+		allTodos := m.AllTodos()
+		is.Equal(len(allTodos), 2) // Only Eisenhower quadrants
+		for _, t := range allTodos {
+			is.True(t.Priority() != todo.PriorityE) // No backlog items
+		}
+	})
+
+	t.Run("AllTodosIncludingBacklog includes everything", func(t *testing.T) {
+		is := is.New(t)
+		todos := []todo.Todo{
+			todo.New("Do first", todo.PriorityA),
+			todo.New("Schedule", todo.PriorityB),
+			todo.New("Backlog idea", todo.PriorityE),
+		}
+
+		m := matrix.New(todos)
+
+		allTodos := m.AllTodosIncludingBacklog()
+		is.Equal(len(allTodos), 3) // All todos including backlog
+	})
+
+	t.Run("AddTodo with priority E goes to backlog", func(t *testing.T) {
+		is := is.New(t)
+		m := matrix.New([]todo.Todo{})
+
+		newTodo := todo.New("New idea", todo.PriorityE)
+		m = m.AddTodo(newTodo)
+
+		is.Equal(len(m.Backlog()), 1)
+		is.Equal(len(m.Eliminate()), 0)
+	})
+}
+
 func TestMatrix_FilterByTag(t *testing.T) {
 	t.Run("filters by project tag", func(t *testing.T) {
 		is := is.New(t)

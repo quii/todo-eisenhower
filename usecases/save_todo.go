@@ -14,5 +14,5 @@ type TodoRepository interface {
 }
 
 func saveAllTodos(repo TodoRepository, m matrix.Matrix) error {
-	return repo.SaveAll(m.AllTodos())
+	return repo.SaveAll(m.AllTodosIncludingBacklog())
 }

@@ -14,7 +14,7 @@ import (
 
 var (
 	completedPrefix       = regexp.MustCompile(`^x\s+`)
-	priorityPattern       = regexp.MustCompile(`^\(([A-D])\)\s+`)
+	priorityPattern       = regexp.MustCompile(`^\(([A-E])\)\s+`)
 	datePattern           = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}\s+`)
 	projectPattern        = regexp.MustCompile(`\+(\w+)`)
 	contextPattern        = regexp.MustCompile(`@(\w+)`)
@@ -171,6 +171,8 @@ func parsePriority(p string) todo.Priority {
 		return todo.PriorityC
 	case "D":
 		return todo.PriorityD
+	case "E":
+		return todo.PriorityE
 	default:
 		return todo.PriorityNone
 	}

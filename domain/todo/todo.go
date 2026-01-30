@@ -14,6 +14,7 @@ const (
 	PriorityB
 	PriorityC
 	PriorityD
+	PriorityE
 )
 
 // Todo represents a single todo item
@@ -355,6 +356,8 @@ func (p Priority) String() string {
 		return "C"
 	case PriorityD:
 		return "D"
+	case PriorityE:
+		return "E"
 	default:
 		return ""
 	}
