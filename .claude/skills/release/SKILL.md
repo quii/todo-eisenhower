@@ -3,6 +3,7 @@ allowed-tools:
   - Bash(git status*)
   - Bash(git fetch*)
   - Bash(git tag*)
+  - Bash(git push*)
   - Bash(git rev-list*)
   - Bash(git push origin main --tags)
   - Bash(./check.sh*)
@@ -69,9 +70,9 @@ Ask for confirmation before proceeding.
 
 ### 6. Create and Push Release
 
-Execute these commands:
+Execute these commands (use annotated tag with `-a` and `-m`):
 ```bash
-git tag <new-version>
+git tag -a <new-version> -m "Release <new-version>"
 git push origin main --tags
 ```
 
