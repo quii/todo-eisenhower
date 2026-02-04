@@ -271,9 +271,7 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 
 			// Apply stale background if task is stale
 			if t.IsStale(time.Now()) {
-				staleStyle := lipgloss.NewStyle().
-					Background(StaleBgColor).
-					Width(terminalWidth - 4) // Account for padding
+				staleStyle := lipgloss.NewStyle().Background(StaleBgColor)
 				todoLine = staleStyle.Render(todoLine)
 			}
 
