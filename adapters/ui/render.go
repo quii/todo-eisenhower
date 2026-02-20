@@ -247,7 +247,11 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 					todoLine += dateInfo
 				}
 			} else {
-				todoLine = activeTodoStyle.Render("• ") + description
+				prefix := "• "
+				if t.IsStale(time.Now()) {
+					prefix = "! "
+				}
+				todoLine = activeTodoStyle.Render(prefix) + description
 				// Add creation date for active todos
 				if createdStr := formatDate(t.CreationDate()); createdStr != "" {
 					dateInfo := emptyStyle.Render(fmt.Sprintf(" (added %s)", createdStr))
@@ -267,12 +271,6 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 					dueDateStyle := lipgloss.NewStyle().Foreground(dueDateColor)
 					todoLine += dueDateStyle.Render(fmt.Sprintf(" due: %s", dueDateText))
 				}
-			}
-
-			// Apply stale background if task is stale
-			if t.IsStale(time.Now()) {
-				staleStyle := lipgloss.NewStyle().Background(StaleBgColor)
-				todoLine = staleStyle.Render(todoLine)
 			}
 
 			// Highlight selected todo
@@ -593,10 +591,9 @@ func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight, selectedIn
 		// Table will truncate if too long; full description shown in detail pane
 		taskDesc := t.Description()
 
-		// Apply stale background if task is stale
-		if t.IsStale(time.Now()) {
-			staleStyle := lipgloss.NewStyle().Background(StaleBgColor)
-			taskDesc = staleStyle.Render(taskDesc)
+		// Add stale prefix indicator (background colors bleed in table cells)
+		if t.IsStale(time.Now()) && !t.IsCompleted() {
+			taskDesc = "! " + taskDesc
 		}
 
 		// Projects: comma-separated list
