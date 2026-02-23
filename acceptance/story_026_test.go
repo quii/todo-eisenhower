@@ -27,7 +27,7 @@ func TestStory026_AddingPrioritisedTagWhenCreating(t *testing.T) {
 	prioritisedDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
 
 	// Create task with priority A (Do First)
-	task := todo.NewFull("New urgent task", todo.PriorityA, false, nil, &creationDate, nil, &prioritisedDate, nil, nil)
+	task := todo.NewFull("New urgent task", todo.PriorityA, false, nil, &creationDate, nil, &prioritisedDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -57,7 +57,7 @@ func TestStory026_AddingPrioritisedTagWhenMoving(t *testing.T) {
 	creationDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
 
 	// Create task with priority B (Schedule)
-	task := todo.NewFull("Scheduled task", todo.PriorityB, false, nil, &creationDate, nil, nil, nil, nil)
+	task := todo.NewFull("Scheduled task", todo.PriorityB, false, nil, &creationDate, nil, nil, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -86,7 +86,7 @@ func TestStory026_RemovingPrioritisedTagWhenMoving(t *testing.T) {
 	prioritisedDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
 
 	// Create task with priority A (Do First) and prioritised date
-	task := todo.NewFull("Urgent task", todo.PriorityA, false, nil, &creationDate, nil, &prioritisedDate, nil, nil)
+	task := todo.NewFull("Urgent task", todo.PriorityA, false, nil, &creationDate, nil, &prioritisedDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -115,7 +115,7 @@ func TestStory026_ResettingPrioritisedTagWhenMovingBack(t *testing.T) {
 	prioritisedDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
 
 	// Create task with priority A and old prioritised date
-	task := todo.NewFull("Important task", todo.PriorityA, false, nil, &creationDate, nil, &prioritisedDate, nil, nil)
+	task := todo.NewFull("Important task", todo.PriorityA, false, nil, &creationDate, nil, &prioritisedDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -148,7 +148,7 @@ func TestStory026_DoFirstNotStaleDay1(t *testing.T) {
 	repository := memory.NewRepository()
 	prioritisedDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC) // Tuesday
 
-	task := todo.NewFull("Task", todo.PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil)
+	task := todo.NewFull("Task", todo.PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -165,7 +165,7 @@ func TestStory026_DoFirstNotStaleDay2(t *testing.T) {
 	repository := memory.NewRepository()
 	prioritisedDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC) // Tuesday
 
-	task := todo.NewFull("Task", todo.PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil)
+	task := todo.NewFull("Task", todo.PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -182,7 +182,7 @@ func TestStory026_DoFirstStaleAfter2BusinessDays(t *testing.T) {
 	repository := memory.NewRepository()
 	prioritisedDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC) // Tuesday
 
-	task := todo.NewFull("Task", todo.PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil)
+	task := todo.NewFull("Task", todo.PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -203,7 +203,7 @@ func TestStory026_DoFirstStalenessExcludesWeekends(t *testing.T) {
 	repository := memory.NewRepository()
 	prioritisedDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC) // Thursday
 
-	task := todo.NewFull("Task", todo.PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil)
+	task := todo.NewFull("Task", todo.PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -223,7 +223,7 @@ func TestStory026_DoFirstStaleAfterWeekend(t *testing.T) {
 	repository := memory.NewRepository()
 	prioritisedDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC) // Thursday
 
-	task := todo.NewFull("Task", todo.PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil)
+	task := todo.NewFull("Task", todo.PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -246,7 +246,7 @@ func TestStory026_ScheduleNotStaleWithin5BusinessDays(t *testing.T) {
 	repository := memory.NewRepository()
 	creationDate := time.Date(2026, 1, 13, 0, 0, 0, 0, time.UTC) // Monday
 
-	task := todo.NewFull("Scheduled task", todo.PriorityB, false, nil, &creationDate, nil, nil, nil, nil)
+	task := todo.NewFull("Scheduled task", todo.PriorityB, false, nil, &creationDate, nil, nil, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -263,7 +263,7 @@ func TestStory026_ScheduleStaleAfter5BusinessDays(t *testing.T) {
 	repository := memory.NewRepository()
 	creationDate := time.Date(2026, 1, 13, 0, 0, 0, 0, time.UTC) // Monday
 
-	task := todo.NewFull("Scheduled task", todo.PriorityB, false, nil, &creationDate, nil, nil, nil, nil)
+	task := todo.NewFull("Scheduled task", todo.PriorityB, false, nil, &creationDate, nil, nil, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -284,7 +284,7 @@ func TestStory026_DelegateStalenessExcludesWeekends(t *testing.T) {
 	repository := memory.NewRepository()
 	creationDate := time.Date(2026, 1, 13, 0, 0, 0, 0, time.UTC) // Monday
 
-	task := todo.NewFull("Delegate task", todo.PriorityC, false, nil, &creationDate, nil, nil, nil, nil)
+	task := todo.NewFull("Delegate task", todo.PriorityC, false, nil, &creationDate, nil, nil, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -305,7 +305,7 @@ func TestStory026_EliminateFollowsSameStalenessRules(t *testing.T) {
 	repository := memory.NewRepository()
 	creationDate := time.Date(2026, 1, 13, 0, 0, 0, 0, time.UTC) // Monday
 
-	task := todo.NewFull("Low priority task", todo.PriorityD, false, nil, &creationDate, nil, nil, nil, nil)
+	task := todo.NewFull("Low priority task", todo.PriorityD, false, nil, &creationDate, nil, nil, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -329,7 +329,7 @@ func TestStory026_CompletedDoFirstNeverStale(t *testing.T) {
 	prioritisedDate := time.Date(2026, 1, 13, 0, 0, 0, 0, time.UTC)
 	completionDate := time.Date(2026, 1, 27, 0, 0, 0, 0, time.UTC)
 
-	task := todo.NewFull("Important task", todo.PriorityA, true, &completionDate, nil, nil, &prioritisedDate, nil, nil)
+	task := todo.NewFull("Important task", todo.PriorityA, true, &completionDate, nil, nil, &prioritisedDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -347,7 +347,7 @@ func TestStory026_CompletedScheduleNeverStale(t *testing.T) {
 	creationDate := time.Date(2026, 1, 13, 0, 0, 0, 0, time.UTC)
 	completionDate := time.Date(2026, 2, 2, 0, 0, 0, 0, time.UTC)
 
-	task := todo.NewFull("Old task", todo.PriorityB, true, &completionDate, &creationDate, nil, nil, nil, nil)
+	task := todo.NewFull("Old task", todo.PriorityB, true, &completionDate, &creationDate, nil, nil, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -366,7 +366,7 @@ func TestStory026_TaskCreatedOnFridayNotStaleOnMonday(t *testing.T) {
 	repository := memory.NewRepository()
 	creationDate := time.Date(2026, 1, 16, 0, 0, 0, 0, time.UTC) // Friday
 
-	task := todo.NewFull("Weekend task", todo.PriorityB, false, nil, &creationDate, nil, nil, nil, nil)
+	task := todo.NewFull("Weekend task", todo.PriorityB, false, nil, &creationDate, nil, nil, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -384,7 +384,7 @@ func TestStory026_TaskCreatedTodayNeverStale(t *testing.T) {
 	repository := memory.NewRepository()
 	prioritisedDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
 
-	task := todo.NewFull("New task", todo.PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil)
+	task := todo.NewFull("New task", todo.PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -404,7 +404,7 @@ func TestStory026_VisualStylingForStaleTaskInOverview(t *testing.T) {
 	// Create a task that is stale (3+ business days ago)
 	prioritisedDate := time.Date(2026, 1, 13, 0, 0, 0, 0, time.UTC) // Monday
 
-	task := todo.NewFull("Stale task", todo.PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil)
+	task := todo.NewFull("Stale task", todo.PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)
@@ -434,7 +434,7 @@ func TestStory026_VisualStylingForStaleTaskInFocusMode(t *testing.T) {
 	// Create a task that is stale
 	prioritisedDate := time.Date(2026, 1, 13, 0, 0, 0, 0, time.UTC)
 
-	task := todo.NewFull("Stale focused task", todo.PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil)
+	task := todo.NewFull("Stale focused task", todo.PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil, nil)
 
 	err := repository.SaveAll([]todo.Todo{task})
 	is.NoErr(err)

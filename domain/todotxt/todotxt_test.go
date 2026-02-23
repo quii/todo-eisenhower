@@ -712,7 +712,7 @@ func TestParseEdit_DueDates(t *testing.T) {
 		is := is.New(t)
 		creationDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
 		dueDate := time.Date(2026, 1, 30, 0, 0, 0, 0, time.UTC)
-		original := todo.NewFull("Original task", todo.PriorityA, false, nil, &creationDate, &dueDate, nil, nil, nil)
+		original := todo.NewFull("Original task", todo.PriorityA, false, nil, &creationDate, &dueDate, nil, nil, nil, nil)
 
 		edited := todotxt.ParseEdit(original, "Updated task without due date", todo.PriorityA)
 
@@ -725,7 +725,7 @@ func TestFormatForInput_DueDates(t *testing.T) {
 	t.Run("includes due date in formatted input", func(t *testing.T) {
 		is := is.New(t)
 		dueDate := time.Date(2026, 1, 25, 0, 0, 0, 0, time.UTC)
-		td := todo.NewFull("Task", todo.PriorityA, false, nil, nil, &dueDate, nil, []string{"project"}, []string{"context"})
+		td := todo.NewFull("Task", todo.PriorityA, false, nil, nil, &dueDate, nil, nil, []string{"project"}, []string{"context"})
 
 		formatted := todotxt.FormatForInput(td)
 
@@ -733,6 +733,207 @@ func TestFormatForInput_DueDates(t *testing.T) {
 		is.True(strings.Contains(formatted, "+project"))
 		is.True(strings.Contains(formatted, "@context"))
 		is.True(strings.Contains(formatted, "due:2026-01-25"))
+	})
+}
+
+func TestParse_Recurrence(t *testing.T) {
+	t.Run("parses relative recurrence", func(t *testing.T) {
+		is := is.New(t)
+		input := strings.NewReader("(B) Prep for catchup due:2026-03-09 rec:+2w")
+
+		todos, err := todotxt.Unmarshal(input)
+
+		is.NoErr(err)
+		is.Equal(len(todos), 1)
+		is.Equal(todos[0].Description(), "Prep for catchup")
+		is.True(todos[0].Recurrence() != nil)
+		is.True(todos[0].Recurrence().IsRelative())
+		is.Equal(todos[0].Recurrence().Interval(), 2)
+		is.Equal(todos[0].Recurrence().Unit(), todo.Week)
+	})
+
+	t.Run("parses strict recurrence", func(t *testing.T) {
+		is := is.New(t)
+		input := strings.NewReader("(B) Pay rent due:2026-03-01 rec:1m")
+
+		todos, err := todotxt.Unmarshal(input)
+
+		is.NoErr(err)
+		is.True(todos[0].Recurrence() != nil)
+		is.True(!todos[0].Recurrence().IsRelative())
+		is.Equal(todos[0].Recurrence().Interval(), 1)
+		is.Equal(todos[0].Recurrence().Unit(), todo.Month)
+	})
+
+	t.Run("parses all recurrence units", func(t *testing.T) {
+		cases := []struct {
+			input    string
+			unit     todo.RecurrenceUnit
+			interval int
+		}{
+			{"(A) Task due:2026-03-01 rec:+3d", todo.Day, 3},
+			{"(A) Task due:2026-03-01 rec:+1w", todo.Week, 1},
+			{"(A) Task due:2026-03-01 rec:+2m", todo.Month, 2},
+			{"(A) Task due:2026-03-01 rec:+1y", todo.Year, 1},
+		}
+
+		for _, tc := range cases {
+			is := is.New(t)
+			todos, err := todotxt.Unmarshal(strings.NewReader(tc.input))
+			is.NoErr(err)
+			is.True(todos[0].Recurrence() != nil)
+			is.Equal(todos[0].Recurrence().Unit(), tc.unit)
+			is.Equal(todos[0].Recurrence().Interval(), tc.interval)
+		}
+	})
+
+	t.Run("parses rec case-insensitive", func(t *testing.T) {
+		cases := []string{
+			"(A) Task due:2026-03-01 rec:+2w",
+			"(A) Task due:2026-03-01 Rec:+2w",
+			"(A) Task due:2026-03-01 REC:+2w",
+			"(A) Task due:2026-03-01 rEc:+2W",
+		}
+
+		for _, input := range cases {
+			is := is.New(t)
+			todos, err := todotxt.Unmarshal(strings.NewReader(input))
+			is.NoErr(err)
+			is.True(todos[0].Recurrence() != nil)
+		}
+	})
+
+	t.Run("ignores rec without due date", func(t *testing.T) {
+		is := is.New(t)
+		input := strings.NewReader("(A) Task without due date rec:+2w")
+
+		todos, err := todotxt.Unmarshal(input)
+
+		is.NoErr(err)
+		is.True(todos[0].Recurrence() == nil) // no recurrence without due date
+		is.Equal(todos[0].Description(), "Task without due date") // rec stripped from description
+	})
+
+	t.Run("ignores invalid rec format", func(t *testing.T) {
+		is := is.New(t)
+		input := strings.NewReader("(A) Task due:2026-03-01 rec:invalid")
+
+		todos, err := todotxt.Unmarshal(input)
+
+		is.NoErr(err)
+		is.True(todos[0].Recurrence() == nil) // invalid rec ignored
+	})
+
+	t.Run("strips rec from description", func(t *testing.T) {
+		is := is.New(t)
+		input := strings.NewReader("(B) Task due:2026-03-01 rec:+2w")
+
+		todos, err := todotxt.Unmarshal(input)
+
+		is.NoErr(err)
+		is.Equal(todos[0].Description(), "Task")
+	})
+}
+
+func TestString_Recurrence(t *testing.T) {
+	t.Run("round-trip preserves recurrence", func(t *testing.T) {
+		is := is.New(t)
+		original := "(B) Prep for catchup due:2026-03-09 rec:+2w\n"
+
+		todos, err := todotxt.Unmarshal(strings.NewReader(original))
+		is.NoErr(err)
+		is.True(todos[0].Recurrence() != nil)
+
+		reconstructed := todos[0].String()
+		is.True(strings.Contains(reconstructed, "rec:+2w"))
+
+		todos2, err := todotxt.Unmarshal(strings.NewReader(reconstructed))
+		is.NoErr(err)
+		is.True(todos2[0].Recurrence() != nil)
+		is.Equal(todos2[0].Recurrence().String(), "+2w")
+	})
+
+	t.Run("completed todo does not include rec tag", func(t *testing.T) {
+		is := is.New(t)
+		rec := todo.NewRecurrence(true, 2, todo.Week)
+		dueDate := time.Date(2026, 3, 9, 0, 0, 0, 0, time.UTC)
+		completionDate := time.Date(2026, 3, 9, 0, 0, 0, 0, time.UTC)
+		td := todo.NewFull("Task", todo.PriorityB, true, &completionDate, nil, &dueDate, nil, &rec, nil, nil)
+
+		output := td.String()
+		is.True(!strings.Contains(output, "rec:")) // completed todos should not have rec tag
+	})
+}
+
+func TestParseNew_Recurrence(t *testing.T) {
+	t.Run("parses recurrence from user input", func(t *testing.T) {
+		is := is.New(t)
+		creationDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
+
+		result := todotxt.ParseNew("Prep for catchup due:2026-03-09 rec:+2w", todo.PriorityB, creationDate)
+
+		is.Equal(result.Description(), "Prep for catchup")
+		is.True(result.DueDate() != nil)
+		is.True(result.Recurrence() != nil)
+		is.True(result.Recurrence().IsRelative())
+		is.Equal(result.Recurrence().Interval(), 2)
+		is.Equal(result.Recurrence().Unit(), todo.Week)
+	})
+
+	t.Run("ignores recurrence without due date in user input", func(t *testing.T) {
+		is := is.New(t)
+		creationDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
+
+		result := todotxt.ParseNew("Task rec:+2w", todo.PriorityB, creationDate)
+
+		is.True(result.Recurrence() == nil)
+	})
+}
+
+func TestParseEdit_Recurrence(t *testing.T) {
+	t.Run("adds recurrence via edit", func(t *testing.T) {
+		is := is.New(t)
+		original := todo.NewWithCreationDate("Task", todo.PriorityB, nil)
+
+		edited := todotxt.ParseEdit(original, "Task due:2026-03-09 rec:+2w", todo.PriorityB)
+
+		is.True(edited.Recurrence() != nil)
+		is.Equal(edited.Recurrence().String(), "+2w")
+	})
+
+	t.Run("removes recurrence via edit", func(t *testing.T) {
+		is := is.New(t)
+		rec := todo.NewRecurrence(true, 2, todo.Week)
+		dueDate := time.Date(2026, 3, 9, 0, 0, 0, 0, time.UTC)
+		original := todo.NewFull("Task", todo.PriorityB, false, nil, nil, &dueDate, nil, &rec, nil, nil)
+
+		edited := todotxt.ParseEdit(original, "Task due:2026-03-09", todo.PriorityB)
+
+		is.True(edited.Recurrence() == nil) // recurrence removed
+	})
+}
+
+func TestFormatForInput_Recurrence(t *testing.T) {
+	t.Run("includes recurrence in formatted input", func(t *testing.T) {
+		is := is.New(t)
+		rec := todo.NewRecurrence(true, 2, todo.Week)
+		dueDate := time.Date(2026, 3, 9, 0, 0, 0, 0, time.UTC)
+		td := todo.NewFull("Task", todo.PriorityB, false, nil, nil, &dueDate, nil, &rec, nil, nil)
+
+		formatted := todotxt.FormatForInput(td)
+
+		is.True(strings.Contains(formatted, "due:2026-03-09"))
+		is.True(strings.Contains(formatted, "rec:+2w"))
+	})
+
+	t.Run("no recurrence shows nothing", func(t *testing.T) {
+		is := is.New(t)
+		dueDate := time.Date(2026, 3, 9, 0, 0, 0, 0, time.UTC)
+		td := todo.NewFull("Task", todo.PriorityB, false, nil, nil, &dueDate, nil, nil, nil, nil)
+
+		formatted := todotxt.FormatForInput(td)
+
+		is.True(!strings.Contains(formatted, "rec:"))
 	})
 }
 

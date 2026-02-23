@@ -72,6 +72,7 @@ func updatePrioritisedDate(m matrix.Matrix, originalTodo todo.Todo, oldPriority,
 				t.CreationDate(),
 				t.DueDate(),
 				prioritisedDate,
+				t.Recurrence(),
 				t.Projects(),
 				t.Contexts(),
 			)

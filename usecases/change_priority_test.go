@@ -18,7 +18,7 @@ func TestChangePriority_ManagesPrioritisedDate(t *testing.T) {
 		repo := memory.NewRepository()
 
 		creationDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
-		taskB := todo.NewFull("Task B", todo.PriorityB, false, nil, &creationDate, nil, nil, nil, nil)
+		taskB := todo.NewFull("Task B", todo.PriorityB, false, nil, &creationDate, nil, nil, nil, nil, nil)
 
 		err := repo.SaveAll([]todo.Todo{taskB})
 		is.NoErr(err)
@@ -46,7 +46,7 @@ func TestChangePriority_ManagesPrioritisedDate(t *testing.T) {
 
 		creationDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
 		prioritisedDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
-		taskA := todo.NewFull("Task A", todo.PriorityA, false, nil, &creationDate, nil, &prioritisedDate, nil, nil)
+		taskA := todo.NewFull("Task A", todo.PriorityA, false, nil, &creationDate, nil, &prioritisedDate, nil, nil, nil)
 
 		err := repo.SaveAll([]todo.Todo{taskA})
 		is.NoErr(err)
@@ -73,7 +73,7 @@ func TestChangePriority_ManagesPrioritisedDate(t *testing.T) {
 		repo := memory.NewRepository()
 
 		creationDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
-		taskB := todo.NewFull("Task B", todo.PriorityB, false, nil, &creationDate, nil, nil, nil, nil)
+		taskB := todo.NewFull("Task B", todo.PriorityB, false, nil, &creationDate, nil, nil, nil, nil, nil)
 
 		err := repo.SaveAll([]todo.Todo{taskB})
 		is.NoErr(err)
@@ -101,7 +101,7 @@ func TestChangePriority_ManagesPrioritisedDate(t *testing.T) {
 
 		creationDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
 		dueDate := time.Date(2026, 1, 30, 0, 0, 0, 0, time.UTC)
-		taskB := todo.NewFull("Task B", todo.PriorityB, false, nil, &creationDate, &dueDate, nil, []string{"project"}, []string{"context"})
+		taskB := todo.NewFull("Task B", todo.PriorityB, false, nil, &creationDate, &dueDate, nil, nil, []string{"project"}, []string{"context"})
 
 		err := repo.SaveAll([]todo.Todo{taskB})
 		is.NoErr(err)

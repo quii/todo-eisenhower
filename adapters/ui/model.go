@@ -789,7 +789,7 @@ func (m Model) toggleCompletion() Model {
 
 	// Use the ToggleCompletion usecase
 	quadrant := m.currentQuadrantType()
-	updatedMatrix, err := usecases.ToggleCompletion(m.repo, m.matrix, quadrant, actualIndex)
+	updatedMatrix, err := usecases.ToggleCompletion(m.repo, m.matrix, quadrant, actualIndex, time.Now())
 	if err != nil {
 		// TODO: Show error to user in future story
 		return m

@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"io"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,6 +33,7 @@ var (
 	contextPattern        = regexp.MustCompile(`@(\w+)`)
 	dueDatePattern        = regexp.MustCompile(`(?i)due:(\d{4}-\d{2}-\d{2})`)
 	prioritisedDatePattern = regexp.MustCompile(`(?i)prioritised:(\d{4}-\d{2}-\d{2})`)
+	recPattern             = regexp.MustCompile(`(?i)rec:(\+?\d+[dwmy])`)
 )
 
 // Unmarshal reads todo.txt format from an io.Reader and returns a slice of Todos.
@@ -115,10 +117,6 @@ func parseLine(line string) todo.Todo {
 
 	description = strings.TrimSpace(description)
 
-	// Extract projects and contexts
-	projects := extractTags(description, projectPattern)
-	contexts := extractTags(description, contextPattern)
-
 	// Extract due date (case-insensitive)
 	var dueDate *time.Time
 	if dueDatePattern.MatchString(description) {
@@ -126,6 +124,17 @@ func parseLine(line string) todo.Todo {
 		if len(matches) > 1 {
 			dueDate = parseDate(matches[1])
 		}
+	}
+
+	// Extract recurrence tag (only valid when due date is present)
+	// Must be extracted/removed BEFORE project extraction because rec:+2w contains +2w which matches project pattern
+	var recurrence *todo.Recurrence
+	if recPattern.MatchString(description) {
+		matches := recPattern.FindStringSubmatch(description)
+		if len(matches) > 1 && dueDate != nil {
+			recurrence = parseRecurrence(matches[1])
+		}
+		description = recPattern.ReplaceAllString(description, "")
 	}
 
 	// Extract prioritised date (case-insensitive)
@@ -137,6 +146,10 @@ func parseLine(line string) todo.Todo {
 		}
 	}
 
+	// Extract projects and contexts (after rec removal to avoid +2w matching as project)
+	projects := extractTags(description, projectPattern)
+	contexts := extractTags(description, contextPattern)
+
 	// Remove tags, due date, and prioritised date from description now that they're extracted
 	description = projectPattern.ReplaceAllString(description, "")
 	description = contextPattern.ReplaceAllString(description, "")
@@ -147,7 +160,7 @@ func parseLine(line string) todo.Todo {
 	description = strings.TrimSpace(description)
 
 	// Use the comprehensive constructor with all extracted fields
-	return todo.NewFull(description, priority, completed, completionDate, creationDate, dueDate, prioritisedDate, projects, contexts)
+	return todo.NewFull(description, priority, completed, completionDate, creationDate, dueDate, prioritisedDate, recurrence, projects, contexts)
 }
 
 // extractTags extracts all matching tags using the given pattern
@@ -179,40 +192,105 @@ func parsePriority(p string) todo.Priority {
 	}
 }
 
-// parseDescriptionAndTags extracts clean description, projects, contexts, and due date from user input
-func parseDescriptionAndTags(description string) (cleanDesc string, projects, contexts []string, dueDate, prioritisedDate *time.Time) {
-	// Extract projects and contexts from description
-	projects = extractTags(description, projectPattern)
-	contexts = extractTags(description, contextPattern)
+// parseRecurrence parses a rec: tag value like "+2w" or "1m" into a Recurrence
+func parseRecurrence(s string) *todo.Recurrence {
+	if s == "" {
+		return nil
+	}
+
+	relative := false
+	if s[0] == '+' {
+		relative = true
+		s = s[1:]
+	}
+
+	// Last character is the unit
+	if len(s) < 2 {
+		return nil
+	}
+
+	unitChar := s[len(s)-1]
+	intervalStr := s[:len(s)-1]
+
+	interval, err := strconv.Atoi(intervalStr)
+	if err != nil || interval <= 0 {
+		return nil
+	}
+
+	var unit todo.RecurrenceUnit
+	switch unitChar {
+	case 'd', 'D':
+		unit = todo.Day
+	case 'w', 'W':
+		unit = todo.Week
+	case 'm', 'M':
+		unit = todo.Month
+	case 'y', 'Y':
+		unit = todo.Year
+	default:
+		return nil
+	}
+
+	rec := todo.NewRecurrence(relative, interval, unit)
+	return &rec
+}
+
+// parsedDescription holds the result of parsing a user input description
+type parsedDescription struct {
+	description     string
+	projects        []string
+	contexts        []string
+	dueDate         *time.Time
+	prioritisedDate *time.Time
+	recurrence      *todo.Recurrence
+}
+
+// parseDescriptionAndTags extracts clean description, projects, contexts, due date, and recurrence from user input
+func parseDescriptionAndTags(description string) parsedDescription {
+	var result parsedDescription
 
 	// Extract due date (case-insensitive)
 	if dueDatePattern.MatchString(description) {
 		matches := dueDatePattern.FindStringSubmatch(description)
 		if len(matches) > 1 {
-			dueDate = parseDate(matches[1])
+			result.dueDate = parseDate(matches[1])
 		}
 	}
+
+	// Extract recurrence (only valid when due date is present)
+	// Must be extracted/removed BEFORE project extraction because rec:+2w contains +2w which matches project pattern
+	if recPattern.MatchString(description) {
+		matches := recPattern.FindStringSubmatch(description)
+		if len(matches) > 1 && result.dueDate != nil {
+			result.recurrence = parseRecurrence(matches[1])
+		}
+		description = recPattern.ReplaceAllString(description, "")
+	}
+
+	// Extract projects and contexts (after rec removal to avoid +2w matching as project)
+	result.projects = extractTags(description, projectPattern)
+	result.contexts = extractTags(description, contextPattern)
 
 	// Extract prioritised date (case-insensitive) - but this is ignored in ParseNew/ParseEdit
 	// We extract it here for consistency with file parsing, but ParseNew/ParseEdit should manage it themselves
 	if prioritisedDatePattern.MatchString(description) {
 		matches := prioritisedDatePattern.FindStringSubmatch(description)
 		if len(matches) > 1 {
-			prioritisedDate = parseDate(matches[1])
+			result.prioritisedDate = parseDate(matches[1])
 		}
 	}
 
 	// Remove tags, due date, and prioritised date from description to get clean text
-	cleanDesc = projectPattern.ReplaceAllString(description, "")
+	cleanDesc := projectPattern.ReplaceAllString(description, "")
 	cleanDesc = contextPattern.ReplaceAllString(cleanDesc, "")
 	cleanDesc = dueDatePattern.ReplaceAllString(cleanDesc, "")
 	cleanDesc = prioritisedDatePattern.ReplaceAllString(cleanDesc, "")
 
 	// Clean up extra whitespace
 	cleanDesc = strings.Join(strings.Fields(cleanDesc), " ")
-	cleanDesc = strings.TrimSpace(cleanDesc)
+	result.description = strings.TrimSpace(cleanDesc)
 
-	return cleanDesc, projects, contexts, dueDate, prioritisedDate
+	return result
 }
 
 // ParseNew creates a new todo from user input.
@@ -220,7 +298,7 @@ func parseDescriptionAndTags(description string) (cleanDesc string, projects, co
 // If priority is A (Do First), automatically sets prioritised date to creation date.
 // This is the primary way to create todos from user input in the application.
 func ParseNew(description string, priority todo.Priority, creationDate time.Time) todo.Todo {
-	cleanDesc, projects, contexts, dueDate, _ := parseDescriptionAndTags(description)
+	parsed := parseDescriptionAndTags(description)
 
 	// Set prioritised date for Priority A (Do First quadrant)
 	var prioritisedDate *time.Time
@@ -229,7 +307,7 @@ func ParseNew(description string, priority todo.Priority, creationDate time.Time
 	}
 
 	// Use comprehensive constructor with all extracted fields
-	return todo.NewFull(cleanDesc, priority, false, nil, &creationDate, dueDate, prioritisedDate, projects, contexts)
+	return todo.NewFull(parsed.description, priority, false, nil, &creationDate, parsed.dueDate, prioritisedDate, parsed.recurrence, parsed.projects, parsed.contexts)
 }
 
 // ParseEdit updates a todo from user input while preserving dates and completion status.
@@ -238,7 +316,7 @@ func ParseNew(description string, priority todo.Priority, creationDate time.Time
 // Note: The due date from the new description REPLACES the original due date (it's not preserved from original).
 // Note: The prioritised date is PRESERVED from the original (never changed by editing).
 func ParseEdit(original todo.Todo, newDescription string, priority todo.Priority) todo.Todo {
-	cleanDesc, projects, contexts, dueDate, _ := parseDescriptionAndTags(newDescription)
+	parsed := parseDescriptionAndTags(newDescription)
 
 	// Preserve original dates and completion status
 	creationDate := original.CreationDate()
@@ -247,7 +325,7 @@ func ParseEdit(original todo.Todo, newDescription string, priority todo.Priority
 	isCompleted := original.IsCompleted()
 
 	// Use comprehensive constructor with all fields
-	return todo.NewFull(cleanDesc, priority, isCompleted, completionDate, creationDate, dueDate, prioritisedDate, projects, contexts)
+	return todo.NewFull(parsed.description, priority, isCompleted, completionDate, creationDate, parsed.dueDate, prioritisedDate, parsed.recurrence, parsed.projects, parsed.contexts)
 }
 
 // FormatForInput formats a todo for user input by combining description, tags, and due date.
@@ -269,6 +347,11 @@ func FormatForInput(t todo.Todo) string {
 	if dueDate := t.DueDate(); dueDate != nil {
 		result.WriteString(" due:")
 		result.WriteString(dueDate.Format(DateFormat))
+	}
+
+	if rec := t.Recurrence(); rec != nil {
+		result.WriteString(" rec:")
+		result.WriteString(rec.String())
 	}
 
 	return result.String()

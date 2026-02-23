@@ -273,6 +273,9 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 				}
 			}
 
+			// Append recurrence indicator if present
+			todoLine += formatRecurrenceIndicator(t)
+
 			// Highlight selected todo
 			if i == selectedIndex {
 				selectedStyle := lipgloss.NewStyle().
@@ -369,6 +372,16 @@ func formatDate(date *time.Time) string {
 		// Always use "N days ago" for consistency
 		return fmt.Sprintf("%d days ago", daysDiff)
 	}
+}
+
+// formatRecurrenceIndicator returns a styled recurrence indicator like " [+2w]" or "" if nil
+func formatRecurrenceIndicator(t todo.Todo) string {
+	rec := t.Recurrence()
+	if rec == nil {
+		return ""
+	}
+	recStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#B39DDB"))
+	return recStyle.Render(fmt.Sprintf(" [%s]", rec.String()))
 }
 
 // colorizeDescription replaces project and context tags with colored versions
@@ -469,6 +482,9 @@ func renderQuadrantContent(title string, color lipgloss.Color, todos []todo.Todo
 					todoLine += dueDateStyle.Render(fmt.Sprintf(" due: %s", dueDateText))
 				}
 			}
+
+			// Append recurrence indicator if present
+			todoLine += formatRecurrenceIndicator(t)
 
 			lines = append(lines, todoLine)
 		}
@@ -620,7 +636,7 @@ func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight, selectedIn
 			completed = "-"
 		}
 
-		// Due Date: formatted with overdue indicator
+		// Due Date: formatted with overdue indicator and recurrence
 		dueDateText, isOverdue := formatDueDateWithOverdue(t.DueDate(), time.Now())
 		var dueDate string
 		if dueDateText != "" {
@@ -629,6 +645,10 @@ func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight, selectedIn
 				dueDate = "! " + dueDateText
 			} else {
 				dueDate = dueDateText
+			}
+			// Append recurrence indicator to due date column
+			if rec := t.Recurrence(); rec != nil {
+				dueDate += " [" + rec.String() + "]"
 			}
 		} else {
 			dueDate = "-"
@@ -767,6 +787,20 @@ func renderTodoDetailPane(t todo.Todo, terminalWidth int) string {
 			dueDateStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#00CED1"))
 			details.WriteString(dueDateStyle.Render(dueDateText))
 		}
+		details.WriteString("\n")
+	}
+
+	// Recurrence
+	if rec := t.Recurrence(); rec != nil {
+		details.WriteString(labelStyle.Render("Recurrence: "))
+		recStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#B39DDB"))
+		label := rec.String()
+		if rec.IsRelative() {
+			label += " (relative)"
+		} else {
+			label += " (strict)"
+		}
+		details.WriteString(recStyle.Render(label))
 		details.WriteString("\n")
 	}
 

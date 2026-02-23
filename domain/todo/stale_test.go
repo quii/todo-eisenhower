@@ -95,7 +95,7 @@ func TestIsStale_PriorityA(t *testing.T) {
 		prioritisedDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
 		now := time.Date(2026, 1, 20, 15, 0, 0, 0, time.UTC)
 
-		td := NewFull("Task", PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil)
+		td := NewFull("Task", PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil, nil)
 		is.Equal(td.IsStale(now), false)
 	})
 
@@ -104,7 +104,7 @@ func TestIsStale_PriorityA(t *testing.T) {
 		prioritisedDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC) // Tuesday
 		now := time.Date(2026, 1, 21, 0, 0, 0, 0, time.UTC)             // Wednesday
 
-		td := NewFull("Task", PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil)
+		td := NewFull("Task", PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil, nil)
 		is.Equal(td.IsStale(now), false)
 	})
 
@@ -113,7 +113,7 @@ func TestIsStale_PriorityA(t *testing.T) {
 		prioritisedDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC) // Tuesday
 		now := time.Date(2026, 1, 22, 0, 0, 0, 0, time.UTC)             // Thursday
 
-		td := NewFull("Task", PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil)
+		td := NewFull("Task", PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil, nil)
 		is.Equal(td.IsStale(now), false)
 	})
 
@@ -122,7 +122,7 @@ func TestIsStale_PriorityA(t *testing.T) {
 		prioritisedDate := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC) // Tuesday
 		now := time.Date(2026, 1, 23, 0, 0, 0, 0, time.UTC)             // Friday
 
-		td := NewFull("Task", PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil)
+		td := NewFull("Task", PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil, nil)
 		is.Equal(td.IsStale(now), true)
 	})
 
@@ -131,7 +131,7 @@ func TestIsStale_PriorityA(t *testing.T) {
 		prioritisedDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC) // Thursday
 		now := time.Date(2026, 1, 19, 0, 0, 0, 0, time.UTC)             // Monday (4 calendar days, 2 business days)
 
-		td := NewFull("Task", PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil)
+		td := NewFull("Task", PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil, nil)
 		is.Equal(td.IsStale(now), false) // Only 2 business days
 	})
 
@@ -140,7 +140,7 @@ func TestIsStale_PriorityA(t *testing.T) {
 		prioritisedDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC) // Thursday
 		now := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)             // Tuesday (5 calendar days, 3 business days)
 
-		td := NewFull("Task", PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil)
+		td := NewFull("Task", PriorityA, false, nil, nil, nil, &prioritisedDate, nil, nil, nil)
 		is.Equal(td.IsStale(now), true) // 3 business days > 2
 	})
 
@@ -148,7 +148,7 @@ func TestIsStale_PriorityA(t *testing.T) {
 		is := is.New(t)
 		now := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
 
-		td := NewFull("Task", PriorityA, false, nil, nil, nil, nil, nil, nil)
+		td := NewFull("Task", PriorityA, false, nil, nil, nil, nil, nil, nil, nil)
 		is.Equal(td.IsStale(now), false)
 	})
 }
@@ -161,7 +161,7 @@ func TestIsStale_OtherPriorities(t *testing.T) {
 		creationDate := time.Date(2026, 1, 13, 0, 0, 0, 0, time.UTC) // Monday
 		now := time.Date(2026, 1, 17, 0, 0, 0, 0, time.UTC)          // Friday (4 business days)
 
-		td := NewFull("Task", PriorityB, false, nil, &creationDate, nil, nil, nil, nil)
+		td := NewFull("Task", PriorityB, false, nil, &creationDate, nil, nil, nil, nil, nil)
 		is.Equal(td.IsStale(now), false)
 	})
 
@@ -170,7 +170,7 @@ func TestIsStale_OtherPriorities(t *testing.T) {
 		creationDate := time.Date(2026, 1, 13, 0, 0, 0, 0, time.UTC) // Monday
 		now := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)          // Next Monday (5 business days)
 
-		td := NewFull("Task", PriorityB, false, nil, &creationDate, nil, nil, nil, nil)
+		td := NewFull("Task", PriorityB, false, nil, &creationDate, nil, nil, nil, nil, nil)
 		is.Equal(td.IsStale(now), false) // Exactly 5 is not stale
 	})
 
@@ -179,7 +179,7 @@ func TestIsStale_OtherPriorities(t *testing.T) {
 		creationDate := time.Date(2026, 1, 13, 0, 0, 0, 0, time.UTC) // Monday
 		now := time.Date(2026, 1, 21, 0, 0, 0, 0, time.UTC)          // Tuesday (6 business days)
 
-		td := NewFull("Task", PriorityB, false, nil, &creationDate, nil, nil, nil, nil)
+		td := NewFull("Task", PriorityB, false, nil, &creationDate, nil, nil, nil, nil, nil)
 		is.Equal(td.IsStale(now), true)
 	})
 
@@ -188,7 +188,7 @@ func TestIsStale_OtherPriorities(t *testing.T) {
 		creationDate := time.Date(2026, 1, 13, 0, 0, 0, 0, time.UTC)
 		now := time.Date(2026, 1, 21, 0, 0, 0, 0, time.UTC)
 
-		td := NewFull("Task", PriorityC, false, nil, &creationDate, nil, nil, nil, nil)
+		td := NewFull("Task", PriorityC, false, nil, &creationDate, nil, nil, nil, nil, nil)
 		is.Equal(td.IsStale(now), true)
 	})
 
@@ -197,7 +197,7 @@ func TestIsStale_OtherPriorities(t *testing.T) {
 		creationDate := time.Date(2026, 1, 13, 0, 0, 0, 0, time.UTC)
 		now := time.Date(2026, 1, 21, 0, 0, 0, 0, time.UTC)
 
-		td := NewFull("Task", PriorityD, false, nil, &creationDate, nil, nil, nil, nil)
+		td := NewFull("Task", PriorityD, false, nil, &creationDate, nil, nil, nil, nil, nil)
 		is.Equal(td.IsStale(now), true)
 	})
 
@@ -205,7 +205,7 @@ func TestIsStale_OtherPriorities(t *testing.T) {
 		is := is.New(t)
 		now := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
 
-		td := NewFull("Task", PriorityB, false, nil, nil, nil, nil, nil, nil)
+		td := NewFull("Task", PriorityB, false, nil, nil, nil, nil, nil, nil, nil)
 		is.Equal(td.IsStale(now), false)
 	})
 }
@@ -219,7 +219,7 @@ func TestIsStale_CompletedTasks(t *testing.T) {
 		completionDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
 		now := time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC) // Way in the future
 
-		td := NewFull("Task", PriorityA, true, &completionDate, nil, nil, &prioritisedDate, nil, nil)
+		td := NewFull("Task", PriorityA, true, &completionDate, nil, nil, &prioritisedDate, nil, nil, nil)
 		is.Equal(td.IsStale(now), false)
 	})
 
@@ -229,7 +229,7 @@ func TestIsStale_CompletedTasks(t *testing.T) {
 		completionDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
 		now := time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)
 
-		td := NewFull("Task", PriorityB, true, &completionDate, &creationDate, nil, nil, nil, nil)
+		td := NewFull("Task", PriorityB, true, &completionDate, &creationDate, nil, nil, nil, nil, nil)
 		is.Equal(td.IsStale(now), false)
 	})
 }
@@ -242,7 +242,7 @@ func TestIsStale_NoPriority(t *testing.T) {
 		creationDate := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 		now := time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)
 
-		td := NewFull("Task", PriorityNone, false, nil, &creationDate, nil, nil, nil, nil)
+		td := NewFull("Task", PriorityNone, false, nil, &creationDate, nil, nil, nil, nil, nil)
 		is.Equal(td.IsStale(now), false)
 	})
 }

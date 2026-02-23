@@ -26,13 +26,14 @@ type Todo struct {
 	creationDate    *time.Time // nil if no creation date recorded
 	dueDate         *time.Time // nil if no due date recorded
 	prioritisedDate *time.Time // nil if not Priority A or no prioritised date recorded
+	recurrence      *Recurrence
 	projects        []string
 	contexts        []string
 }
 
 // NewFull is a comprehensive constructor used by the todotxt parser to create todos with all fields
 // This allows the parser to set all fields without needing combinatorial constructors
-func NewFull(description string, priority Priority, completed bool, completionDate, creationDate, dueDate, prioritisedDate *time.Time, projects, contexts []string) Todo {
+func NewFull(description string, priority Priority, completed bool, completionDate, creationDate, dueDate, prioritisedDate *time.Time, recurrence *Recurrence, projects, contexts []string) Todo {
 	if projects == nil {
 		projects = []string{}
 	}
@@ -47,6 +48,7 @@ func NewFull(description string, priority Priority, completed bool, completionDa
 		creationDate:    creationDate,
 		dueDate:         dueDate,
 		prioritisedDate: prioritisedDate,
+		recurrence:      recurrence,
 		projects:        projects,
 		contexts:        contexts,
 	}
@@ -231,6 +233,17 @@ func (t Todo) PrioritisedDate() *time.Time {
 	return t.prioritisedDate
 }
 
+// Recurrence returns the todo's recurrence schedule (nil if not recurring)
+func (t Todo) Recurrence() *Recurrence {
+	return t.recurrence
+}
+
+// WithRecurrence returns a new Todo with the specified recurrence
+func (t Todo) WithRecurrence(r *Recurrence) Todo {
+	t.recurrence = r
+	return t
+}
+
 // Projects returns the todo's project tags
 func (t Todo) Projects() []string {
 	return t.projects
@@ -325,6 +338,7 @@ func (t Todo) ToggleCompletion(now time.Time) Todo {
 		creationDate:    t.creationDate,
 		dueDate:         t.dueDate,
 		prioritisedDate: t.prioritisedDate,
+		recurrence:      t.recurrence,
 		projects:        t.projects,
 		contexts:        t.contexts,
 	}
@@ -340,6 +354,7 @@ func (t Todo) ChangePriority(newPriority Priority) Todo {
 		creationDate:    t.creationDate,
 		dueDate:         t.dueDate,
 		prioritisedDate: t.prioritisedDate,
+		recurrence:      t.recurrence,
 		projects:        t.projects,
 		contexts:        t.contexts,
 	}
@@ -410,6 +425,11 @@ func (t Todo) String() string {
 	// Add due date
 	if t.dueDate != nil {
 		result += " due:" + t.dueDate.Format("2006-01-02")
+	}
+
+	// Add recurrence tag only for active (non-completed) todos
+	if !t.completed && t.recurrence != nil {
+		result += " rec:" + t.recurrence.String()
 	}
 
 	// Add prioritised date
