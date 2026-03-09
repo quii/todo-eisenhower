@@ -212,6 +212,38 @@ func TestStory029_RoundTripPersistence(t *testing.T) {
 	is.Equal(reloaded[0].Projects(), []string{"Work"})
 }
 
+func TestStory029_SuccessorAlwaysCreatedInSchedule(t *testing.T) {
+	// Scenario: Completing a recurring task in DoFirst creates successor in Schedule
+	is := is.New(t)
+
+	repo := memory.NewRepository()
+	now := time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC)
+	dueDate := time.Date(2026, 3, 9, 0, 0, 0, 0, time.UTC)
+	rec := todo.NewRecurrence(true, 1, todo.Week)
+	task := todo.NewFull("Urgent recurring", todo.PriorityA, false, nil, nil, &dueDate, &now, &rec, nil, nil)
+
+	err := repo.SaveAll([]todo.Todo{task})
+	is.NoErr(err)
+
+	m, err := usecases.LoadMatrix(repo)
+	is.NoErr(err)
+
+	updatedMatrix, err := usecases.ToggleCompletion(repo, m, matrix.DoFirstQuadrant, 0, now)
+	is.NoErr(err)
+
+	// Original completed in DoFirst
+	doFirstTodos := updatedMatrix.GetTodosForQuadrant(matrix.DoFirstQuadrant)
+	is.Equal(len(doFirstTodos), 1)
+	is.True(doFirstTodos[0].IsCompleted())
+
+	// Successor created in Schedule, not DoFirst
+	scheduleTodos := updatedMatrix.GetTodosForQuadrant(matrix.ScheduleQuadrant)
+	is.Equal(len(scheduleTodos), 1)
+	is.True(!scheduleTodos[0].IsCompleted())
+	is.Equal(scheduleTodos[0].Priority(), todo.PriorityB)
+	is.True(scheduleTodos[0].Recurrence() != nil)
+}
+
 func TestStory029_CompletedOriginalSavedWithoutRec(t *testing.T) {
 	// Scenario: Completed original is saved without rec: tag
 	is := is.New(t)

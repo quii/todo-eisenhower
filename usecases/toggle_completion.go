@@ -51,21 +51,15 @@ func createSuccessor(m matrix.Matrix, originalTodo todo.Todo, quadrant matrix.Qu
 	// Calculate successor due date
 	nextDue := rec.NextDueDate(*dueDate, now, now)
 
-	// Set prioritised date for Priority A successors
-	var prioritisedDate *time.Time
-	if originalTodo.Priority() == todo.PriorityA {
-		prioritisedDate = &now
-	}
-
-	// Create successor with same properties but new due date and creation date
+	// Create successor in Schedule quadrant - recurring tasks are future work by definition
 	successor := todo.NewFull(
 		originalTodo.Description(),
-		originalTodo.Priority(),
+		todo.PriorityB,
 		false,
 		nil,
 		&now,
 		&nextDue,
-		prioritisedDate,
+		nil,
 		rec,
 		originalTodo.Projects(),
 		originalTodo.Contexts(),

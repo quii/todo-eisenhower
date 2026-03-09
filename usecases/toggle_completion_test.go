@@ -97,7 +97,7 @@ func TestToggleCompletion_RecurringTask(t *testing.T) {
 		is.Equal(successor.Contexts(), []string{"office"})
 	})
 
-	t.Run("successor in same quadrant as original", func(t *testing.T) {
+	t.Run("successor always created in Schedule quadrant", func(t *testing.T) {
 		is := is.New(t)
 		repo := memory.NewRepository()
 		now := time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC)
@@ -109,28 +109,16 @@ func TestToggleCompletion_RecurringTask(t *testing.T) {
 		updatedMatrix, err := usecases.ToggleCompletion(repo, m, matrix.DoFirstQuadrant, 0, now)
 
 		is.NoErr(err)
-		// Successor should be in DoFirst (Priority A)
+		// Completed original stays in DoFirst
 		doFirst := updatedMatrix.GetTodosForQuadrant(matrix.DoFirstQuadrant)
-		is.Equal(len(doFirst), 2)
-		is.True(!doFirst[1].IsCompleted())
-		is.Equal(doFirst[1].Priority(), todo.PriorityA)
-	})
+		is.Equal(len(doFirst), 1)
+		is.True(doFirst[0].IsCompleted())
 
-	t.Run("priority A successor gets prioritised date", func(t *testing.T) {
-		is := is.New(t)
-		repo := memory.NewRepository()
-		now := time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC)
-		dueDate := time.Date(2026, 3, 9, 0, 0, 0, 0, time.UTC)
-		rec := todo.NewRecurrence(true, 1, todo.Day)
-		task := todo.NewFull("Daily standup", todo.PriorityA, false, nil, nil, &dueDate, nil, &rec, nil, nil)
-
-		m := matrix.New([]todo.Todo{task})
-		updatedMatrix, err := usecases.ToggleCompletion(repo, m, matrix.DoFirstQuadrant, 0, now)
-
-		is.NoErr(err)
-		successor := updatedMatrix.GetTodosForQuadrant(matrix.DoFirstQuadrant)[1]
-		is.True(successor.PrioritisedDate() != nil)
-		is.Equal(successor.PrioritisedDate().Format("2006-01-02"), now.Format("2006-01-02"))
+		// Successor created in Schedule (Priority B)
+		schedule := updatedMatrix.GetTodosForQuadrant(matrix.ScheduleQuadrant)
+		is.Equal(len(schedule), 1)
+		is.True(!schedule[0].IsCompleted())
+		is.Equal(schedule[0].Priority(), todo.PriorityB)
 	})
 
 	t.Run("completed original is saved without rec tag", func(t *testing.T) {
