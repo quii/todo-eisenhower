@@ -293,7 +293,7 @@ func RenderFocusedQuadrant(todos []todo.Todo, title string, color lipgloss.Color
 	output.WriteString("\n\n")
 
 	// Render help text at bottom
-	helpText := renderHelp("↑↓/w/s navigate", "Space to toggle", "a to add", "o to open URL", "Press 1-4 to jump", "m to move", "ESC to return")
+	helpText := renderHelp("↑↓/w/s navigate", "Space toggle", "a add", "e edit", "d archive", "⌫ delete", "m move", "o URL", "h hide done", "1-4 jump", "ESC back")
 	centeredHelp := lipgloss.NewStyle().
 		Align(lipgloss.Center).
 		Width(terminalWidth).
@@ -565,7 +565,7 @@ func RenderFocusedQuadrantWithTable(
 		helpText = renderHelp("h to hide/show completed", "1-4 to jump", "ESC to return", "q to quit")
 	} else {
 		// Normal mode: show all commands including editing
-		helpText = renderHelp("a to add", "o to open URL", "h to hide/show completed", "d to archive", "1-4 to jump", "m to move", "ESC to return")
+		helpText = renderHelp("a add", "e edit", "d archive", "⌫ delete", "m move", "Space toggle", "o URL", "h hide done", "1-4 jump", "ESC back")
 	}
 	centeredHelp := lipgloss.NewStyle().
 		Align(lipgloss.Center).

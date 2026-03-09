@@ -71,10 +71,11 @@ func TestStory007_FocusOnDoFirst(t *testing.T) {
 	is.True(strings.Contains(stripANSI(view), "File: test.txt")) // expected focused view to contain file path header
 
 	// Should show help text
-	is.True(strings.Contains(stripANSI(view), "a to add")) // expected focused view to contain help text about adding tasks
-	is.True(strings.Contains(stripANSI(view), "1-4 to jump")) // expected focused view to contain help text about jumping quadrants
-	is.True(strings.Contains(stripANSI(view), "m to move")) // expected focused view to contain help text about moving todos
-	is.True(strings.Contains(stripANSI(view), "ESC to return")) // expected focused view to contain help text about ESC
+	is.True(strings.Contains(stripANSI(view), "a add")) // expected focused view to contain help text about adding tasks
+	is.True(strings.Contains(stripANSI(view), "1-4 jump")) // expected focused view to contain help text about jumping quadrants
+	is.True(strings.Contains(stripANSI(view), "m move")) // expected focused view to contain help text about moving todos
+	is.True(strings.Contains(stripANSI(view), "ESC back")) // expected focused view to contain help text about ESC
+	is.True(strings.Contains(stripANSI(view), "⌫ delete")) // expected focused view to contain help text about deleting todos
 
 	// Should NOT show other quadrant titles
 	is.True(!strings.Contains(stripANSI(view), "Schedule") && !strings.Contains(stripANSI(view), "Delegate") && !strings.Contains(stripANSI(view), "Eliminate")) // focused view should not contain other quadrant titles
@@ -275,7 +276,7 @@ func TestStory007_EmptyQuadrantInFocusMode(t *testing.T) {
 
 	is.True(strings.Contains(stripANSI(view), "Eliminate")) // should show ELIMINATE title
 	is.True(strings.Contains(stripANSI(view), "(no tasks)")) // should show '(no tasks)' for empty quadrant
-	is.True(strings.Contains(stripANSI(view), "m to move")) // should show help text even for empty quadrant
+	is.True(strings.Contains(stripANSI(view), "m move")) // should show help text even for empty quadrant
 }
 
 func TestStory007_DisplayLimitScalesInFocusMode(t *testing.T) {

@@ -38,8 +38,8 @@ func TestStory025_HelpTextShowsOpenURLCommand(t *testing.T) {
 	model = updatedModel.(ui.Model)
 	view := model.View()
 
-	// Then help text should show "o to open URL"
-	is.True(strings.Contains(stripANSI(view), "o to open URL")) // expected help text to show open URL command
+	// Then help text should show "o URL"
+	is.True(strings.Contains(stripANSI(view), "o URL")) // expected help text to show open URL command
 }
 
 func TestStory025_ExtractsSingleURL(t *testing.T) {
