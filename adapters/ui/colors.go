@@ -30,12 +30,14 @@ var tagColors = []string{
 }
 
 // Adaptive color palette - automatically adjusts for light/dark backgrounds
+// TextPrimary deliberately uses the terminal's own default foreground rather
+// than an AdaptiveColor. Background detection (OSC 11) is unreliable through
+// tmux, and a wrong guess renders body text invisible. The terminal's default
+// foreground is always readable.
+var TextPrimary lipgloss.TerminalColor = lipgloss.NoColor{}
+
 var (
 	// Text colors
-	TextPrimary = lipgloss.AdaptiveColor{
-		Light: "#000000", // Black text on light background
-		Dark:  "#FFFFFF", // White text on dark background
-	}
 	TextSecondary = lipgloss.AdaptiveColor{
 		Light: "#666666", // Dark gray on light background
 		Dark:  "#888888", // Light gray on dark background
@@ -60,6 +62,10 @@ var (
 		Light: "#E0E0E0", // Light gray selection on light background
 		Dark:  "#444444", // Dark gray selection on dark background
 	}
+
+	// SelectedStyle highlights the current row by swapping the terminal's
+	// own foreground and background, so it stays legible in any theme.
+	SelectedStyle = lipgloss.NewStyle().Reverse(true).Bold(true)
 
 	// Completed todo color
 	CompletedColor = lipgloss.AdaptiveColor{
@@ -118,9 +124,27 @@ func GradientBackground(text string, startColor, endColor lipgloss.Color) string
 		// Use adaptive text color: black on light backgrounds, white on dark
 		style := lipgloss.NewStyle().
 			Background(bgColor).
-			Foreground(lipgloss.AdaptiveColor{Light: "#000000", Dark: "#FFFFFF"})
+			Foreground(contrastingForeground(c.Hex()))
 		result.WriteString(style.Render(string(ch)))
 	}
 	
 	return result.String()
+}
+
+// contrastingForeground returns black or white, whichever is readable on the
+// given background. Used where we control the background colour, so contrast
+// does not depend on terminal background detection.
+func contrastingForeground(background string) lipgloss.Color {
+	col, err := colorful.Hex(background)
+	if err != nil {
+		return lipgloss.Color("#000000")
+	}
+
+	// WCAG relative luminance: light backgrounds take black text.
+	r, g, b := col.LinearRgb()
+	luminance := 0.2126*r + 0.7152*g + 0.0722*b
+	if luminance > 0.4 {
+		return lipgloss.Color("#000000")
+	}
+	return lipgloss.Color("#FFFFFF")
 }

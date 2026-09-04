@@ -7,3 +7,5 @@ var (
 	IsDueOverdue             = isDueOverdue
 	FormatDueDateWithOverdue = formatDueDateWithOverdue
 )
+
+var ContrastingForeground = contrastingForeground

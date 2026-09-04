@@ -683,10 +683,7 @@ func buildTodoTable(todos []todo.Todo, terminalWidth, terminalHeight, selectedIn
 		BorderForeground(BorderColor).
 		BorderBottom(true).
 		Bold(false)
-	s.Selected = s.Selected.
-		Foreground(TextPrimary).
-		Background(SelectionBg).
-		Bold(true)
+	s.Selected = SelectedStyle
 
 	// Style completed rows with green foreground
 	// Note: The bubbles table doesn't directly support per-row styling,
@@ -714,7 +711,7 @@ func renderTodoDetailPane(t todo.Todo, terminalWidth int) string {
 		Bold(true)
 
 	valueStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.AdaptiveColor{Light: "#000000", Dark: "#FFFFFF"})
+		Foreground(TextPrimary)
 
 	// Border style for the detail pane
 	borderStyle := lipgloss.NewStyle().
@@ -858,9 +855,7 @@ func RenderURLSelectionOverlay(urls []string, selectedIndex, terminalWidth, term
 	for i, url := range urls {
 		var line string
 		if i == selectedIndex {
-			line = lipgloss.NewStyle().
-				Background(SelectionBg).
-				Foreground(TextPrimary).
+			line = SelectedStyle.
 				Padding(0, 1).
 				Render("> " + url)
 		} else {

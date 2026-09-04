@@ -143,7 +143,7 @@ func RenderInventoryDashboard(m matrix.Matrix, width, height int) string {
 
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("#FFFFFF")).
+		Foreground(contrastingForeground("#6366F1")).
 		Background(lipgloss.Color("#6366F1")).
 		Padding(0, 2).
 		MarginBottom(1)

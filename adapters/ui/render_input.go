@@ -221,13 +221,14 @@ func renderAutocomplete(suggestions []string, selectedIndex int, trigger, partia
 		color := HashColor(suggestion)
 
 		if i == selectedIndex {
-			// Highlighted suggestion
+			// Highlighted suggestion. Marked with an arrow rather than a
+			// background colour so the tag colour stays legible in any theme.
 			suggestionStyle := lipgloss.NewStyle().
 				Foreground(color).
-				Background(SelectionBg).
 				Bold(true).
+				Underline(true).
 				Padding(0, 1)
-			lines = append(lines, suggestionStyle.Render(displayText))
+			lines = append(lines, "›"+suggestionStyle.Render(displayText))
 		} else {
 			// Regular suggestion
 			suggestionStyle := lipgloss.NewStyle().
