@@ -108,13 +108,14 @@ func renderFilterAutocomplete(suggestions []string, selectedIndex, width int) st
 		}
 
 		if i == selectedIndex {
-			// Highlighted suggestion
+			// Highlighted suggestion. Marked with an arrow rather than a
+			// background colour so the tag colour stays legible in any theme.
 			suggestionStyle := lipgloss.NewStyle().
 				Foreground(color).
-				Background(SelectionBg).
 				Bold(true).
+				Underline(true).
 				Padding(0, 1)
-			lines = append(lines, suggestionStyle.Render(suggestion))
+			lines = append(lines, "›"+suggestionStyle.Render(suggestion))
 		} else {
 			// Regular suggestion
 			suggestionStyle := lipgloss.NewStyle().

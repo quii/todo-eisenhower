@@ -17,9 +17,11 @@ import (
 const DateFormat = "2006-01-02"
 
 // parseDate parses a date string in DateFormat and returns a pointer to the time.
+// Dates in todo.txt are calendar dates with no time or zone, so they are parsed
+// in the local location - "2026-07-10" means that day where the user is.
 // Returns nil if the string cannot be parsed.
 func parseDate(s string) *time.Time {
-	if t, err := time.Parse(DateFormat, s); err == nil {
+	if t, err := time.ParseInLocation(DateFormat, s, time.Local); err == nil {
 		return &t
 	}
 	return nil
