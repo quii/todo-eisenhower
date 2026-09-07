@@ -6,7 +6,7 @@ go test ./...
 
 echo ""
 echo "Running linter..."
-~/go/bin/golangci-lint run
+go tool golangci-lint run
 
 echo ""
 echo "✓ All checks passed!"

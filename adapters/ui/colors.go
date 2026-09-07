@@ -29,7 +29,6 @@ var tagColors = []string{
 	"#FFD6A5", // Light orange
 }
 
-// Adaptive color palette - automatically adjusts for light/dark backgrounds
 // TextPrimary deliberately uses the terminal's own default foreground rather
 // than an AdaptiveColor. Background detection (OSC 11) is unreliable through
 // tmux, and a wrong guess renders body text invisible. The terminal's default
