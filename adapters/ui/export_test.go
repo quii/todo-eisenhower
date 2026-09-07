@@ -9,3 +9,5 @@ var (
 )
 
 var ContrastingForeground = contrastingForeground
+
+var FormatDate = formatDate

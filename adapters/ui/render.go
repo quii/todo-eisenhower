@@ -357,8 +357,10 @@ func formatDate(date *time.Time) string {
 	}
 
 	now := time.Now()
-	// Normalize both to start of day for comparison
-	dateDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+	// Normalize both to start of day in the same location. The date is a
+	// calendar date, so its day is reinterpreted here rather than converted -
+	// a different zone would otherwise shift the difference by its offset.
+	dateDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, now.Location())
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 
 	daysDiff := int(today.Sub(dateDay).Hours() / 24)
